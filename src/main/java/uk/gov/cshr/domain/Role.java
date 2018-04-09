@@ -8,9 +8,10 @@ public class Role {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(length = 100)
+    @Column(length = 100, unique = true)
     private String name;
 
+    @Column
     private String description;
 
     protected Role() {
