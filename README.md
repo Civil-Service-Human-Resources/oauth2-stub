@@ -73,11 +73,11 @@ Will respond like
 }
 ```
 
-## Retrieving user information from an access token
+## Retrieving identity information from an access token
 
 ```
 curl -X POST \
-  https://{SERVER URL:SERVER PORT}/user \
+  https://{SERVER URL:SERVER PORT}/identity \
   -H 'Authorization: {BASIC AUTH}' \
   -H 'Cache-Control: no-cache' \
   -H 'content-type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW' \

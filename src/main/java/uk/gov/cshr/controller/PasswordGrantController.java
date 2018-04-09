@@ -13,10 +13,10 @@ import uk.gov.cshr.Application;
 import uk.gov.cshr.config.ClientDetails;
 import uk.gov.cshr.domain.AccessToken;
 import uk.gov.cshr.domain.Client;
-import uk.gov.cshr.domain.User;
+import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.dto.AccessTokenDTO;
 import uk.gov.cshr.service.AccessTokenService;
-import uk.gov.cshr.service.UserService;
+import uk.gov.cshr.service.IdentityService;
 
 @RestController
 @RequestMapping("/oauth2")
@@ -28,7 +28,7 @@ public class PasswordGrantController {
     private AccessTokenService accessTokenService;
 
     @Autowired
-    private UserService userService;
+    private IdentityService identityService;
 
     @RequestMapping(value = "/token", method = RequestMethod.POST)
     public AccessTokenDTO handlePasswordGrant(
@@ -42,14 +42,14 @@ public class PasswordGrantController {
             throw new BadCredentialsException("Invalid grant type");
         }
 
-        User foundUser = userService.findActiveUser(username);
+        Identity foundIdentity = identityService.findActiveIdentity(username);
 
-        if (foundUser == null) {
-            log.info("Couldn't find user ${username}");
+        if (foundIdentity == null) {
+            log.info("Couldn't find identity ${username}");
             throw new BadCredentialsException("Invalid credentials");
         }
 
-        if (!userService.isValidCredentials(foundUser, password)) {
+        if (!identityService.isValidCredentials(foundIdentity, password)) {
             log.info("Invalid credentials");
             throw new BadCredentialsException("Invalid credentials");
         }
@@ -57,7 +57,7 @@ public class PasswordGrantController {
         Client client = ((ClientDetails) authentication.getPrincipal()).getClient();
         log.info("Got valid client");
 
-        AccessToken accessToken = accessTokenService.generateAccessToken(foundUser, client);
+        AccessToken accessToken = accessTokenService.generateAccessToken(foundIdentity, client);
 
         log.info("Issues a valid token", accessToken);
         return new AccessTokenDTO(

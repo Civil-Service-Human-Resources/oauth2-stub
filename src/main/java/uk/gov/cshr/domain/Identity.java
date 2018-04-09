@@ -5,7 +5,7 @@ import javax.validation.constraints.Email;
 import java.util.Set;
 
 @Entity
-public class User {
+public class Identity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
@@ -25,10 +25,10 @@ public class User {
     @ManyToMany
     private Set<Role> roles;
 
-    protected User() {
+    protected Identity() {
     }
 
-    public User(String uid, String email, String password, boolean active, Set<Role> roles) {
+    public Identity(String uid, String email, String password, boolean active, Set<Role> roles) {
         this.uid = uid;
         this.email = email;
         this.password = password;
@@ -54,7 +54,7 @@ public class User {
 
     @Override
     public String toString() {
-        return "User{" +
+        return "Identity{" +
                 "id=" + id +
                 ", uid='" + uid + '\'' +
                 ", email='" + email + '\'' +

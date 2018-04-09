@@ -6,12 +6,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class UserDTO {
+public class IdentityDTO {
     private String username;
     private String uid;
     private List<String> roles = new ArrayList<>();
 
-    public UserDTO(String username, String uid, Set<Role> roles) {
+    public IdentityDTO(String username, String uid, Set<Role> roles) {
         this.username = username;
         this.uid = uid;
         roles.forEach(role -> this.roles.add(role.getName()));
