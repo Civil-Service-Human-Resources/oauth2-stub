@@ -25,7 +25,7 @@ public class AccessToken {
     private LocalDateTime expiresAt;
 
     @OneToOne
-    private User user;
+    private Identity identity;
 
     @OneToOne
     private Client client;
@@ -33,11 +33,11 @@ public class AccessToken {
     protected AccessToken() {
     }
 
-    public AccessToken(String token, LocalDateTime createdAt, LocalDateTime expiresAt, User user, Client client) {
+    public AccessToken(String token, LocalDateTime createdAt, LocalDateTime expiresAt, Identity identity, Client client) {
         this.token = token;
         this.createdAt = createdAt;
         this.expiresAt = expiresAt;
-        this.user = user;
+        this.identity = identity;
         this.client = client;
         this.status = TokenStatus.active;
     }
@@ -46,8 +46,8 @@ public class AccessToken {
         return token;
     }
 
-    public User getUser() {
-        return user;
+    public Identity getIdentity() {
+        return identity;
     }
 
     public Long getExpiresInMinutes() {
@@ -62,7 +62,7 @@ public class AccessToken {
                 ", status=" + status +
                 ", createdAt=" + createdAt +
                 ", expiresAt=" + expiresAt +
-                ", user=" + user +
+                ", identity=" + identity +
                 ", client=" + client +
                 '}';
     }

@@ -6,8 +6,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.cshr.domain.AccessToken;
 import uk.gov.cshr.domain.Client;
+import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.TokenStatus;
-import uk.gov.cshr.domain.User;
 import uk.gov.cshr.exception.ResourceNotFoundException;
 import uk.gov.cshr.repository.AccessTokenRepository;
 
@@ -23,13 +23,13 @@ public class AccessTokenServiceImpl implements AccessTokenService {
     private AccessTokenRepository accessTokenRepository;
 
     @Override
-    public AccessToken generateAccessToken(User user, Client client) {
+    public AccessToken generateAccessToken(Identity identity, Client client) {
         LocalDateTime now = LocalDateTime.now();
         AccessToken accessToken = new AccessToken(
                 RandomStringUtils.random(42, true, true),
                 now,
                 now.plusMinutes(expiryInMinutes),
-                user,
+                identity,
                 client
         );
         return accessTokenRepository.save(accessToken);
