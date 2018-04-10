@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="default">
+<head>
+    <title>Management</title>
+
+</head>
+<body>
+<div layout:fragment="content">
+    <form>
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Delete</th>
+            </tr>
+            <tr>
+                <td>John</td>
+                <td>Admin</td>
+                <!-- input id is the userID -->
+                <td><input id="001" type="checkbox" name="deleteUser"></td>
+            </tr>
+            <tr>
+                <td>Tom</td>
+                <td>User</td>
+                <td><input id="002" type="checkbox" name="deleteUser"></td>
+            </tr>
+        </table>
+    </form>
+</div>
+</body>
+</html>
