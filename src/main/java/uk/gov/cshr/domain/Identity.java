@@ -22,7 +22,7 @@ public class Identity {
 
     private boolean active;
 
-    @ManyToMany(cascade = CascadeType.ALL, mappedBy = "identities")
+    @ManyToMany(cascade = CascadeType.ALL, mappedBy = "identities", fetch = FetchType.EAGER)
     private Set<Role> roles;
 
     protected Identity() {

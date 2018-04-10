@@ -1,22 +1,27 @@
 package uk.gov.cshr.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.oauth2.provider.ClientRegistrationException;
+import org.springframework.stereotype.Service;
 import uk.gov.cshr.config.ClientDetails;
 import uk.gov.cshr.domain.Client;
 import uk.gov.cshr.repository.ClientRepository;
 
-public class ClientDetailsService implements UserDetailsService {
-    @Autowired
+@Service
+public class ClientDetailsService implements org.springframework.security.oauth2.provider.ClientDetailsService {
+
     private ClientRepository clientRepository;
 
+    @Autowired
+    public ClientDetailsService(ClientRepository clientRepository) {
+        this.clientRepository = clientRepository;
+    }
+
     @Override
-    public UserDetails loadUserByUsername(String uid) throws UsernameNotFoundException {
-        Client client = clientRepository.findFirstByActiveTrueAndUidEquals(uid);
+    public org.springframework.security.oauth2.provider.ClientDetails loadClientByClientId(String clientId) throws ClientRegistrationException {
+        Client client = clientRepository.findFirstByActiveTrueAndUidEquals(clientId);
         if (client == null) {
-            throw new UsernameNotFoundException(uid);
+            throw new ClientRegistrationException("No client found with ID " + clientId);
         }
         return new ClientDetails(client);
     }

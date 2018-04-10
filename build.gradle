@@ -29,6 +29,11 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 dependencies {
+
+    compile group: 'com.sun.xml.bind', name: 'jaxb-impl', version: '2.1.2'
+    compile group: 'javax.activation', name: 'activation', version: '1.1'
+    compile group: 'javax.xml', name: 'jaxb-api', version: '2.1'
+
     // https://mvnrepository.com/artifact/org.springframework.data/spring-data-jpa
     compile group: 'org.springframework.data', name: 'spring-data-jpa', version: '2.0.5.RELEASE'
 
@@ -52,6 +57,8 @@ dependencies {
     // https://mvnrepository.com/artifact/org.springframework.security/spring-security-config
     compile group: 'org.springframework.security', name: 'spring-security-config', version: '5.0.3.RELEASE'
 
+    compile group: 'org.springframework.security.oauth', name: 'spring-security-oauth2', version: '2.3.0.RELEASE'
+
     // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-thymeleaf
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf', version: '2.0.1.RELEASE'
 
@@ -59,20 +66,13 @@ dependencies {
     compile group: 'commons-lang', name: 'commons-lang', version: '2.6'
 
     // https://mvnrepository.com/artifact/mysql/mysql-connector-java
-    //compile group: 'mysql', name: 'mysql-connector-java', version: '8.0.8-dmr'
-
-    // https://mvnrepository.com/artifact/javax.xml/jaxb-api
-    //compile group: 'javax.xml', name: 'jaxb-api', version: '2.1'
+    compile group: 'mysql', name: 'mysql-connector-java', version: '8.0.8-dmr'
 
     // https://mvnrepository.com/artifact/org.apache.commons/commons-dbcp2
-   // compile group: 'org.apache.commons', name: 'commons-dbcp2', version: '2.2.0'
+    compile group: 'org.apache.commons', name: 'commons-dbcp2', version: '2.2.0'
 
     // https://www.webjars.org/
     compile group: 'org.webjars', name: 'bootstrap', version:'4.0.0-2'
 
     testCompile("junit:junit")
-
-    // https://mvnrepository.com/artifact/org.springframework/spring-test
-    testCompile("org.springframework.boot:spring-boot-starter-test")
-
 }

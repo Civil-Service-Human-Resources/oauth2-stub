@@ -1,16 +1,20 @@
+
 accessToken:
   expiryInMinutes: 1440
 
-#spring:
-#  datasource:
-#    url: ${DATASOURCE:jdbc:mysql://localhost:3306/oauth2?user=root&password=secret&useSSL=false}
-#    initialization-mode: always
-#  jpa:
-#    hibernate:
-#      ddl-auto: update
-#    properties:
-#      hibernate:
-#        dialect: org.hibernate.dialect.MySQL5Dialect
-#        enable_lazy_load_no_trans: true
-#
+---
+
+spring:
+  profiles: production
+  datasource:
+    url: ${DATASOURCE:jdbc:mysql://localhost:3306/oauth2?user=root&password=secret&useSSL=false}
+    initialization-mode: always
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL5Dialect
+        enable_lazy_load_no_trans: true
+
 
