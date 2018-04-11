@@ -19,6 +19,7 @@ import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import uk.gov.cshr.repository.ClientRepository;
 import uk.gov.cshr.repository.IdentityRepository;
+import uk.gov.cshr.repository.TokenRepository;
 import uk.gov.cshr.service.security.ClientDetailsService;
 import uk.gov.cshr.service.security.IdentityService;
 
@@ -34,6 +35,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private IdentityRepository identityRepository;
+
+    @Autowired
+    private TokenRepository tokenRepository;
 
     @Bean
     public ClientDetailsService clientDetailsService() {
@@ -77,8 +81,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 
     @Bean
-    public TokenStore tokenStore(DataSource dataSource) {
-        return new JdbcTokenStore(dataSource);
+    public TokenStore tokenStore() {
+        return new uk.gov.cshr.service.security.TokenStore(tokenRepository);
     }
 
     @Bean

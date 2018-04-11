@@ -50,7 +50,7 @@ public class ClientDetails implements org.springframework.security.oauth2.provid
 
     @Override
     public Set<String> getAuthorizedGrantTypes() {
-        return null;
+        return singleton("password");
     }
 
     @Override

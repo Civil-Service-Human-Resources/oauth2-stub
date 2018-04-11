@@ -2,10 +2,12 @@ package uk.gov.cshr.domain;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
+import java.io.Serializable;
 import java.util.Set;
 
 @Entity
-public class Identity {
+public class Identity implements Serializable {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
