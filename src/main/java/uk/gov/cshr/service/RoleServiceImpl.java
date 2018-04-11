@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.repository.RoleRepository;
 
+import java.util.Optional;
+
 @Service
 public class RoleServiceImpl implements RoleService {
 
@@ -18,7 +20,7 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public Role updateRole(Role role) {
-        return null;
+        return roleRepository.save(role);
     }
 
     @Override
@@ -34,5 +36,10 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public Iterable<Role> findAll() {
         return roleRepository.findAll();
+    }
+
+    @Override
+    public Optional<Role> getRole(Long id) {
+        return roleRepository.findById(id);
     }
 }

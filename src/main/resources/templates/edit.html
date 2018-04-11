@@ -1,0 +1,14 @@
+<page th:replace="fragments/layout :: page(~{::title},~{::content})">
+    <title>Edit Role</title>
+
+    <content>
+        <h1>Edit Role</h1>
+
+        <form action="#" th:action="@{/management/roles/edit}" th:object="${role}" method="POST">
+            <input type="hidden" th:field="*{id}" /></p>
+            <p>Name: <input type="text" th:field="*{name}" /></p>
+            <p>Description: <input type="text" th:field="*{description}" /></p>
+            <p><input type="submit" value="Update" /></p>
+        </form>
+    </content>
+</page>

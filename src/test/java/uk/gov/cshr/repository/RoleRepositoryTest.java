@@ -26,7 +26,7 @@ public class RoleRepositoryTest {
 
         repository.save(role);
 
-        assertThat(role.getRoleId(), notNullValue());
+        assertThat(role.getId(), notNullValue());
         assertThat(role.getName(), equalTo("name"));
         assertThat(role.getDescription(), equalTo("description"));
     }

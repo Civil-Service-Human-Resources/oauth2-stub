@@ -11,7 +11,7 @@
             <tr th:each="role : ${roles}">
                 <td th:text="${role.name}"></td>
                 <td th:text="${role.description}"></td>
-                <td><a th:href="@{|/management/roles/edit/${role.roleId}|}">Edit</a></td>
+                <td><a th:href="@{|/management/roles/edit/${role.id}|}">Edit</a></td>
             </tr>
         </table>
         <form action="#" th:action="@{/management/roles/create}" th:object="${role}" method="post">
