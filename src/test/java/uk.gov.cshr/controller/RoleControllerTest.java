@@ -13,7 +13,7 @@ import uk.gov.cshr.repository.RoleRepository;
 
 import java.util.Optional;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -35,7 +35,8 @@ public class RoleControllerTest {
     @Test
     public void shouldLoadRolesSuccessfully() throws Exception {
         this.mockMvc.perform(get("/management/roles"))
-                .andExpect(status().is2xxSuccessful());
+                .andExpect(status().is2xxSuccessful())
+                .andDo(print());
     }
 
     @Test
@@ -54,6 +55,5 @@ public class RoleControllerTest {
         assertThat(role, notNullValue());
         assertThat(role.get().getName(), equalTo("User"));
         assertThat(role.get().getDescription(), equalTo("User's role"));
-
     }
 }
