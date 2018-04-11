@@ -22,6 +22,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         entryPoint.setRealmName("Oauth 2");
 
         http.csrf().disable().authorizeRequests()
+                .antMatchers("/management/**").permitAll()
                 .anyRequest().authenticated()
                 .and().httpBasic()
                 .authenticationEntryPoint(entryPoint);
