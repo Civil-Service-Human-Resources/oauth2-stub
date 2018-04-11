@@ -1,9 +1,8 @@
-package uk.gov.cshr.service;
+package uk.gov.cshr.service.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.stereotype.Service;
-import uk.gov.cshr.config.ClientDetails;
 import uk.gov.cshr.domain.Client;
 import uk.gov.cshr.repository.ClientRepository;
 
