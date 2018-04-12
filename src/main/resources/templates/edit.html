@@ -6,9 +6,20 @@
 
         <form action="#" th:action="@{/management/roles/edit}" th:object="${role}" method="POST">
             <input type="hidden" th:field="*{id}" /></p>
-            <p>Name: <input type="text" th:field="*{name}" /></p>
-            <p>Description: <input type="text" th:field="*{description}" /></p>
-            <p><input type="submit" value="Update" /></p>
+
+            <table class="table">
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Action</th>
+                </tr>
+                <tr>
+                    <td><input type="text" th:field="*{name}" /></td>
+                    <td><input type="text" th:field="*{description}" /></td>
+                    <td><button type="submit" class="btn btn-primary">Update</button></td>
+                </tr>
+            </table>
+
         </form>
     </content>
 </page>

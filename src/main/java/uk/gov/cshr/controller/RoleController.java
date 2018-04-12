@@ -44,7 +44,6 @@ public class RoleController {
         if (optionalRole.isPresent()){
              Role role = optionalRole.get();
             model.addAttribute("role", role);
-            System.out.println("got role role {}"+ role.toString());
             return "edit";
         }
 
