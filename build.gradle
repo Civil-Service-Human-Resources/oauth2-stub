@@ -75,4 +75,5 @@ dependencies {
     compile group: 'org.webjars', name: 'bootstrap', version:'4.0.0-2'
 
     testCompile("junit:junit")
+    testCompile("org.springframework.boot:spring-boot-starter-test")
 }
