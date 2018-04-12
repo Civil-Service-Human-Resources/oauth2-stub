@@ -14,7 +14,7 @@ import java.util.Optional;
 
 
 @Controller
-@RequestMapping("/management")
+@RequestMapping("/management/roles")
 public class RoleController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RoleController.class);
@@ -25,8 +25,7 @@ public class RoleController {
     @Autowired
     private RoleRepository roleRepository;
 
-
-    @GetMapping("/roles")
+    @GetMapping
     public String roles(Model model) {
         LOGGER.debug("Listing all roles");
 
@@ -38,11 +37,21 @@ public class RoleController {
         return "roleList"; // change from 'roles' testrunner produces common infinite loop exception as confuses 'roles' with /roles
     }
 
+    @PostMapping("/create")
+    public String roleSubmit(@ModelAttribute("role") Role role) {
+        LOGGER.debug("Creating new role {}", role);
 
-    @GetMapping("/roles/edit/{id}")
+        if(role.getId() == null){
+            roleService.createNewRole(role);
+        }
+
+        return "redirect:/management/roles";
+    }
+
+    @GetMapping("/edit/{id}")
     public String roleEdit(Model model,
                            @PathVariable("id") long id) {
-        LOGGER.debug("Editing role new role ${id}");
+        LOGGER.debug("Editing role for id {}", id);
 
         Optional<Role> optionalRole = roleService.getRole(id);
 
@@ -52,50 +61,41 @@ public class RoleController {
             return "edit";
         }
 
-        // invalid role goto roles page
+        LOGGER.debug("No role found for id {}", id);
         return "redirect:/management/roles";
     }
 
-    @PostMapping("/roles/create")
-    public String roleSubmit(@ModelAttribute("role") Role role) {
-        LOGGER.debug("Creating new role {}", role.toString());
 
-        roleService.createNewRole(role);
-
-        return "redirect:/management/roles";
-    }
-
-    @PostMapping("/roles/edit")
+    @PostMapping("/edit")
     public String roleUpdate(@ModelAttribute("role") Role role) {
-        // role.setRoleId(roleId);
-        LOGGER.debug("updated new role {}", role.toString());
-
         roleService.updateRole(role);
 
+        LOGGER.debug("Updated new role {}", role);
+
         return "redirect:/management/roles";
     }
 
-    @GetMapping("/roles/delete/{id}")
+    @GetMapping("/delete/{id}")
     public String roleDelete(Model model,
                              @PathVariable("id") long id) {
-        LOGGER.debug("Deleting role ${id}");
+        LOGGER.debug("Deleting role for id {}", id);
 
         Optional<Role> role = roleService.getRole(id);
+
         if (role.isPresent()){
             model.addAttribute("role", role.get());
-            System.out.println("got role role {}"+ role.toString());
             return "delete";
         }
 
-        // invalid role goto roles page
+        LOGGER.debug("No role found for id {}", id);
         return "redirect:/management/roles";
     }
 
-    @PostMapping("/roles/delete")
+    @PostMapping("/delete")
     public String roleDelete(@ModelAttribute("role") Role role) {
         roleRepository.delete(role);
 
-        LOGGER.debug("Deleted role {}", role.toString());
+        LOGGER.debug("Deleted role {}", role);
 
         return "redirect:/management/roles";
     }

@@ -14,7 +14,6 @@ import static org.hamcrest.core.IsNull.notNullValue;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@AutoConfigureMockMvc
 public class RoleRepositoryTest {
 
     @Autowired

@@ -1,18 +1,26 @@
 package uk.gov.cshr.domain;
 
 import javax.persistence.*;
+import java.util.Set;
 
 @Entity
 public class Role {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(length = 100, unique = true)
     private String name;
 
     @Column
     private String description;
+
+    @ManyToMany
+    @JoinTable(name = "role_identity",
+            joinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "identity_id", referencedColumnName = "id")
+    )
+    private Set<Identity> identities;
 
     public Role() {
 
@@ -39,11 +47,11 @@ public class Role {
         this.description = description;
     }
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

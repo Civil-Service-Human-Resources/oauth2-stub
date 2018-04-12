@@ -7,7 +7,7 @@ import java.util.Set;
 @Entity
 public class Identity {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(unique = true)
@@ -22,7 +22,7 @@ public class Identity {
 
     private boolean active;
 
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.ALL, mappedBy = "identities")
     private Set<Role> roles;
 
     protected Identity() {
