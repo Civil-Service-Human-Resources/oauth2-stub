@@ -30,7 +30,7 @@ public class RoleController {
         model.addAttribute("roles", roles);
         model.addAttribute("role", new Role());
 
-        return "roles";
+        return "roleList"; // change from 'roles' testrunner produces common infinite loop exception as confuses 'roles' with /roles
     }
 
 
@@ -39,8 +39,10 @@ public class RoleController {
         @PathVariable("id") long id) {
         LOGGER.debug("Editing role new role ${id}");
 
-        Optional<Role> role = roleService.getRole(id);
-        if (role.isPresent()){
+        Optional<Role> optionalRole = roleService.getRole(id);
+
+        if (optionalRole.isPresent()){
+             Role role = optionalRole.get();
             model.addAttribute("role", role);
             System.out.println("got role role {}"+ role.toString());
             return "edit";
