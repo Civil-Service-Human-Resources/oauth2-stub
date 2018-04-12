@@ -4,6 +4,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import uk.gov.cshr.domain.Identity;
+import uk.gov.cshr.dto.IdentityDTO;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -53,5 +54,9 @@ public class IdentityDetails implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public Identity getIdentity() {
+        return identity;
     }
 }
