@@ -16,11 +16,11 @@
                 <td th:text="${role.name}"></td>
                 <td th:text="${role.description}"></td>
                 <td align="right" nowrap >
-                    <a class="btn btn-danger" th:href="@{|/management/roles/edit/${role.id}|}">
-                        Delete
-                    </a>
                     <a class="btn btn-primary" th:href="@{|/management/roles/edit/${role.id}|}">
                         Edit
+                    </a>
+                    <a class="btn btn-danger" th:href="@{|/management/roles/delete/${role.id}|}">
+                        Delete
                     </a>
                 </td>
             </tr>
