@@ -54,7 +54,7 @@ There are some extra packages and unnecessary dependencies in the gradle. They a
 
 ```
 curl -X POST \
-  https://{SERVER URL:SERVER PORT}/oauth2/token \
+  https://{SERVER URL:SERVER PORT}/oauth/token \
   -H 'Authorization: {BASIC AUTH}' \
   -H 'Cache-Control: no-cache' \
   -H 'content-type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW' \
@@ -76,12 +76,9 @@ Will respond like
 ## Retrieving identity information from an access token
 
 ```
-curl -X POST \
-  https://{SERVER URL:SERVER PORT}/identity \
-  -H 'Authorization: {BASIC AUTH}' \
+curl -X GET \
+  https://{SERVER URL:SERVER PORT}/identity?access_token={accessToken} \
   -H 'Cache-Control: no-cache' \
-  -H 'content-type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW' \
-  -F access_token=RggaIog375oZDYZbYnSZUP4g0UMBZ31KyHti0F2jZr
 ```
 
 Will respond like
