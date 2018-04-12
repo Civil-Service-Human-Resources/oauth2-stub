@@ -16,7 +16,7 @@ import uk.gov.cshr.service.security.ClientDetailsService;
 @EnableAuthorizationServer
 public class AuthorisationServerConfiguration extends AuthorizationServerConfigurerAdapter {
 
-    private static String REALM = "LPG";
+    private static final String REALM = "LPG";
 
     @Autowired
     private TokenStore tokenStore;
