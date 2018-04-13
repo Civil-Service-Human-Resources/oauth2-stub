@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.access.expression.SecurityExpressionOperations;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -12,7 +11,6 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.core.GrantedAuthorityDefaults;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.provider.approval.ApprovalStore;
@@ -20,10 +18,6 @@ import org.springframework.security.oauth2.provider.approval.TokenApprovalStore;
 import org.springframework.security.oauth2.provider.approval.TokenStoreUserApprovalHandler;
 import org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.token.TokenStore;
-import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
-import org.springframework.security.web.FilterInvocation;
-import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
-import org.springframework.security.web.access.expression.WebSecurityExpressionRoot;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -36,7 +30,9 @@ import uk.gov.cshr.service.security.ClientDetailsService;
 import uk.gov.cshr.service.security.IdentityService;
 import uk.gov.cshr.service.security.WebSecurityExpressionHandler;
 
-import javax.sql.DataSource;
+import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -74,14 +70,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-
         http
-            .antMatcher("/**")
+                .antMatcher("/**")
                 .authorizeRequests()
-                    .requestMatchers(forPortAndPath(managementPort, "/", "/login**", "/webjars/**")).permitAll()
-                    .requestMatchers(forPortAndPath(managementPort, "/management/**")).permitAll()
-                    .anyRequest().denyAll()
-            .and()
+                .requestMatchers(forPortAndPath(managementPort, "/", "/login**", "/webjars/**")).permitAll()
+                .requestMatchers(forPortAndPath(serverPort, "/oauth/token")).permitAll()
+                .anyRequest().authenticated().and()
+                .formLogin()
+                .loginPage("/login")
+                .defaultSuccessUrl("/management")
+                .failureUrl("/login?error=true")
+                .and()
                 .exceptionHandling()
                 .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"));
     }
@@ -122,7 +121,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     @Autowired
     public TokenStoreUserApprovalHandler userApprovalHandler(ClientDetailsService clientDetailsService,
-                                                             TokenStore tokenStore){
+                                                             TokenStore tokenStore) {
         TokenStoreUserApprovalHandler handler = new TokenStoreUserApprovalHandler();
         handler.setTokenStore(tokenStore);
         handler.setRequestFactory(new DefaultOAuth2RequestFactory(clientDetailsService));
