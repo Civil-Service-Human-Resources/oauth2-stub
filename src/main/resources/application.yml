@@ -1,6 +1,10 @@
 
+server:
+  port: 8080
+  managementPort: 8081
+
 accessToken:
-  expiryInMinutes: 1440
+  validityInSeconds: 86400
 
 ---
 
