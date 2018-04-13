@@ -2,3 +2,6 @@
 server:
   port: 8080
   managementPort: 8081
+
+accessToken:
+  validityInSeconds: 86400
