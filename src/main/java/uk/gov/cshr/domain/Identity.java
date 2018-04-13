@@ -27,7 +27,7 @@ public class Identity implements Serializable {
     @ManyToMany(cascade = CascadeType.ALL, mappedBy = "identities", fetch = FetchType.EAGER)
     private Set<Role> roles;
 
-    protected Identity() {
+    public Identity() {
     }
 
     public Identity(String uid, String email, String password, boolean active, Set<Role> roles) {
