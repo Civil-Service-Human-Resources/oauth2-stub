@@ -55,7 +55,7 @@ public class RoleController {
     @GetMapping("/update/{id}")
     public String roleUpdate(Model model,
                              @PathVariable("id") long id) {
-        LOGGER.debug("Updating role for id {}", id);
+        LOGGER.info("{} updating role for id {}", authenticationDetails.getCurrentUsername(), id);
 
         Optional<Role> optionalRole = roleService.getRole(id);
 
@@ -74,7 +74,7 @@ public class RoleController {
     public String roleUpdate(@ModelAttribute("role") Role role) {
         roleService.updateRole(role);
 
-        LOGGER.debug("Updated new role {}", role);
+        LOGGER.info("{} update role {}", authenticationDetails.getCurrentUsername(), role);
 
         return "redirect:/management/roles";
     }
@@ -82,7 +82,7 @@ public class RoleController {
     @GetMapping("/delete/{id}")
     public String roleDelete(Model model,
                              @PathVariable("id") long id) {
-        LOGGER.debug("Deleting role for id {}", id);
+        LOGGER.info("{} deleting role for id {}", authenticationDetails.getCurrentUsername(), id);
 
         Optional<Role> role = roleService.getRole(id);
 
@@ -99,7 +99,7 @@ public class RoleController {
     public String roleDelete(@ModelAttribute("role") Role role) {
         roleRepository.delete(role);
 
-        LOGGER.debug("Deleted role {}", role);
+        LOGGER.info("{} deleted role {}", authenticationDetails.getCurrentUsername(), role);
 
         return "redirect:/management/roles";
     }
