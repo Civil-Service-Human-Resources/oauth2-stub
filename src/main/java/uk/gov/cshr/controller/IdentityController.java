@@ -1,18 +1,28 @@
 package uk.gov.cshr.controller;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.thymeleaf.expression.Bools;
 import uk.gov.cshr.domain.Identity;
+import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.dto.IdentityDTO;
+import uk.gov.cshr.service.AuthenticationDetails;
+import uk.gov.cshr.service.security.IdentityDetails;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.service.IdentityService;
-import uk.gov.cshr.service.security.IdentityDetails;
+import uk.gov.cshr.service.RoleService;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 
 @Controller
 @RequestMapping("/management/")
@@ -24,7 +34,13 @@ public class IdentityController {
     private IdentityService identityService;
 
     @Autowired
+    private RoleService roleService;
+
+    @Autowired
     private IdentityRepository identityRepository;
+
+    @Autowired
+    private AuthenticationDetails authenticationDetails;
 
     @RequestMapping(value = "/identity", method = RequestMethod.GET)
     public IdentityDTO getIdentityDetailsfromAccessToken(Authentication authentication) {
@@ -43,4 +59,66 @@ public class IdentityController {
 
         return "identityList";
     }
+
+    @GetMapping("/identities/edit/{uid}")
+    public String identityEdit(Model model,
+                           @PathVariable("uid") String uid) {
+        LOGGER.debug("Editing identity for uid {}", authenticationDetails.getCurrentUsername(),uid);
+
+        Optional<Identity> optionalIdentity = identityService.getIdentity(uid);
+        Iterable<Role> roles = roleService.findAll();
+
+        if (optionalIdentity.isPresent()){
+            Identity identity = optionalIdentity.get();
+            model.addAttribute("identity", identity);
+            model.addAttribute("roles", roles);
+            return "editIdentity";
+        }
+
+        LOGGER.debug("No identity found for uid {}", authenticationDetails.getCurrentUsername(), uid);
+        return "redirect:/management/identities";
+    }
+
+    @PostMapping("/identities/edit")
+    public String identityUpdate(@RequestParam(value = "active", required = false) Boolean active, @RequestParam("roleId") ArrayList<String> roleId, @RequestParam("uid") String uid) {
+
+        // get identity to edit
+        Optional<Identity> optionalIdentity= identityService.getIdentity(uid);
+
+        if (optionalIdentity.isPresent()) {
+            Identity identity = optionalIdentity.get();
+
+            Set<Role> roleSet = new HashSet();
+            // create roles from id
+            for (String id : roleId) {
+                Optional<Role> optionalRole = roleService.getRole(Long.parseLong(id));
+                if (optionalRole.isPresent()) {
+                    // got role
+                    roleSet.add(optionalRole.get());
+                } else {
+                    LOGGER.debug("No role found for id {}", authenticationDetails.getCurrentUsername(),id);
+                    // do something here , probably go to error page
+                    return "redirect:/management/identities";
+                }
+            }
+            // afer this give roleset to identity
+            identity.setRoles(roleSet);
+            // and update  the active property
+            if (active != null) {
+                identity.setActive(active);
+            } else {
+                identity.setActive(false);
+            }
+
+            identityService.updateIdentity(identity);
+
+            LOGGER.debug("Updated new role {}", authenticationDetails.getCurrentUsername(),identity);
+        } else {
+            LOGGER.debug("No identity found for uid {}",authenticationDetails.getCurrentUsername(), uid);
+            // do something here , probably go to error page
+        }
+
+        return "redirect:/management/identities";
+    }
+
 }

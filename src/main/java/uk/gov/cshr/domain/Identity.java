@@ -24,7 +24,7 @@ public class Identity implements Serializable {
 
     private boolean active;
 
-    @ManyToMany(cascade = CascadeType.ALL, mappedBy = "identities", fetch = FetchType.EAGER)
+    @ManyToMany(cascade = CascadeType.ALL,  fetch = FetchType.EAGER)
     private Set<Role> roles;
 
     public Identity() {
@@ -38,8 +38,20 @@ public class Identity implements Serializable {
         this.roles = roles;
     }
 
+    public boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
+    }
+
     public Set<Role> getRoles() {
         return roles;
+    }
+
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
     }
 
     public String getPassword() {
@@ -53,6 +65,15 @@ public class Identity implements Serializable {
     public String getEmail() {
         return email;
     }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
 
     @Override
     public String toString() {

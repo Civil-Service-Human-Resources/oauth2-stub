@@ -9,6 +9,7 @@ import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.RoleRepository;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -44,6 +45,17 @@ public class IdentityServiceImpl implements IdentityService {
     public Iterable<Identity> findAll() {
         return identityRepository.findAll();
     }
+
+    @Override
+    public Optional<Identity> getIdentity(String uid) {
+        return identityRepository.findFirstByUid(uid);
+    }
+
+    @Override
+    public Identity updateIdentity(Identity identity) {
+        return identityRepository.save(identity);
+    }
 }
+
 
 
