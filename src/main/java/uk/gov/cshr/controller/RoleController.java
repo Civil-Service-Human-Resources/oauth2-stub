@@ -31,7 +31,7 @@ public class RoleController {
 
     @GetMapping
     public String roles(Model model) {
-        LOGGER.debug("Listing all roles");
+        LOGGER.info("Listing all roles");
 
         Iterable<Role> roles = roleService.findAll();
 
@@ -65,7 +65,7 @@ public class RoleController {
             return "update";
         }
 
-        LOGGER.debug("No role found for id {}", id);
+        LOGGER.info("No role found for id {}", id);
         return "redirect:/management/roles";
     }
 
@@ -91,7 +91,7 @@ public class RoleController {
             return "delete";
         }
 
-        LOGGER.debug("No role found for id {}", id);
+        LOGGER.info("No role found for id {}", id);
         return "redirect:/management/roles";
     }
 
