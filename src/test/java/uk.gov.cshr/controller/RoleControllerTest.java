@@ -93,7 +93,7 @@ public class RoleControllerTest {
     public void shouldLoadRoleToEdit() throws Exception {
 
         Role role  = new Role("User",DESCRIPTION);
-        role.setId(1);
+        role.setId(1L);
 
         when(roleService.getRole(1L)).thenReturn(Optional.of(role));
 
