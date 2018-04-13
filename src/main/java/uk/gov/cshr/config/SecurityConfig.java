@@ -29,6 +29,7 @@ import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.TokenRepository;
 import uk.gov.cshr.service.security.ClientDetailsService;
 import uk.gov.cshr.service.security.IdentityService;
+import uk.gov.cshr.service.security.WebSecurityExpressionHandler;
 
 import javax.sql.DataSource;
 
@@ -73,6 +74,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authenticated()
             .and().exceptionHandling()
                 .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/"));
+    }
+
+    @Override
+    public void configure(WebSecurity web) {
+        web.expressionHandler(new WebSecurityExpressionHandler());
     }
 
     @Bean

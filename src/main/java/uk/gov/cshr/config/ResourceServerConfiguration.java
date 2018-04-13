@@ -6,6 +6,7 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.E
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.error.OAuth2AccessDeniedHandler;
+import uk.gov.cshr.service.security.WebSecurityExpressionHandler;
 
 @Configuration
 @EnableResourceServer
@@ -15,19 +16,22 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
 
     @Override
     public void configure(ResourceServerSecurityConfigurer resources) {
-        resources.resourceId(RESOURCE_ID).stateless(true);
+        resources
+                .resourceId(RESOURCE_ID)
+                .stateless(true)
+                .expressionHandler(new WebSecurityExpressionHandler());
     }
 
     @Override
     public void configure(HttpSecurity http) throws Exception {
-        http.
-            anonymous().disable()
-            .requestMatchers()
+        http
+                .anonymous().disable()
+                .requestMatchers()
                 .antMatchers("/identity/**")
-            .and()
+                .and()
                 .authorizeRequests()
-                    .antMatchers("/identity/**").access("hasRole('USER')")
-            .and()
+                .antMatchers("/identity/**").access("hasRole('USER')")
+                .and()
                 .exceptionHandling().accessDeniedHandler(new OAuth2AccessDeniedHandler());
     }
 }
