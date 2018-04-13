@@ -1,11 +1,11 @@
 <page th:replace="fragments/layout :: page(~{::title},~{::content})">
-    <title>Edit Role</title>
+    <title>Delete Role</title>
 
     <content>
         <h1>Delete Role</h1>
         <p>Are you sure you want to delete the following role:</p>
         <form action="#" th:action="@{/management/roles/delete}" th:object="${role}" method="POST">
-            <input type="hidden" th:field="*{id}" /></p>
+            <input type="hidden" th:field="*{id}"/></p>
             <table class="table">
                 <tr>
                     <th scope="col">Name</th>
@@ -14,7 +14,7 @@
                 </tr>
                 <tr>
                     <td><input type="hidden" th:text="${role.name}" th:field="*{name}"/></td>
-                    <td><input type="hidden" th:text="${role.description}" th:field="*{description}" /></td>
+                    <td><input type="hidden" th:text="${role.description}" th:field="*{description}"/></td>
                     <td>
                         <a class="btn btn-primary" href="/management/roles/">Cancel</a>
                         <button type="submit" class="btn btn-danger">Delete</button>

@@ -3,15 +3,11 @@ package uk.gov.cshr.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.access.expression.SecurityExpressionOperations;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.core.GrantedAuthorityDefaults;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.provider.approval.ApprovalStore;
@@ -19,18 +15,12 @@ import org.springframework.security.oauth2.provider.approval.TokenApprovalStore;
 import org.springframework.security.oauth2.provider.approval.TokenStoreUserApprovalHandler;
 import org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.token.TokenStore;
-import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
-import org.springframework.security.web.FilterInvocation;
-import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
-import org.springframework.security.web.access.expression.WebSecurityExpressionRoot;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import uk.gov.cshr.repository.ClientRepository;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.TokenRepository;
 import uk.gov.cshr.service.security.ClientDetailsService;
 import uk.gov.cshr.service.security.IdentityService;
-
-import javax.sql.DataSource;
 
 @Configuration
 @EnableWebSecurity
@@ -65,14 +55,22 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
 
         http
-            .antMatcher("/**")
-            .authorizeRequests()
-                .antMatchers("/", "/login**", "/webjars/**", "/oauth/token", "/management/**")
+                .antMatcher("/**")
+                .authorizeRequests()
+                .antMatchers("/", "/login**", "/webjars/**", "/oauth/token")
                 .permitAll()
-            .anyRequest()
+                .anyRequest()
                 .authenticated()
-            .and().exceptionHandling()
-                .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/"));
+                .and()
+                .formLogin()
+                .loginPage("/login")
+                .defaultSuccessUrl("/management")
+                .failureUrl("/login?error=true")
+                .and()
+                .logout()
+                .logoutSuccessUrl("/login")
+                .and().exceptionHandling()
+                .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"));
     }
 
     @Bean
@@ -94,7 +92,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     @Autowired
     public TokenStoreUserApprovalHandler userApprovalHandler(ClientDetailsService clientDetailsService,
-                                                             TokenStore tokenStore){
+                                                             TokenStore tokenStore) {
         TokenStoreUserApprovalHandler handler = new TokenStoreUserApprovalHandler();
         handler.setTokenStore(tokenStore);
         handler.setRequestFactory(new DefaultOAuth2RequestFactory(clientDetailsService));

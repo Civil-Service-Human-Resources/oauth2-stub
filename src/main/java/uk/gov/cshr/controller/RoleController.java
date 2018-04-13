@@ -8,6 +8,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.repository.RoleRepository;
+import uk.gov.cshr.service.AuthenticationDetails;
 import uk.gov.cshr.service.RoleService;
 
 import java.util.Optional;
@@ -25,6 +26,9 @@ public class RoleController {
     @Autowired
     private RoleRepository roleRepository;
 
+    @Autowired
+    private AuthenticationDetails authenticationDetails;
+
     @GetMapping
     public String roles(Model model) {
         LOGGER.debug("Listing all roles");
@@ -38,27 +42,27 @@ public class RoleController {
     }
 
     @PostMapping("/create")
-    public String roleSubmit(@ModelAttribute("role") Role role) {
-        LOGGER.debug("Creating new role {}", role);
+    public String roleCreate(@ModelAttribute("role") Role role) {
+        LOGGER.info("{} created new role {}", authenticationDetails.getCurrentUsername(), role);
 
-        if(role.getId() == null){
+        if (role.getId() == null) {
             roleService.createNewRole(role);
         }
 
         return "redirect:/management/roles";
     }
 
-    @GetMapping("/edit/{id}")
-    public String roleEdit(Model model,
-                           @PathVariable("id") long id) {
-        LOGGER.debug("Editing role for id {}", id);
+    @GetMapping("/update/{id}")
+    public String roleUpdate(Model model,
+                             @PathVariable("id") long id) {
+        LOGGER.debug("Updating role for id {}", id);
 
         Optional<Role> optionalRole = roleService.getRole(id);
 
-        if (optionalRole.isPresent()){
+        if (optionalRole.isPresent()) {
             Role role = optionalRole.get();
             model.addAttribute("role", role);
-            return "edit";
+            return "update";
         }
 
         LOGGER.debug("No role found for id {}", id);
@@ -66,7 +70,7 @@ public class RoleController {
     }
 
 
-    @PostMapping("/edit")
+    @PostMapping("/update")
     public String roleUpdate(@ModelAttribute("role") Role role) {
         roleService.updateRole(role);
 
@@ -82,7 +86,7 @@ public class RoleController {
 
         Optional<Role> role = roleService.getRole(id);
 
-        if (role.isPresent()){
+        if (role.isPresent()) {
             model.addAttribute("role", role.get());
             return "delete";
         }
