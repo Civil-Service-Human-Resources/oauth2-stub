@@ -74,7 +74,7 @@ public class RoleController {
     public String roleUpdate(@ModelAttribute("role") Role role) {
         roleService.updateRole(role);
 
-        LOGGER.info("{} update role {}", authenticationDetails.getCurrentUsername(), role);
+        LOGGER.info("{} updated role {}", authenticationDetails.getCurrentUsername(), role);
 
         return "redirect:/management/roles";
     }
