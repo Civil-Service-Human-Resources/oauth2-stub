@@ -58,7 +58,7 @@ public class TokenStore implements org.springframework.security.oauth2.provider.
     @Override
     public void removeAccessToken(OAuth2AccessToken token) {
         Token storedToken = tokenRepository.findByTokenId(token.getValue());
-        if (token != null) {
+        if (storedToken != null) {
             tokenRepository.delete(storedToken);
         }
     }

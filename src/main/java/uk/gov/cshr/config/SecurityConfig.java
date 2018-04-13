@@ -1,6 +1,7 @@
 package uk.gov.cshr.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.expression.SecurityExpressionOperations;
@@ -24,6 +25,10 @@ import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.access.expression.WebSecurityExpressionRoot;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.util.matcher.AndRequestMatcher;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import uk.gov.cshr.repository.ClientRepository;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.TokenRepository;
@@ -31,12 +36,20 @@ import uk.gov.cshr.service.security.ClientDetailsService;
 import uk.gov.cshr.service.security.IdentityService;
 import uk.gov.cshr.service.security.WebSecurityExpressionHandler;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.sql.DataSource;
+import java.util.ArrayList;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
+    @Value("${server.managementPort}")
+    private int managementPort;
+
+    @Value("${server.port}")
+    private int serverPort;
 
     @Autowired
     private ClientRepository clientRepository;
@@ -64,16 +77,27 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-
         http
             .antMatcher("/**")
-            .authorizeRequests()
-                .antMatchers("/", "/login**", "/webjars/**", "/oauth/token", "/management/**")
-                .permitAll()
-            .anyRequest()
-                .authenticated()
-            .and().exceptionHandling()
-                .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/"));
+                .authorizeRequests()
+                    .requestMatchers(forPortAndPath(managementPort, "/", "/login**", "/webjars/**")).permitAll()
+                    .requestMatchers(forPortAndPath(managementPort, "/management/**")).permitAll()
+                    .anyRequest().denyAll()
+            .and()
+                .exceptionHandling()
+                .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"));
+    }
+
+    private RequestMatcher forPortAndPath(int port, String... pathPatterns) {
+        List<RequestMatcher> requestMatchers = new ArrayList<>();
+        for (String pathPattern : pathPatterns) {
+            requestMatchers.add(new AntPathRequestMatcher(pathPattern));
+        }
+        return new AndRequestMatcher(forPort(port), new OrRequestMatcher(requestMatchers));
+    }
+
+    private RequestMatcher forPort(final int port) {
+        return (HttpServletRequest request) -> port == request.getLocalPort();
     }
 
     @Override

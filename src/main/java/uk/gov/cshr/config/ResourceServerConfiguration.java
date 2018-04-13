@@ -1,5 +1,6 @@
 package uk.gov.cshr.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
@@ -14,6 +15,9 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
 
     private static final String RESOURCE_ID = "identity_api";
 
+    @Value("${server.port}")
+    private int serverPort;
+
     @Override
     public void configure(ResourceServerSecurityConfigurer resources) {
         resources
@@ -27,11 +31,12 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
         http
                 .anonymous().disable()
                 .requestMatchers()
-                .antMatchers("/identity/**")
+                    .antMatchers("/identity/**")
                 .and()
-                .authorizeRequests()
-                .antMatchers("/identity/**").access("hasRole('USER')")
+                    .authorizeRequests()
+                        .requestMatchers(request -> request.getServerPort() != serverPort).denyAll()
+                        .antMatchers("/identity/**").access("hasRole('USER')")
                 .and()
-                .exceptionHandling().accessDeniedHandler(new OAuth2AccessDeniedHandler());
+                    .exceptionHandling().accessDeniedHandler(new OAuth2AccessDeniedHandler());
     }
 }
