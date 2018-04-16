@@ -10,6 +10,7 @@
     </head>
 
     <body>
+    <nav lang="en" th:replace="fragments/nav :: nav"> </nav>
         <div class="container">
             <div id="content" class="col col-8 align-self-center">
                 <th:block th:include="${content}" />
