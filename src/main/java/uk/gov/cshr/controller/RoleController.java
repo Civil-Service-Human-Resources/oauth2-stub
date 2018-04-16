@@ -114,4 +114,30 @@ public class RoleController {
         return "redirect:/management/roles";
     }
 
+    @GetMapping("/roles/delete/{id}")
+    public String roleDelete(Model model,
+                           @PathVariable("id") long id) {
+        LOGGER.debug("Deleting role ${id}");
+
+        Optional<Role> role = roleService.getRole(id);
+        if (role.isPresent()){
+            model.addAttribute("role", role.get());
+            System.out.println("got role role {}"+ role.toString());
+            return "delete";
+        }
+
+        // invalid role goto roles page
+        return "redirect:/management/roles";
+    }
+
+    @PostMapping("/roles/delete")
+    public String roleDelete(@ModelAttribute("role") Role role) {
+        // role.setRoleId(roleId);
+        LOGGER.debug("updated new role {}", role.toString());
+
+        roleRepository.delete(role);
+
+        return "redirect:/management/roles";
+    }
+
 }
