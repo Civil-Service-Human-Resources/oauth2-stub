@@ -104,4 +104,14 @@ public class RoleController {
         return "redirect:/management/roles";
     }
 
+    @PostMapping("/roles/edit")
+    public String roleUpdate(@ModelAttribute("role") Role role) {
+       // role.setRoleId(roleId);
+        LOGGER.debug("updated new role {}", role.toString());
+
+        roleService.updateRole(role);
+
+        return "redirect:/management/roles";
+    }
+
 }

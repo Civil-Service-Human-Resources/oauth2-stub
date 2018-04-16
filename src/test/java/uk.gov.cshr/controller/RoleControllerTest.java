@@ -32,10 +32,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import uk.gov.cshr.domain.Role;
-import uk.gov.cshr.service.RoleService;
-
-import javax.transaction.Transactional;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -71,6 +67,15 @@ public class RoleControllerTest {
     private final String DESCRIPTION = "User";
 
 
+
+    private void postToRepo() throws Exception{
+        this.mockMvc.perform(post("/management/roles/create")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                .param("name", "User")
+                .param("description", "User's role"))
+                .andDo(print());
+    }
+
     @Test
     public void shouldLoadRolesSuccessfully() throws Exception {
         ArrayList<Role> roles = new ArrayList<>();
@@ -94,7 +99,6 @@ public class RoleControllerTest {
 
         Role role  = new Role("User",DESCRIPTION);
         role.setId(1L);
-
         when(roleService.getRole(1L)).thenReturn(Optional.of(role));
 
         this.mockMvc.perform(get("/management/roles/edit/1"))
