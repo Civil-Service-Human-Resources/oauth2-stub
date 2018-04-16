@@ -32,6 +32,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import uk.gov.cshr.domain.Role;
+import uk.gov.cshr.service.RoleService;
+
+import javax.transaction.Transactional;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -68,13 +72,21 @@ public class RoleControllerTest {
 
 
 
-    private void postToRepo() throws Exception{
-        this.mockMvc.perform(post("/management/roles/create")
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-                .param("name", "User")
-                .param("description", "User's role"))
-                .andDo(print());
+    @Before
+    public void setup() {
+
+        // this must be called for the @Mock annotations above to be processed
+        // and for the mock service to be injected into the controller under
+        // test.
+        MockitoAnnotations.initMocks(this);
+
+        this.mockMvc = MockMvcBuilders.standaloneSetup(roleController).build();
+
     }
+
+    private final String NAME = "User";
+    private final String DESCRIPTION = "User";
+
 
     @Test
     public void shouldLoadRolesSuccessfully() throws Exception {
