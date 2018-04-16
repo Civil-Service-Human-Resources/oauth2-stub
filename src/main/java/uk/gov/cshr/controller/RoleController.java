@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.repository.RoleRepository;
 import uk.gov.cshr.service.AuthenticationDetails;
-import uk.gov.cshr.service.RoleService;
 
 import java.util.Optional;
 
@@ -21,9 +20,6 @@ public class RoleController {
     private static final Logger LOGGER = LoggerFactory.getLogger(RoleController.class);
 
     @Autowired
-    private RoleService roleService;
-
-    @Autowired
     private RoleRepository roleRepository;
 
     @Autowired
@@ -33,7 +29,7 @@ public class RoleController {
     public String roles(Model model) {
         LOGGER.info("Listing all roles");
 
-        Iterable<Role> roles = roleService.findAll();
+        Iterable<Role> roles = roleRepository.findAll();
 
         model.addAttribute("roles", roles);
         model.addAttribute("role", new Role());
@@ -46,7 +42,7 @@ public class RoleController {
         LOGGER.info("{} created new role {}", authenticationDetails.getCurrentUsername(), role);
 
         if (role.getId() == null) {
-            roleService.createNewRole(role);
+            roleRepository.save(role);
         }
 
         return "redirect:/management/roles";
@@ -57,7 +53,7 @@ public class RoleController {
                              @PathVariable("id") long id) {
         LOGGER.info("{} updating role for id {}", authenticationDetails.getCurrentUsername(), id);
 
-        Optional<Role> optionalRole = roleService.getRole(id);
+        Optional<Role> optionalRole = roleRepository.findById(id);
 
         if (optionalRole.isPresent()) {
             Role role = optionalRole.get();
@@ -72,7 +68,7 @@ public class RoleController {
 
     @PostMapping("/update")
     public String roleUpdate(@ModelAttribute("role") Role role) {
-        roleService.updateRole(role);
+        roleRepository.save(role);
 
         LOGGER.info("{} updated role {}", authenticationDetails.getCurrentUsername(), role);
 
@@ -84,7 +80,7 @@ public class RoleController {
                              @PathVariable("id") long id) {
         LOGGER.info("{} deleting role for id {}", authenticationDetails.getCurrentUsername(), id);
 
-        Optional<Role> role = roleService.getRole(id);
+        Optional<Role> role = roleRepository.findById(id);
 
         if (role.isPresent()) {
             model.addAttribute("role", role.get());

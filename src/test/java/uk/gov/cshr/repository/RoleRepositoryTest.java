@@ -3,7 +3,6 @@ package uk.gov.cshr.repository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.cshr.domain.Role;
@@ -21,13 +20,27 @@ public class RoleRepositoryTest {
 
     @Test
     public void shouldSaveRole() {
+        // There will be two roles stored on load
+        assertThat(repository.count(), equalTo(2L));
+
         Role role = createRole();
 
         repository.save(role);
 
-        assertThat(role.getId(), notNullValue());
-        assertThat(role.getName(), equalTo("name"));
-        assertThat(role.getDescription(), equalTo("description"));
+        assertThat(repository.count(), equalTo(3L));
+    }
+
+    @Test
+    public void shouldReturnFirstByName() {
+        Role role = createRole();
+
+        repository.save(role);
+
+        Role actualRole = repository.findFirstByNameEquals("name");
+
+        assertThat(actualRole.getId(), notNullValue());
+        assertThat(actualRole.getName(), equalTo("name"));
+        assertThat(actualRole.getDescription(), equalTo("description"));
     }
 
     private Role createRole() {
