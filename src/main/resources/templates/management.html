@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Management</title>
+    <link rel="stylesheet" href="/webjars/bootstrap/4.0.0-2/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/webjars/bootstrap/4.0.0-2/css/bootstrap-theme.min.css"/>
+</head>
+<body>
+<div class="container">
+    <div layout:fragment="content" class="col col-8 align-self-center">
+        <form action="#" th:action="@{/management}" method="post">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>John</td>
+                        <td>Admin</td>
+                        <!-- input id is the userID -->
+                        <td><input id="001" type="checkbox" name="deleteUser"></td>
+                    </tr>
+                    <tr>
+                        <td>Tom</td>
+                        <td>User</td>
+                        <td><input id="002" type="checkbox" name="deleteUser"></td>
+                    </tr>
+                </tbody>
+            </table>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+</div>
+<th:block layout:fragment="scripts"></th:block>
+</body>
+</html>
