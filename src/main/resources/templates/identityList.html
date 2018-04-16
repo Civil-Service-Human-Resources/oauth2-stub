@@ -10,27 +10,26 @@
                         <th scope="col">Active</th>
                         <th scope="col">Email</th>
                         <th scope="col">Roles</th>
-                        <th scope="col">Password</th>
+                        <th scope="col">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                <tr th:each="identity : ${identities}">
-                    <td><input id="001" type="checkbox" name="active" checked="${identity.active == true}" disabled="disabled"></td>
-                    <td th:text="${identity.email}"></td>
-                    <td >
-
-                    </td>
-                    <td>
-
-                    </td>
-                </tr>
-                <tr>
-                    <td><input id="001" type="checkbox" name="active" checked="${identity.active == true}"></td>
-                    <td><input type="text" th:field="*{email}" /></td>
-                    <td>multiselect</td>
-                    <td><input type="text" th:field="*{password}" /></td>
-                    <td align="right"><button type="submit" class="btn btn-primary">Create</button></td>
-                </tr>
+                    <tr th:each="identity : ${identities}">
+                        <td>
+                            <input type="checkbox" th:checked="${identity.active}" disabled="disabled">
+                        </td>
+                        <td th:text="${identity.email}"></td>
+                        <td>
+                            <ul class="list-unstyled">
+                                <li th:each="role : ${identity.roles}" th:text="${role.name}"></li>
+                            </ul>
+                        </td>
+                        <td>
+                            <a class="btn btn-primary" th:href="@{|/management/identities/edit/${identity.uid}|}">
+                                Edit
+                            </a>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </form>

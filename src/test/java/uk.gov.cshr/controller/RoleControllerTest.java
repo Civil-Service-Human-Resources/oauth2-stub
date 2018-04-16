@@ -111,6 +111,7 @@ public class RoleControllerTest {
 
         Role role  = new Role("User",DESCRIPTION);
         role.setId(1L);
+
         when(roleService.getRole(1L)).thenReturn(Optional.of(role));
 
         this.mockMvc.perform(get("/management/roles/edit/1"))
