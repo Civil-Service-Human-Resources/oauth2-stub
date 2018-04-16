@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.thymeleaf.expression.Bools;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.dto.IdentityDTO;
@@ -50,7 +49,7 @@ public class IdentityController {
 
     @GetMapping("/identities")
     public String identities(Model model) {
-        LOGGER.info("Listing all roles");
+        LOGGER.info("Listing all identities");
 
         Iterable<Identity> identities = identityService.findAll();
 
@@ -60,10 +59,10 @@ public class IdentityController {
         return "identityList";
     }
 
-    @GetMapping("/identities/edit/{uid}")
+    @GetMapping("/identities/update/{uid}")
     public String identityEdit(Model model,
                            @PathVariable("uid") String uid) {
-        LOGGER.info("Editing identity for uid {}", authenticationDetails.getCurrentUsername(),uid);
+        LOGGER.info("{} editing identity for uid {}", authenticationDetails.getCurrentUsername(),uid);
 
         Optional<Identity> optionalIdentity = identityService.getIdentity(uid);
         Iterable<Role> roles = roleService.findAll();
@@ -79,7 +78,7 @@ public class IdentityController {
         return "redirect:/management/identities";
     }
 
-    @PostMapping("/identities/edit")
+    @PostMapping("/identities/update")
     public String identityUpdate(@RequestParam(value = "active", required = false) Boolean active, @RequestParam("roleId") ArrayList<String> roleId, @RequestParam("uid") String uid) {
 
         // get identity to edit
@@ -96,7 +95,7 @@ public class IdentityController {
                     // got role
                     roleSet.add(optionalRole.get());
                 } else {
-                    LOGGER.info("No role found for id {}", authenticationDetails.getCurrentUsername(),id);
+                    LOGGER.info("{} found no role for id {}", authenticationDetails.getCurrentUsername(),id);
                     // do something here , probably go to error page
                     return "redirect:/management/identities";
                 }
@@ -112,9 +111,9 @@ public class IdentityController {
 
             identityService.updateIdentity(identity);
 
-            LOGGER.info("Updated new role {}", authenticationDetails.getCurrentUsername(),identity);
+            LOGGER.info("{} updated new role {}", authenticationDetails.getCurrentUsername(),identity);
         } else {
-            LOGGER.info("No identity found for uid {}",authenticationDetails.getCurrentUsername(), uid);
+            LOGGER.info("{} found no identity for uid {}",authenticationDetails.getCurrentUsername(), uid);
             // do something here , probably go to error page
         }
 

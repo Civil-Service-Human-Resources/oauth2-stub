@@ -1,10 +1,10 @@
 <page th:replace="fragments/layout :: page(~{::title},~{::content})">
-    <title>Edit Identity</title>
+    <title>Update Identity</title>
 
     <content>
-        <h1>Edit Identity</h1>
+        <h1>Update Identity</h1>
 
-        <form action="#" th:action="@{/management/identities/edit}" th:object="${identity}" method="POST">
+        <form action="#" th:action="@{/management/identities/update}" th:object="${identity}" method="POST">
             <input type="hidden" th:field="*{uid}" /></p>
             <table class="table">
                 <tr>
