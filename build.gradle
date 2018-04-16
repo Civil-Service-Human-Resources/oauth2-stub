@@ -66,10 +66,10 @@ dependencies {
     compile group: 'commons-lang', name: 'commons-lang', version: '2.6'
 
     // https://mvnrepository.com/artifact/mysql/mysql-connector-java
-    //compile group: 'mysql', name: 'mysql-connector-java', version: '8.0.8-dmr'
+    compile group: 'mysql', name: 'mysql-connector-java', version: '8.0.8-dmr'
 
     // https://mvnrepository.com/artifact/org.apache.commons/commons-dbcp2
-   // compile group: 'org.apache.commons', name: 'commons-dbcp2', version: '2.2.0'
+    compile group: 'org.apache.commons', name: 'commons-dbcp2', version: '2.2.0'
 
     // https://www.webjars.org/
     compile group: 'org.webjars', name: 'bootstrap', version:'4.0.0-2'

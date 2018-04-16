@@ -104,38 +104,4 @@ public class RoleController {
         return "redirect:/management/roles";
     }
 
-    @PostMapping("/roles/edit")
-    public String roleUpdate(@ModelAttribute("role") Role role) {
-        roleService.updateRole(role);
-
-        LOGGER.debug("Updated new role {}", role);
-
-        return "redirect:/management/roles";
-    }
-
-    @GetMapping("/delete/{id}")
-    public String roleDelete(Model model,
-                             @PathVariable("id") long id) {
-        LOGGER.debug("Deleting role for id {}", id);
-
-        Optional<Role> role = roleService.getRole(id);
-
-        if (role.isPresent()){
-            model.addAttribute("role", role.get());
-            return "delete";
-        }
-
-        LOGGER.debug("No role found for id {}", id);
-        return "redirect:/management/roles";
-    }
-
-    @PostMapping("/delete")
-    public String roleDelete(@ModelAttribute("role") Role role) {
-        roleRepository.delete(role);
-
-        LOGGER.debug("Deleted role {}", role);
-
-        return "redirect:/management/roles";
-    }
-
 }

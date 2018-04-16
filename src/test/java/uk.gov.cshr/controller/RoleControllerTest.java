@@ -8,21 +8,19 @@ import org.mockito.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
+
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import uk.gov.cshr.domain.Role;
-import uk.gov.cshr.repository.RoleRepository;
 
 import java.util.ArrayList;
-import java.util.List;
+
 import java.util.Optional;
 
-import static org.hamcrest.CoreMatchers.any;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsNull.notNullValue;
+
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.verify;
@@ -32,7 +30,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.service.RoleService;
 
 import javax.transaction.Transactional;
@@ -54,19 +51,6 @@ public class RoleControllerTest {
     @Mock
     private RoleService roleService;
 
-
-    @Before
-    public void setup() {
-
-        // this must be called for the @Mock annotations above to be processed
-        // and for the mock service to be injected into the controller under
-        // test.
-        MockitoAnnotations.initMocks(this);
-
-        this.mockMvc = MockMvcBuilders.standaloneSetup(roleController).build();
-
-    }
-
     private final String NAME = "User";
     private final String DESCRIPTION = "User";
 
@@ -83,9 +67,6 @@ public class RoleControllerTest {
         this.mockMvc = MockMvcBuilders.standaloneSetup(roleController).build();
 
     }
-
-    private final String NAME = "User";
-    private final String DESCRIPTION = "User";
 
 
     @Test
