@@ -106,7 +106,7 @@ public class RoleController {
 
     @PostMapping("/roles/edit")
     public String roleUpdate(@ModelAttribute("role") Role role) {
-       // role.setRoleId(roleId);
+        // role.setRoleId(roleId);
         LOGGER.debug("updated new role {}", role.toString());
 
         roleService.updateRole(role);
@@ -116,7 +116,7 @@ public class RoleController {
 
     @GetMapping("/roles/delete/{id}")
     public String roleDelete(Model model,
-                           @PathVariable("id") long id) {
+                             @PathVariable("id") long id) {
         LOGGER.debug("Deleting role ${id}");
 
         Optional<Role> role = roleService.getRole(id);
@@ -132,10 +132,9 @@ public class RoleController {
 
     @PostMapping("/roles/delete")
     public String roleDelete(@ModelAttribute("role") Role role) {
-        // role.setRoleId(roleId);
-        LOGGER.debug("updated new role {}", role.toString());
-
         roleRepository.delete(role);
+
+        LOGGER.debug("Deleted role {}", role.toString());
 
         return "redirect:/management/roles";
     }
