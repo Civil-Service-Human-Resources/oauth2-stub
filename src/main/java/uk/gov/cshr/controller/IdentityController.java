@@ -57,7 +57,7 @@ public class IdentityController {
     }
 
     @GetMapping("/identities/update/{uid}")
-    public String identityEdit(Model model,
+    public String identityUpdate(Model model,
                            @PathVariable("uid") String uid) {
 
         LOGGER.info("{} editing identity for uid {}", authenticationDetails.getCurrentUsername(),uid);
@@ -77,7 +77,7 @@ public class IdentityController {
     }
 
     @PostMapping("/identities/update")
-    public String identityUpdate(@RequestParam(value = "active", required = false) Boolean active, @RequestParam("roleId") ArrayList<String> roleId, @RequestParam("uid") String uid) {
+    public String identityUpdate(@RequestParam(value = "active", required = false) Boolean active, @RequestParam(value="roleId",required = false) ArrayList<String> roleId, @RequestParam("uid") String uid) {
 
         // get identity to edit
         Optional<Identity> optionalIdentity= identityService.getIdentity(uid);
@@ -87,15 +87,17 @@ public class IdentityController {
 
             Set<Role> roleSet = new HashSet();
             // create roles from id
-            for (String id : roleId) {
-                Optional<Role> optionalRole = roleService.getRole(Long.parseLong(id));
-                if (optionalRole.isPresent()) {
-                    // got role
-                    roleSet.add(optionalRole.get());
-                } else {
-                    LOGGER.info("{} found no role for id {}", authenticationDetails.getCurrentUsername(),id);
-                    // do something here , probably go to error page
-                    return "redirect:/management/identities";
+            if (roleId != null) {
+                for (String id : roleId) {
+                    Optional<Role> optionalRole = roleService.getRole(Long.parseLong(id));
+                    if (optionalRole.isPresent()) {
+                        // got role
+                        roleSet.add(optionalRole.get());
+                    } else {
+                        LOGGER.info("{} found no role for id {}", authenticationDetails.getCurrentUsername(),id);
+                        // do something here , probably go to error page
+                        return "redirect:/management/identities";
+                    }
                 }
             }
             // afer this give roleset to identity
