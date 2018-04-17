@@ -16,11 +16,14 @@
                 <tr>
                     <td th:text="${identity.email}"></td>
                     <td>
+                        <label class="d-none" th:for="RoleId">RoleId:</label>
                         <select class="form-control"  multiple name="roleId" id="roleId">
                             <option th:each="role : ${roles}" th:value="${role.id}" th:text="${role.name}" th:selected="${identity.getRoles().contains(role)}"></option>
                         </select>
                     </td>
-                    <td><input  type="checkbox" th:field="*{active}" th:checked="${identity.active}"></td>
+                    <td>
+                        <label class="d-none" th:for="active">Active:</label>
+                        <input  type="checkbox" th:field="*{active}" th:checked="${identity.active}"></td>
                     <td><button type="submit" class="btn btn-primary">Update</button></td>
                 </tr>
                 <tr>

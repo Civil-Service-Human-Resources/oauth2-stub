@@ -52,16 +52,14 @@ public class IdentityController {
         LOGGER.info("Listing all identities");
 
         Iterable<Identity> identities = identityService.findAll();
-
         model.addAttribute("identities", identities);
-        model.addAttribute("identity", new Identity());
-
         return "identityList";
     }
 
     @GetMapping("/identities/update/{uid}")
     public String identityEdit(Model model,
                            @PathVariable("uid") String uid) {
+
         LOGGER.info("{} editing identity for uid {}", authenticationDetails.getCurrentUsername(),uid);
 
         Optional<Identity> optionalIdentity = identityService.getIdentity(uid);
@@ -71,7 +69,7 @@ public class IdentityController {
             Identity identity = optionalIdentity.get();
             model.addAttribute("identity", identity);
             model.addAttribute("roles", roles);
-            return "editIdentity";
+            return "updateIdentity";
         }
 
         LOGGER.info("No identity found for uid {}", authenticationDetails.getCurrentUsername(), uid);

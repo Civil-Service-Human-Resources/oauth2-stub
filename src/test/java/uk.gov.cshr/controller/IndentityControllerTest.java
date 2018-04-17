@@ -13,15 +13,22 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Role;
+import uk.gov.cshr.service.AuthenticationDetails;
+import uk.gov.cshr.service.IdentityService;
 import uk.gov.cshr.service.RoleService;
 
 import javax.transaction.Transactional;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.verify;
@@ -39,19 +46,31 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class IndentityControllerTest {
 
     @InjectMocks
-    private RoleController roleController;
+    private IdentityController identityController;
 
 
     @Autowired
     private MockMvc mockMvc;
 
     @Mock
+    private IdentityService identityService;
+
+    @Mock
     private RoleService roleService;
 
-    private final String NAME = "User";
+    @Mock
+    private AuthenticationDetails authenticationDetails;
+
+
+    private final Boolean ACTIVE = true;
     private final String DESCRIPTION = "User";
-
-
+    private final String EMAIL = "email";
+    private final String NAME = "User";
+    private final String PASSWORD = "password";
+    private final Set<Role> ROLES = new HashSet();
+    private final String UID = "uid";
+    private final String USERNAME = "test";
+    private final String[] roleID ={"1"};
 
     @Before
     public void setup() {
@@ -61,57 +80,90 @@ public class IndentityControllerTest {
         // test.
         MockitoAnnotations.initMocks(this);
 
-        this.mockMvc = MockMvcBuilders.standaloneSetup(roleController).build();
+
+        this.mockMvc = MockMvcBuilders.standaloneSetup(identityController).build();
+
+        ArrayList<Identity> identities = new ArrayList<>();
+
+        identities.add(new Identity(UID,EMAIL,PASSWORD,ACTIVE,ROLES));
+        ArrayList<Role> roles = new ArrayList<>();
+
+        roles.add(new Role(NAME,DESCRIPTION));
+        when(identityService.findAll()).thenReturn(identities);
+        when(authenticationDetails.getCurrentUsername()).thenReturn(USERNAME);
+        when(roleService.findAll()).thenReturn(roles);
 
     }
 
 
     @Test
-    public void shouldLoadRolesSuccessfully() throws Exception {
-        ArrayList<Role> roles = new ArrayList<>();
-        roles.add(new Role(NAME,DESCRIPTION));
-        when(roleService.findAll()).thenReturn(roles);
-
-        this.mockMvc.perform(get("/management/roles"))
+    public void shouldLoadIdentitiesSuccessfully() throws Exception {
+        this.mockMvc.perform(get("/management/identities"))
                 .andExpect(status().is2xxSuccessful())
+                .andExpect (model().attribute("identities",  hasItem(allOf(hasProperty("email", is(EMAIL))))))
                 .andDo(print());
     }
 
 
     @Test
-    public void shouldNotLoadRoleToEditWhenNoExistent() throws Exception {
-        this.mockMvc.perform(get("/management/roles/edit/1")).andExpect(redirectedUrl("/management/roles"));
-
+    public void shouldNotLoadIdentityToEditWhenNoExistent() throws Exception {
+        this.mockMvc.perform(get("/management/identities/update/1")).andExpect(redirectedUrl("/management/identities"));
     }
 
     @Test
-    public void shouldLoadRoleToEdit() throws Exception {
+    public void shouldLoadIdentityToEdit() throws Exception {
 
-        Role role  = new Role("User",DESCRIPTION);
-        role.setId(1L);
-
-        when(roleService.getRole(1L)).thenReturn(Optional.of(role));
-
-        this.mockMvc.perform(get("/management/roles/edit/1"))
-                .andExpect (model().attribute("role", hasProperty("name", is(NAME))))
-                .andExpect(model().attribute("role", hasProperty("description", is(DESCRIPTION))));
+        Identity identity = new Identity(UID,EMAIL,PASSWORD,ACTIVE,ROLES);
+        when(identityService.getIdentity(UID)).thenReturn(Optional.of(identity));
+        this.mockMvc.perform(get("/management/identities/update/uid"))
+                .andExpect (model().attribute("identity", hasProperty("uid", is(UID))));
     }
 
     @Test
-    public void shouldSaveEditedRole() throws Exception {
+    public void shouldSaveEditedIdentity() throws Exception {
 
-        this.mockMvc.perform(post("/management/roles/edit")
-                .param("name",NAME)
-                .param("description",DESCRIPTION));
+        Identity identity = new Identity(UID,EMAIL,PASSWORD,ACTIVE,ROLES);
+        when(identityService.getIdentity(UID)).thenReturn(Optional.of(identity));
 
-        ArgumentCaptor<Role> roleCaptor = ArgumentCaptor.forClass(Role.class);
 
-        verify(roleService).updateRole(roleCaptor.capture());
+        when(roleService.getRole(1L)).thenReturn(Optional.of(new Role(NAME,DESCRIPTION)));
+        this.mockMvc.perform(post("/management/identities/update")
+                .param("uid",UID)
+                .param("active",ACTIVE.toString())
+                .param("roleId",roleID));
 
-        Role role = roleCaptor.getValue();
-        assertThat(role.getDescription(),equalTo(DESCRIPTION));
-        assertThat(role.getName(),equalTo(NAME));
+        ArgumentCaptor<Identity> identityCaptor = ArgumentCaptor.forClass(Identity.class);
+
+        verify(identityService).updateIdentity(identityCaptor.capture());
+
+        identity = identityCaptor.getValue();
+        assertThat(identity.getUid(),equalTo(UID));
+        assertThat(identity.getEmail(),equalTo(EMAIL));
+    }
+
+    @Test
+    public void shouldInsertRolesByIDForEditedIdentity() throws Exception {
+
+        Identity identity = new Identity(UID,EMAIL,PASSWORD,ACTIVE,ROLES);
+        when(identityService.getIdentity(UID)).thenReturn(Optional.of(identity));
+
+
+        when(roleService.getRole(1L)).thenReturn(Optional.of(new Role(NAME,DESCRIPTION)));
+        this.mockMvc.perform(post("/management/identities/update")
+                .param("uid",UID)
+                .param("active",ACTIVE.toString())
+                .param("roleId",roleID));
+
+        ArgumentCaptor<Identity> identityCaptor = ArgumentCaptor.forClass(Identity.class);
+
+        verify(identityService).updateIdentity(identityCaptor.capture());
+
+        identity = identityCaptor.getValue();
+        ArrayList<Role> roles = new ArrayList(identity.getRoles());
+
+        assertThat(roles.get(0).getName(),equalTo(NAME));
 
     }
+
 
 }
