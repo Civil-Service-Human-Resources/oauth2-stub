@@ -1,0 +1,9 @@
+sudo: required
+
+language: java
+
+cache:
+  directories:
+    - pyhome
+
+install: true
