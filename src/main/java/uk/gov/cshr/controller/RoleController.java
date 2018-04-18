@@ -62,7 +62,7 @@ public class RoleController {
         if (optionalRole.isPresent()) {
             Role role = optionalRole.get();
             model.addAttribute("role", role);
-            return "update";
+            return "updateRole";
         }
 
         LOGGER.info("No role found for id {}", id);
@@ -88,7 +88,7 @@ public class RoleController {
 
         if (role.isPresent()) {
             model.addAttribute("role", role.get());
-            return "delete";
+            return "deleteRole";
         }
 
         LOGGER.info("No role found for id {}", id);

@@ -1,22 +1,20 @@
 package uk.gov.cshr.controller;
 
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.dto.IdentityDTO;
-import uk.gov.cshr.service.AuthenticationDetails;
-import uk.gov.cshr.service.security.IdentityDetails;
 import uk.gov.cshr.repository.IdentityRepository;
+import uk.gov.cshr.service.AuthenticationDetails;
 import uk.gov.cshr.service.IdentityService;
 import uk.gov.cshr.service.RoleService;
+import uk.gov.cshr.service.security.IdentityDetails;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -58,14 +56,14 @@ public class IdentityController {
 
     @GetMapping("/identities/update/{uid}")
     public String identityUpdate(Model model,
-                           @PathVariable("uid") String uid) {
+                                 @PathVariable("uid") String uid) {
 
-        LOGGER.info("{} editing identity for uid {}", authenticationDetails.getCurrentUsername(),uid);
+        LOGGER.info("{} editing identity for uid {}", authenticationDetails.getCurrentUsername(), uid);
 
         Optional<Identity> optionalIdentity = identityService.getIdentity(uid);
         Iterable<Role> roles = roleService.findAll();
 
-        if (optionalIdentity.isPresent()){
+        if (optionalIdentity.isPresent()) {
             Identity identity = optionalIdentity.get();
             model.addAttribute("identity", identity);
             model.addAttribute("roles", roles);
@@ -77,10 +75,10 @@ public class IdentityController {
     }
 
     @PostMapping("/identities/update")
-    public String identityUpdate(@RequestParam(value = "active", required = false) Boolean active, @RequestParam(value="roleId",required = false) ArrayList<String> roleId, @RequestParam("uid") String uid) {
+    public String identityUpdate(@RequestParam(value = "active", required = false) Boolean active, @RequestParam(value = "roleId", required = false) ArrayList<String> roleId, @RequestParam("uid") String uid) {
 
         // get identity to edit
-        Optional<Identity> optionalIdentity= identityService.getIdentity(uid);
+        Optional<Identity> optionalIdentity = identityService.getIdentity(uid);
 
         if (optionalIdentity.isPresent()) {
             Identity identity = optionalIdentity.get();
@@ -94,7 +92,7 @@ public class IdentityController {
                         // got role
                         roleSet.add(optionalRole.get());
                     } else {
-                        LOGGER.info("{} found no role for id {}", authenticationDetails.getCurrentUsername(),id);
+                        LOGGER.info("{} found no role for id {}", authenticationDetails.getCurrentUsername(), id);
                         // do something here , probably go to error page
                         return "redirect:/management/identities";
                     }
@@ -111,9 +109,9 @@ public class IdentityController {
 
             identityService.updateIdentity(identity);
 
-            LOGGER.info("{} updated new role {}", authenticationDetails.getCurrentUsername(),identity);
+            LOGGER.info("{} updated new role {}", authenticationDetails.getCurrentUsername(), identity);
         } else {
-            LOGGER.info("{} found no identity for uid {}",authenticationDetails.getCurrentUsername(), uid);
+            LOGGER.info("{} found no identity for uid {}", authenticationDetails.getCurrentUsername(), uid);
             // do something here , probably go to error page
         }
 
