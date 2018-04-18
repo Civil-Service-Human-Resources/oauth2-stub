@@ -1,8 +1,11 @@
 package uk.gov.cshr.domain;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import javax.persistence.*;
-import java.util.Set;
 import java.io.Serializable;
+import java.util.Set;
 
 @Entity
 public class Role implements Serializable {
@@ -17,11 +20,8 @@ public class Role implements Serializable {
     @Column
     private String description;
 
-    @ManyToMany
-    @JoinTable(name = "role_identity",
-            joinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "identity_id", referencedColumnName = "id")
-    )
+    @ManyToMany(cascade = CascadeType.ALL, mappedBy = "roles")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<Identity> identities;
 
     public Role() {

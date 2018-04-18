@@ -24,7 +24,11 @@ public class Identity implements Serializable {
 
     private boolean active;
 
-    @ManyToMany(cascade = CascadeType.ALL,  fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "identity_role",
+            joinColumns = @JoinColumn(name = "identity_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id")
+    )
     private Set<Role> roles;
 
     public Identity() {
