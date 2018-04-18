@@ -80,7 +80,7 @@ public class IdentityController {
         if (optionalIdentity.isPresent()) {
             Identity identity = optionalIdentity.get();
 
-            Set<Role> roleSet = new HashSet();
+            Set<Role> roleSet = new HashSet<>();
             // create roles from id
             if (roleId != null) {
                 for (String id : roleId) {
