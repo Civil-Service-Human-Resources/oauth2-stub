@@ -12,9 +12,9 @@ import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.dto.IdentityDTO;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.service.AuthenticationDetails;
+import uk.gov.cshr.service.security.IdentityDetails;
 import uk.gov.cshr.service.IdentityService;
 import uk.gov.cshr.service.RoleService;
-import uk.gov.cshr.service.security.IdentityDetails;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -32,9 +32,6 @@ public class IdentityController {
 
     @Autowired
     private RoleService roleService;
-
-    @Autowired
-    private IdentityRepository identityRepository;
 
     @Autowired
     private AuthenticationDetails authenticationDetails;
@@ -58,7 +55,7 @@ public class IdentityController {
     public String identityUpdate(Model model,
                                  @PathVariable("uid") String uid) {
 
-        LOGGER.info("{} editing identity for uid {}", authenticationDetails.getCurrentUsername(), uid);
+        LOGGER.info("{} editing identity for uid {}", authenticationDetails.getCurrentUsername(),uid);
 
         Optional<Identity> optionalIdentity = identityService.getIdentity(uid);
         Iterable<Role> roles = roleService.findAll();
