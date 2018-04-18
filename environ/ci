@@ -2,3 +2,4 @@
 
 ./gradlew init
 ./gradlew build
+./gradlew test
