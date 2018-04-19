@@ -10,11 +10,10 @@ import org.springframework.web.bind.annotation.*;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.dto.IdentityDTO;
-import uk.gov.cshr.repository.IdentityRepository;
+import uk.gov.cshr.repository.RoleRepository;
 import uk.gov.cshr.service.AuthenticationDetails;
-import uk.gov.cshr.service.security.IdentityDetails;
 import uk.gov.cshr.service.IdentityService;
-import uk.gov.cshr.service.RoleService;
+import uk.gov.cshr.service.security.IdentityDetails;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -31,7 +30,7 @@ public class IdentityController {
     private IdentityService identityService;
 
     @Autowired
-    private RoleService roleService;
+    private RoleRepository roleRepository;
 
     @Autowired
     private AuthenticationDetails authenticationDetails;
@@ -55,10 +54,10 @@ public class IdentityController {
     public String identityUpdate(Model model,
                                  @PathVariable("uid") String uid) {
 
-        LOGGER.info("{} editing identity for uid {}", authenticationDetails.getCurrentUsername(),uid);
+        LOGGER.info("{} editing identity for uid {}", authenticationDetails.getCurrentUsername(), uid);
 
         Optional<Identity> optionalIdentity = identityService.getIdentity(uid);
-        Iterable<Role> roles = roleService.findAll();
+        Iterable<Role> roles = roleRepository.findAll();
 
         if (optionalIdentity.isPresent()) {
             Identity identity = optionalIdentity.get();
@@ -84,7 +83,7 @@ public class IdentityController {
             // create roles from id
             if (roleId != null) {
                 for (String id : roleId) {
-                    Optional<Role> optionalRole = roleService.getRole(Long.parseLong(id));
+                    Optional<Role> optionalRole = roleRepository.findById(Long.parseLong(id));
                     if (optionalRole.isPresent()) {
                         // got role
                         roleSet.add(optionalRole.get());
