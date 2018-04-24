@@ -4,20 +4,25 @@
     <content>
         <h1>Sign Up</h1>
         <br/>
-        <form th:action="@{/signup}" th:object="${identity}" method="post">
+        <form th:action="@{|/signup/${invite.code}|}" method="post">
             <table class="table">
                 <tr>
                     <th scope="col">Email:</th>
                     <th scope="col">Password:</th>
+                    <th scope="col">Confirm Password:</th>
                 </tr>
                 <tr>
                     <td><label class="d-none" th:for="email">Email:</label>
-                        <input type="hidden" th:value="${invite.forEmail}" th:text="${invite.forEmail}" id="email"
+                        <input type="hidden" th:text="${invite.forEmail}" id="email"
                                name="email"/>
                     </td>
                     <td>
                         <label class="d-none" th:for="password">Password:</label>
                         <input type="text" id="password" name="password"/>
+                    </td>
+                    <td>
+                        <label class="d-none" th:for="password">Confirm Password:</label>
+                        <input type="text" id="passwordConfirm" name="passwordConfirm"/>
                     </td>
                     <td align="right">
                         <button type="submit" class="btn btn-primary">Signup</button>

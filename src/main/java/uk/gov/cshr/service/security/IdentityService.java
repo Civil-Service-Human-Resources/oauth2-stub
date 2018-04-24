@@ -1,5 +1,7 @@
 package uk.gov.cshr.service.security;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -9,13 +11,20 @@ import org.springframework.stereotype.Service;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.repository.IdentityRepository;
+import uk.gov.cshr.repository.InviteRepository;
 
 import java.util.UUID;
 
 @Service
 public class IdentityService implements UserDetailsService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(IdentityService.class);
+
+    @Autowired
     private IdentityRepository identityRepository;
+
+    @Autowired
+    private InviteRepository inviteRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -23,11 +32,6 @@ public class IdentityService implements UserDetailsService {
     @Autowired
     public IdentityService(IdentityRepository identityRepository) {
         this.identityRepository = identityRepository;
-    }
-
-    public void createIdentityFromInvitedUser(Invite invite) {
-        Identity identity = new Identity(UUID.randomUUID().toString(), invite.getForEmail(), passwordEncoder.encode("tester123"), true, null);
-        identityRepository.save(identity);
     }
 
     @Override
@@ -45,5 +49,12 @@ public class IdentityService implements UserDetailsService {
         } else {
             return true;
         }
+    }
+
+    public void createIdentityFromInviteCode(String code, String password) {
+        Invite invite = inviteRepository.findByCode(code);
+        Identity identity = new Identity(UUID.randomUUID().toString(), invite.getForEmail(), passwordEncoder.encode(password), true, null);
+        identityRepository.save(identity);
+        LOGGER.info("New identity {} successfully created", identity.getEmail());
     }
 }

@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.repository.IdentityRepository;
+import uk.gov.cshr.repository.InviteRepository;
 
 import static java.util.Collections.emptySet;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -25,6 +26,9 @@ public class IdentityServiceTest {
 
     @Mock
     private IdentityRepository identityRepository;
+
+    @Mock
+    private InviteRepository inviteRepository;
 
     @Test
     public void shouldLoadIdentityByEmailAddress() {
@@ -68,4 +72,25 @@ public class IdentityServiceTest {
     public void shouldReturnFalseWhenInvitingAnNonExistingUser() {
         assertThat(identityService.isInvitedAnExistingUser("test2@example.org"), equalTo(false));
     }
+
+//    @Test
+//    public void createIdentityFromInviteCode() {
+//        final String code = "123abc";
+//        final String email = "test@example.com";
+//        Invite invite = new Invite();
+//        invite.setCode(code);
+//        invite.setForEmail(email);
+//
+//        when(inviteRepository.findByCode(code)).thenReturn(invite);
+//
+//        identityService.createIdentityFromInviteCode(code, "password");
+//
+//        ArgumentCaptor<Invite> inviteArgumentCaptor = ArgumentCaptor.forClass(Invite.class);
+//
+//        verify(inviteRepository).save(inviteArgumentCaptor.capture());
+//
+//        invite = inviteArgumentCaptor.getValue();
+//        MatcherAssert.assertThat(invite.getCode(), equalTo(code));
+//        MatcherAssert.assertThat(invite.getForEmail(), equalTo(email));
+//    }
 }

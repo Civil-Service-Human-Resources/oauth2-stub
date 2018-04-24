@@ -7,23 +7,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
-import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
-import uk.gov.cshr.domain.Identity;
-import uk.gov.cshr.domain.Role;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 import uk.gov.cshr.dto.IdentityDTO;
-import uk.gov.cshr.repository.RoleRepository;
-import uk.gov.cshr.service.AuthenticationDetails;
-import uk.gov.cshr.service.IdentityService;
 import uk.gov.cshr.service.security.IdentityDetails;
 import uk.gov.cshr.service.security.TokenServices;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
 
 @RestController
 public class AuthenticationController {
