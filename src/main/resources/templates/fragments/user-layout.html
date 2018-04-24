@@ -1,0 +1,26 @@
+<html th:fragment="page(title,content)" lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+    <meta charset="UTF-8"/>
+    <title th:replace="${title}">Title</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/assets/css/main.css}" />
+</head>
+
+<body>
+<header th:replace="fragments/user-header :: div"> </header>
+    <div id="content" class="col  align-self-center">
+        <th:block th:include="${content}" />
+    </div>
+    <footer th:replace="fragments/user-footer :: footer"> </footer>
+
+    <script>document.body.className = document.body.className.replace('', 'js-enabled');</script>
+
+</body>
+</html>
+
+
+
+
+

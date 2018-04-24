@@ -1,11 +1,10 @@
-<page th:replace="fragments/layout :: page(~{::title},~{::content})">
+<page th:replace="fragments/user-layout :: page(~{::title},~{::content})">
     <title>Login</title>
 
     <content>
         <div class="container">
             <div class="grid-row">
                 <div class="column-two-thirds">
-                    <h1>Sign in</h1>
                     <div th:if="${param.error}" class="error-summary" role="alert" aria-labelledby="error-summary-heading-example-1" tabindex="-1">
                         <h2 class="heading-medium error-summary-heading" id="error-summary-heading-example-1">
                             Login failed

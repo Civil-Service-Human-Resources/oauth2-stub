@@ -25,7 +25,7 @@ public class UserSecurityConfig extends WebSecurityConfigurerAdapter {
                 .requestMatcher(forPort(serverPort))
                 .authorizeRequests()
                     .antMatchers("/management/**").denyAll()
-                    .antMatchers("/login", "/webjars/**").permitAll()
+                    .antMatchers("/login", "/webjars/**","/assets/**").permitAll()
                     .anyRequest().authenticated().and()
                 .formLogin()
                     .loginPage("/login")

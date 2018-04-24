@@ -26,7 +26,7 @@ public class ManagementSecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .requestMatcher(forPort(managementPort))
                 .authorizeRequests()
-                    .antMatchers("/management/login", "/webjars/**").permitAll()
+                    .antMatchers("/management/login", "/webjars/**", "/assets/**").permitAll()
                     .anyRequest().authenticated().and()
                 .formLogin()
                     .loginPage("/management/login")
