@@ -5,12 +5,27 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import uk.gov.cshr.domain.Client;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 
 public class ClientDetails implements org.springframework.security.oauth2.provider.ClientDetails {
+
+    private static final Set<GrantedAuthority> AUTHORITIES = new HashSet<GrantedAuthority>() {{
+        add(new SimpleGrantedAuthority("CLIENT"));
+    }};
+
+    private static final Set<String> GRANT_TYPES = new HashSet<String>() {{
+        add("implicit");
+    }};
+
+    private static final Set<String> SCOPE = new HashSet<String>() {{
+        add("read");
+        add("write");
+    }};
 
     private Client client;
 
@@ -45,12 +60,12 @@ public class ClientDetails implements org.springframework.security.oauth2.provid
 
     @Override
     public Set<String> getScope() {
-        return singleton("all");
+        return SCOPE;
     }
 
     @Override
     public Set<String> getAuthorizedGrantTypes() {
-        return singleton("password");
+        return GRANT_TYPES;
     }
 
     @Override
@@ -60,7 +75,7 @@ public class ClientDetails implements org.springframework.security.oauth2.provid
 
     @Override
     public Collection<GrantedAuthority> getAuthorities() {
-        return singleton(new SimpleGrantedAuthority("CLIENT"));
+        return AUTHORITIES;
     }
 
     @Override
