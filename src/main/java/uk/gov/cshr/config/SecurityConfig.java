@@ -70,7 +70,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .antMatcher("/**")
                 .authorizeRequests()
-                    .requestMatchers(forPortAndPath(managementPort,"/", "/login", "/webjars/**")).permitAll()
+                    .requestMatchers(forPortAndPath(managementPort, "/", "/login", "/webjars/**")).permitAll()
                     .requestMatchers(forPortAndPath(serverPort, "/login", "/webjars/**")).permitAll()
                     .anyRequest().authenticated().and()
                 .formLogin()
