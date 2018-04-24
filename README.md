@@ -52,26 +52,9 @@ There are some extra packages and unnecessary dependencies in the gradle. They a
 
 ## Requesting an access token
 
-```
-curl -X POST \
-  https://{SERVER URL:SERVER PORT}/oauth/token \
-  -H 'Authorization: {BASIC AUTH}' \
-  -H 'Cache-Control: no-cache' \
-  -H 'content-type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW' \
-  -F grant_type=password \
-  -F username={EMAIL} \
-  -F password={PASSWORD}
-```
+`https://{SERVER_URL}:{SERVER_PORT}/oauth/authorize?response_type=token&client_id={CLIENT_ID}&redirect_uri={SERVICE_URI}`
 
-Will respond like
-
-```
-{
-    "access_token": "RggaIog375oZDYZbYnSZUP4g0UMBZ31KyHti0F2jZr",
-    "token_type": "Bearer",
-    "expires_in": 1440
-}
-```
+This will redirect you to a login page which will, on successful authentication direct you back to your service with a token.
 
 ## Retrieving identity information from an access token
 
