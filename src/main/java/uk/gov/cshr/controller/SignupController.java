@@ -5,9 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Status;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.InviteRepository;
@@ -37,26 +37,26 @@ public class SignupController {
     private IdentityRepository identityRepository;
 
     @GetMapping("/{code}")
-    public String signup(@PathVariable(value = "code") String code) {
+    public String signup(Model model, @PathVariable(value = "code") String code) {
         LOGGER.info("{} on signup screen with code {}", authenticationDetails.getCurrentUsername(), code);
 
         if (inviteRepository.existsByCode(code)) {
             if (!inviteService.isCodeExpired(code)) {
-                identityService.createIdentityFromInvitedUser(inviteRepository.findByCode(code));
                 inviteService.updateInviteByCode(code, Status.ACCEPTED);
-                LOGGER.info("Successful signup");
+                model.addAttribute("invite", inviteRepository.findByCode(code));
+                model.addAttribute("identity", new Identity());
             }
         }
 
         return "signup";
     }
 
-    // is code valid
-    // should be in db
-    // shouldnt be expired (time calc)
-    // should be pending
-    // what is current time minus expiry time (24hrs) mark as expired
-    // create identity
+    @PostMapping
+    public String signup(Model model, @ModelAttribute("identity") Identity identity, @RequestParam("email") String email, @RequestParam("password") String password) {
+        LOGGER.info("Signed up");
+        identityService.createIdentityFromInvitedUser(inviteRepository.findByForEmail(email));
+        LOGGER.info("Successful signup");
 
-
+        return "signupSuccess";
+    }
 }

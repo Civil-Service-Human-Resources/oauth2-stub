@@ -19,7 +19,7 @@ public class InviteService {
     private static final Logger LOGGER = LoggerFactory.getLogger(InviteService.class);
     private static final String EMAIL_PERMISSION = "email";
     private static final String ACTIVATION_URL_PERMISSION = "activationUrl";
-    private static final long EXPIRATION_IN_MILLISECONDS = 86400000;
+    private static final long EXPIRATION_IN_MILLISECONDS = 86400000; // 24hrs = 86400000ms
 
     @Autowired
     private InviteRepository inviteRepository;
@@ -75,9 +75,9 @@ public class InviteService {
 
     public boolean isCodeExpired(String code) {
         Invite invite = inviteRepository.findByCode(code);
-        long diffInMillies = new Date().getTime() - invite.getInvitedAt().getTime();
+        long diffInMs = new Date().getTime() - invite.getInvitedAt().getTime();
 
-        if (diffInMillies > EXPIRATION_IN_MILLISECONDS && invite.getStatus().equals(Status.PENDING)) {
+        if (diffInMs > EXPIRATION_IN_MILLISECONDS && invite.getStatus().equals(Status.PENDING)) {
             updateInviteByCode(code, Status.ACCEPTED);
             return true;
         } else {

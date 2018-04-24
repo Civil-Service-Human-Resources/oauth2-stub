@@ -90,7 +90,6 @@ public class InviteController {
 
         LOGGER.info("{} invited {}", authenticationDetails.getCurrentUsername(), invite.getForEmail());
 
-        // add feedback
         redirectAttributes.addFlashAttribute("status", "Invite sent to " + invite.getForEmail());
         return "redirect:/management/invite";
     }

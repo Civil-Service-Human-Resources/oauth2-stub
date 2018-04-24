@@ -1,8 +1,29 @@
-<page th:replace="fragments/layout :: page(~{::title},~{::content})">
+<page xmlns:th="http://www.w3.org/1999/xhtml" th:replace="fragments/layout :: page(~{::title},~{::content})">
     <title>Page title</title>
 
     <content>
-        <h1>Signup page</h1>
+        <h1>Sign Up</h1>
         <br/>
+        <form th:action="@{/signup}" th:object="${identity}" method="post">
+            <table class="table">
+                <tr>
+                    <th scope="col">Email:</th>
+                    <th scope="col">Password:</th>
+                </tr>
+                <tr>
+                    <td><label class="d-none" th:for="email">Email:</label>
+                        <input type="hidden" th:value="${invite.forEmail}" th:text="${invite.forEmail}" id="email"
+                               name="email"/>
+                    </td>
+                    <td>
+                        <label class="d-none" th:for="password">Password:</label>
+                        <input type="text" id="password" name="password"/>
+                    </td>
+                    <td align="right">
+                        <button type="submit" class="btn btn-primary">Signup</button>
+                    </td>
+                </tr>
+            </table>
+        </form>
     </content>
 </page>
