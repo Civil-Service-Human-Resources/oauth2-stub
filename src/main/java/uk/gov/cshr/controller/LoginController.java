@@ -11,4 +11,8 @@ public class LoginController {
         return "login";
     }
 
+    @RequestMapping("/management/login")
+    public String managementLogin() {
+        return "management-login";
+    }
 }

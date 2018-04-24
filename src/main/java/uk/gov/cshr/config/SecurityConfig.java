@@ -4,12 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.core.GrantedAuthorityDefaults;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,14 +14,15 @@ import org.springframework.security.oauth2.provider.approval.TokenApprovalStore;
 import org.springframework.security.oauth2.provider.approval.TokenStoreUserApprovalHandler;
 import org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.token.TokenStore;
-import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
-import org.springframework.security.web.util.matcher.*;
+import org.springframework.security.web.util.matcher.AndRequestMatcher;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import uk.gov.cshr.repository.ClientRepository;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.TokenRepository;
 import uk.gov.cshr.service.security.ClientDetailsService;
 import uk.gov.cshr.service.security.IdentityService;
-import uk.gov.cshr.service.security.WebSecurityExpressionHandler;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
@@ -33,7 +30,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+public class SecurityConfig {
 
     @Value("${server.managementPort}")
     private int managementPort;
@@ -50,6 +47,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private TokenRepository tokenRepository;
 
+    static RequestMatcher forPortAndPath(int port, String... pathPatterns) {
+        List<RequestMatcher> requestMatchers = new ArrayList<>();
+        for (String pathPattern : pathPatterns) {
+            requestMatchers.add(new AntPathRequestMatcher(pathPattern));
+        }
+        return new AndRequestMatcher(forPort(port), new OrRequestMatcher(requestMatchers));
+    }
+
+    static RequestMatcher forPort(final int port) {
+        return (HttpServletRequest request) -> port == request.getLocalPort();
+    }
+
     @Bean
     public ClientDetailsService clientDetailsService() {
         return new ClientDetailsService(clientRepository);
@@ -65,48 +74,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         auth.userDetailsService(identityService);
     }
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-                .antMatcher("/**")
-                .authorizeRequests()
-                    .requestMatchers(forPortAndPath(managementPort, "/", "/login", "/webjars/**")).permitAll()
-                    .requestMatchers(forPortAndPath(serverPort, "/login", "/webjars/**")).permitAll()
-                    .anyRequest().authenticated().and()
-                .formLogin()
-                    .loginPage("/login")
-                    .defaultSuccessUrl("/management")
-                    .failureUrl("/login?error=true").and()
-                .exceptionHandling()
-                .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"));
-    }
-
-    private RequestMatcher forPortAndPath(int port, String... pathPatterns) {
-        List<RequestMatcher> requestMatchers = new ArrayList<>();
-        for (String pathPattern : pathPatterns) {
-            requestMatchers.add(new AntPathRequestMatcher(pathPattern));
-        }
-        return new AndRequestMatcher(forPort(port), new OrRequestMatcher(requestMatchers));
-    }
-
-    private RequestMatcher forPort(final int port) {
-        return (HttpServletRequest request) -> port == request.getLocalPort();
-    }
-
-    @Override
-    public void configure(WebSecurity web) {
-        web.expressionHandler(new WebSecurityExpressionHandler());
-    }
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
-
-    @Override
-    @Bean
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
     }
 
     @Bean
