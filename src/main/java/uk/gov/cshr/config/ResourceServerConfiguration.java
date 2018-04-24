@@ -31,11 +31,11 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
         http
                 .anonymous().disable()
                 .requestMatchers()
-                    .antMatchers("/identity/**")
+                    .antMatchers("/oauth/resolve", "/oauth/revoke")
                 .and()
                     .authorizeRequests()
                         .requestMatchers(request -> request.getServerPort() != serverPort).denyAll()
-                        .antMatchers("/identity/**").access("hasRole('USER')")
+                        .antMatchers("/oauth/**").access("hasRole('USER')")
                 .and()
                     .exceptionHandling().accessDeniedHandler(new OAuth2AccessDeniedHandler());
     }

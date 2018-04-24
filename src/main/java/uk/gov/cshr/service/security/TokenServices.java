@@ -9,12 +9,13 @@ import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
+import org.springframework.security.oauth2.provider.token.ConsumerTokenServices;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
 
 @Service
-public class TokenServices implements AuthorizationServerTokenServices {
+public class TokenServices implements AuthorizationServerTokenServices, ConsumerTokenServices {
 
     private org.springframework.security.oauth2.provider.token.TokenStore tokenStore;
 
@@ -59,5 +60,15 @@ public class TokenServices implements AuthorizationServerTokenServices {
     @Override
     public OAuth2AccessToken getAccessToken(OAuth2Authentication authentication) {
         return tokenStore.getAccessToken(authentication);
+    }
+
+    @Override
+    public boolean revokeToken(String tokenValue) {
+        OAuth2AccessToken accessToken = tokenStore.readAccessToken(tokenValue);
+        if (accessToken == null) {
+            return false;
+        }
+        tokenStore.removeAccessToken(accessToken);
+        return true;
     }
 }
