@@ -19,10 +19,7 @@ import org.springframework.security.oauth2.provider.approval.TokenStoreUserAppro
 import org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
-import org.springframework.security.web.util.matcher.AndRequestMatcher;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.OrRequestMatcher;
-import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.security.web.util.matcher.*;
 import uk.gov.cshr.repository.ClientRepository;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.TokenRepository;
@@ -73,14 +70,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .antMatcher("/**")
                 .authorizeRequests()
-                    .requestMatchers(forPortAndPath(managementPort, "/", "/login", "/webjars/**")).permitAll()
+                    .antMatchers("/oauth/**").permitAll()
+                    .requestMatchers(forPortAndPath(managementPort,"/", "/login", "/webjars/**")).permitAll()
                     .requestMatchers(forPortAndPath(serverPort, "/login", "/webjars/**")).permitAll()
                     .anyRequest().authenticated().and()
                 .formLogin()
                     .loginPage("/login")
                     .defaultSuccessUrl("/management")
-                    .failureUrl("/login?error=true")
-                .and()
+                    .failureUrl("/login?error=true").and()
                 .exceptionHandling()
                 .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"));
     }

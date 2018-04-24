@@ -34,8 +34,8 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
                     .antMatchers("/oauth/resolve", "/oauth/revoke")
                 .and()
                     .authorizeRequests()
-                        .requestMatchers(request -> request.getServerPort() != serverPort).denyAll()
-                        .antMatchers("/oauth/**").access("hasRole('USER')")
+                        .requestMatchers(request -> serverPort != -1 && request.getServerPort() != serverPort).denyAll()
+                        .antMatchers("/**").access("hasRole('USER')")
                 .and()
                     .exceptionHandling().accessDeniedHandler(new OAuth2AccessDeniedHandler());
     }
