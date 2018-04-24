@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.*;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.dto.IdentityDTO;
+import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.RoleRepository;
 import uk.gov.cshr.service.AuthenticationDetails;
-import uk.gov.cshr.service.IdentityService;
 import uk.gov.cshr.service.security.IdentityDetails;
 
 import java.util.ArrayList;
@@ -27,7 +27,7 @@ public class IdentityController {
     private static final Logger LOGGER = LoggerFactory.getLogger(RoleController.class);
 
     @Autowired
-    private IdentityService identityService;
+    private IdentityRepository identityRepository;
 
     @Autowired
     private RoleRepository roleRepository;
@@ -45,7 +45,7 @@ public class IdentityController {
     public String identities(Model model) {
         LOGGER.info("Listing all identities");
 
-        Iterable<Identity> identities = identityService.findAll();
+        Iterable<Identity> identities = identityRepository.findAll();
         model.addAttribute("identities", identities);
         return "identityList";
     }
@@ -56,7 +56,7 @@ public class IdentityController {
 
         LOGGER.info("{} editing identity for uid {}", authenticationDetails.getCurrentUsername(), uid);
 
-        Optional<Identity> optionalIdentity = identityService.getIdentity(uid);
+        Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
         Iterable<Role> roles = roleRepository.findAll();
 
         if (optionalIdentity.isPresent()) {
@@ -74,7 +74,7 @@ public class IdentityController {
     public String identityUpdate(@RequestParam(value = "active", required = false) Boolean active, @RequestParam(value = "roleId", required = false) ArrayList<String> roleId, @RequestParam("uid") String uid) {
 
         // get identity to edit
-        Optional<Identity> optionalIdentity = identityService.getIdentity(uid);
+        Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
 
         if (optionalIdentity.isPresent()) {
             Identity identity = optionalIdentity.get();
@@ -103,7 +103,7 @@ public class IdentityController {
                 identity.setActive(false);
             }
 
-            identityService.updateIdentity(identity);
+            identityRepository.save(identity);
 
             LOGGER.info("{} updated new role {}", authenticationDetails.getCurrentUsername(), identity);
         } else {

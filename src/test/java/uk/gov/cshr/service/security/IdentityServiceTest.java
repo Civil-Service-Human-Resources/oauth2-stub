@@ -52,4 +52,20 @@ public class IdentityServiceTest {
 
         identityService.loadUserByUsername(emailAddress);
     }
+
+    @Test
+    public void shouldReturnTrueWhenInvitingAnExistingUser() {
+        final String emailAddress = "test@example.org";
+        final Identity identity = new Identity("uid", emailAddress, "password", true, emptySet());
+
+        when(identityRepository.findFirstByActiveTrueAndEmailEquals(emailAddress))
+                .thenReturn(identity);
+
+        assertThat(identityService.isInvitedAnExistingUser("test@example.org"), equalTo(true));
+    }
+
+    @Test
+    public void shouldReturnFalseWhenInvitingAnNonExistingUser() {
+        assertThat(identityService.isInvitedAnExistingUser("test2@example.org"), equalTo(false));
+    }
 }

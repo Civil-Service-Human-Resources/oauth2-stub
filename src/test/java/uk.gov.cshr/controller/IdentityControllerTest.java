@@ -15,9 +15,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Role;
+import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.RoleRepository;
 import uk.gov.cshr.service.AuthenticationDetails;
-import uk.gov.cshr.service.IdentityService;
 
 import javax.transaction.Transactional;
 import java.util.ArrayList;
@@ -39,8 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-
-public class IndentityControllerTest {
+public class IdentityControllerTest {
 
     private final Boolean ACTIVE = true;
     private final String DESCRIPTION = "User";
@@ -53,12 +52,16 @@ public class IndentityControllerTest {
     private final String[] roleID = {"1"};
     @InjectMocks
     private IdentityController identityController;
+
     @Autowired
     private MockMvc mockMvc;
-    @Mock
-    private IdentityService identityService;
+
     @Mock
     private RoleRepository roleRepository;
+
+    @Mock
+    private IdentityRepository identityRepository;
+
     @Mock
     private AuthenticationDetails authenticationDetails;
 
@@ -79,7 +82,7 @@ public class IndentityControllerTest {
         ArrayList<Role> roles = new ArrayList<>();
 
         roles.add(new Role(NAME, DESCRIPTION));
-        when(identityService.findAll()).thenReturn(identities);
+        when(identityRepository.findAll()).thenReturn(identities);
         when(authenticationDetails.getCurrentUsername()).thenReturn(USERNAME);
         when(roleRepository.findAll()).thenReturn(roles);
 
@@ -104,7 +107,7 @@ public class IndentityControllerTest {
     public void shouldLoadIdentityToEdit() throws Exception {
 
         Identity identity = new Identity(UID, EMAIL, PASSWORD, ACTIVE, ROLES);
-        when(identityService.getIdentity(UID)).thenReturn(Optional.of(identity));
+        when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
         this.mockMvc.perform(get("/management/identities/update/uid"))
                 .andExpect(model().attribute("identity", hasProperty("uid", is(UID))));
     }
@@ -113,7 +116,7 @@ public class IndentityControllerTest {
     public void shouldSaveEditedIdentity() throws Exception {
 
         Identity identity = new Identity(UID, EMAIL, PASSWORD, ACTIVE, ROLES);
-        when(identityService.getIdentity(UID)).thenReturn(Optional.of(identity));
+        when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
 
 
         when(roleRepository.findById(1L)).thenReturn(Optional.of(new Role(NAME, DESCRIPTION)));
@@ -124,7 +127,7 @@ public class IndentityControllerTest {
 
         ArgumentCaptor<Identity> identityCaptor = ArgumentCaptor.forClass(Identity.class);
 
-        verify(identityService).updateIdentity(identityCaptor.capture());
+        verify(identityRepository).save(identityCaptor.capture());
 
         identity = identityCaptor.getValue();
         assertThat(identity.getUid(), equalTo(UID));
@@ -135,7 +138,7 @@ public class IndentityControllerTest {
     public void shouldInsertRolesByIDForEditedIdentity() throws Exception {
 
         Identity identity = new Identity(UID, EMAIL, PASSWORD, ACTIVE, ROLES);
-        when(identityService.getIdentity(UID)).thenReturn(Optional.of(identity));
+        when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
 
 
         when(roleRepository.findById(1L)).thenReturn(Optional.of(new Role(NAME, DESCRIPTION)));
@@ -146,7 +149,7 @@ public class IndentityControllerTest {
 
         ArgumentCaptor<Identity> identityCaptor = ArgumentCaptor.forClass(Identity.class);
 
-        verify(identityService).updateIdentity(identityCaptor.capture());
+        verify(identityRepository).save(identityCaptor.capture());
 
         identity = identityCaptor.getValue();
         ArrayList<Role> roles = new ArrayList(identity.getRoles());

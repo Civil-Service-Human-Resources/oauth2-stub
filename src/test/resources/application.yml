@@ -3,5 +3,11 @@ server:
   port: 8080
   managementPort: 8081
 
+api:
+  key: ${GOV_NOTIFY_API_KEY_TEST}
+
+template:
+  id: ${GOV_NOTIFY_TEMPLATE_ID}
+
 accessToken:
   validityInSeconds: 86400

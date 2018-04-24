@@ -19,7 +19,7 @@ apply plugin: 'java-library-distribution'
 repositories {
     mavenCentral()
     maven { url "https://repository.jboss.org/nexus/content/repositories/releases" }
-
+    jcenter()
 }
 bootJar {
     mainClassName = 'uk.gov.cshr.Application'
@@ -73,6 +73,9 @@ dependencies {
 
     // https://www.webjars.org/
     compile group: 'org.webjars', name: 'bootstrap', version: '4.0.0-2'
+
+    // https://github.com/alphagov/notifications-java-client
+    compile('uk.gov.service.notify:notifications-java-client:3.9.1-RELEASE')
 
     testCompile("junit:junit")
     testCompile("org.springframework.boot:spring-boot-starter-test")

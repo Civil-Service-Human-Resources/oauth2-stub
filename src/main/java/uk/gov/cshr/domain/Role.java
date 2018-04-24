@@ -24,6 +24,10 @@ public class Role implements Serializable {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<Identity> identities;
 
+    @ManyToMany(cascade = CascadeType.ALL, mappedBy = "roles")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Set<Identity> invites;
+
     public Role() {
 
     }

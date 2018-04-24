@@ -6,6 +6,11 @@ server:
 accessToken:
   validityInSeconds: 86400
 
+api:
+  key: ${GOV_NOTIFY_API_KEY_TEST}
+
+template:
+  id: ${GOV_NOTIFY_TEMPLATE_ID}
 ---
 
 spring:
