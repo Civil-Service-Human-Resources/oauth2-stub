@@ -1,5 +1,7 @@
 package uk.gov.cshr.domain;
 
+import org.apache.commons.lang.builder.ToStringBuilder;
+
 import javax.persistence.*;
 
 @Entity
@@ -14,6 +16,8 @@ public class Client {
 
     @Column(length = 100)
     private String password;
+
+    private String redirectUri;
 
     private boolean active;
 
@@ -38,13 +42,21 @@ public class Client {
         return active;
     }
 
+    public String getRedirectUri() {
+        return redirectUri;
+    }
+
+    public void setRedirectUri(String redirectUri) {
+        this.redirectUri = redirectUri;
+    }
+
     @Override
     public String toString() {
-        return "Client{" +
-                "id=" + id +
-                ", uid=" + uid +
-                ", password='" + password + '\'' +
-                ", active=" + active +
-                '}';
+        return new ToStringBuilder(this)
+                .append("id", id)
+                .append("uid", uid)
+                .append("active", active)
+                .append("redirectUri", redirectUri)
+                .toString();
     }
 }

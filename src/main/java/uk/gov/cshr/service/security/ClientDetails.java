@@ -72,6 +72,10 @@ public class ClientDetails implements org.springframework.security.oauth2.provid
 
     @Override
     public Set<String> getRegisteredRedirectUri() {
+        String redirectUri = client.getRedirectUri();
+        if (redirectUri != null) {
+            return singleton(redirectUri);
+        }
         return null;
     }
 

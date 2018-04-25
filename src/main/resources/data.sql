@@ -5,8 +5,8 @@ TRUNCATE TABLE `role`;
 TRUNCATE TABLE `identity`;
 TRUNCATE TABLE `identity_role`;
 
-INSERT INTO `client` (active, uid, password)
-VALUES (true, '9fbd4ae2-2db3-44c7-9544-88e80255b56e', '$2a$10$AbxhLGtIx7yv8jhF0BePiOxnb1mlHHq/Ge4R3PxCL2wIsoEov1VaS');
+INSERT INTO `client` (active, uid, password, redirect_uri)
+VALUES (true, '9fbd4ae2-2db3-44c7-9544-88e80255b56e', '$2a$10$AbxhLGtIx7yv8jhF0BePiOxnb1mlHHq/Ge4R3PxCL2wIsoEov1VaS', 'http://lpg.local.cshr.digital:3001/authenticate');
 
 INSERT INTO `role` (name) VALUES
 ('USER'),
