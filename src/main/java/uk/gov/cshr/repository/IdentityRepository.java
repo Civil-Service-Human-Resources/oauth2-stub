@@ -10,6 +10,9 @@ import java.util.Optional;
 public interface IdentityRepository extends CrudRepository<Identity, Long> {
 
     Identity findFirstByActiveTrueAndEmailEquals(String email);
+
+    boolean existsByEmail(String email);
+
     Optional<Identity> findFirstByUid(String uid);
 
 }

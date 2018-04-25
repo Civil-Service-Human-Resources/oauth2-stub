@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.cshr.domain.Invite;
+import uk.gov.cshr.domain.Status;
 
 import javax.transaction.Transactional;
 
@@ -60,6 +61,28 @@ public class InviteRepositoryTest {
         assertThat(inviteRepository.existsByCode("123abc"), equalTo(true));
     }
 
+    @Test
+    public void existsByCodeAndStatusReturnsCorrectResult() {
+        final String pendingEmail = "pending@example.org";
+        Invite pendingInvite = new Invite();
+        pendingInvite.setForEmail(pendingEmail);
+        pendingInvite.setStatus(Status.PENDING);
+        inviteRepository.save(pendingInvite);
+
+        final String expiredEmail = "expired@example.org";
+        Invite expiredInvite = new Invite();
+        expiredInvite.setForEmail(expiredEmail);
+        expiredInvite.setStatus(Status.EXPIRED);
+        inviteRepository.save(expiredInvite);
+
+        boolean existsByCodeAndStatusForPendingInvite = inviteRepository.existsByForEmailAndStatus(pendingEmail, Status.PENDING);
+        boolean existsByCodeAndStatusForExpiredInvite = inviteRepository.existsByForEmailAndStatus(expiredEmail, Status.PENDING);
+
+        assertThat(existsByCodeAndStatusForPendingInvite, equalTo(true));
+        assertThat(existsByCodeAndStatusForExpiredInvite, equalTo(false));
+
+    }
+
     private Invite createInvite() {
         return createInvite("123abc", "test@example.org");
     }
@@ -68,7 +91,6 @@ public class InviteRepositoryTest {
         Invite invite = new Invite();
         invite.setCode(code);
         invite.setForEmail(forEmail);
-
         return invite;
     }
 }

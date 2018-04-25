@@ -1,6 +1,5 @@
 package uk.gov.cshr.controller;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +16,7 @@ import uk.gov.cshr.service.security.IdentityService;
 @RequestMapping("/signup")
 public class SignupController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(InviteController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SignupController.class);
 
     @Autowired
     private InviteService inviteService;

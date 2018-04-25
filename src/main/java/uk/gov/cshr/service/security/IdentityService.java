@@ -3,35 +3,41 @@ package uk.gov.cshr.service.security;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.repository.IdentityRepository;
-import uk.gov.cshr.repository.InviteRepository;
+import uk.gov.cshr.service.InviteService;
 
 import java.util.UUID;
 
 @Service
+@Transactional
 public class IdentityService implements UserDetailsService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IdentityService.class);
 
-    @Autowired
     private IdentityRepository identityRepository;
 
-    @Autowired
-    private InviteRepository inviteRepository;
+    private InviteService inviteService;
 
-    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    public IdentityService(IdentityRepository identityRepository) {
+    public IdentityService(IdentityRepository identityRepository, PasswordEncoder passwordEncoder) {
         this.identityRepository = identityRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    @Autowired
+    public void setInviteService(InviteService inviteService) {
+        this.inviteService = inviteService;
     }
 
     @Override
@@ -43,18 +49,18 @@ public class IdentityService implements UserDetailsService {
         return new IdentityDetails(identity);
     }
 
-    public boolean isInvitedAnExistingUser(String email) {
-        if (identityRepository.findFirstByActiveTrueAndEmailEquals(email) == null) {
-            return false;
-        } else {
-            return true;
-        }
+    @ReadOnlyProperty
+    public boolean inviteExistsByEmail(String email) {
+        return identityRepository.existsByEmail(email);
     }
 
     public void createIdentityFromInviteCode(String code, String password) {
-        Invite invite = inviteRepository.findByCode(code);
+        Invite invite = inviteService.findByCode(code);
+
+        // TODO: 25/04/2018 Matt - currently no roles being saved, need to sort this out later
         Identity identity = new Identity(UUID.randomUUID().toString(), invite.getForEmail(), passwordEncoder.encode(password), true, null);
         identityRepository.save(identity);
+
         LOGGER.info("New identity {} successfully created", identity.getEmail());
     }
 }

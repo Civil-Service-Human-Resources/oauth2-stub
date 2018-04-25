@@ -84,4 +84,7 @@ dependencies {
 test {
     include '**/*Test.*'
     exclude '**/*IT.*'
+    test {
+        environment "VAR", "val"
+    }
 }

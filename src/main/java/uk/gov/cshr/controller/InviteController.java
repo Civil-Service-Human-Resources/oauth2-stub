@@ -11,6 +11,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.domain.Status;
+import uk.gov.cshr.repository.InviteRepository;
 import uk.gov.cshr.repository.RoleRepository;
 import uk.gov.cshr.service.AuthenticationDetails;
 import uk.gov.cshr.service.InviteService;
@@ -35,7 +36,11 @@ public class InviteController {
     private IdentityService identityService;
 
     @Autowired
+    private InviteRepository inviteRepository;
+
+    @Autowired
     private RoleRepository roleRepository;
+
 
     @GetMapping
     public String invite(Model model) {
@@ -51,13 +56,13 @@ public class InviteController {
     public String invited(@ModelAttribute("identity") Invite invite, @RequestParam(value = "roleId", required = false) ArrayList<String> roleId, RedirectAttributes redirectAttributes) throws NotificationClientException {
         LOGGER.info("{} inviting {} ", authenticationDetails.getCurrentUsername(), invite.getForEmail());
 
-        if (inviteService.hasEmailBeenInvitedBefore(invite.getForEmail())) {
+        if (inviteRepository.existsByForEmailAndStatus(invite.getForEmail(), Status.PENDING)) {
             LOGGER.info("{} has already been invited", invite.getForEmail());
             redirectAttributes.addFlashAttribute("status", invite.getForEmail() + " has already been invited");
             return "redirect:/management/invite";
         }
 
-        if (identityService.isInvitedAnExistingUser(invite.getForEmail())) {
+        if (identityService.inviteExistsByEmail(invite.getForEmail())) {
             LOGGER.info("{} is already a user", invite.getForEmail());
             redirectAttributes.addFlashAttribute("status", "User already exists with email address " + invite.getForEmail());
             return "redirect:/management/invite";

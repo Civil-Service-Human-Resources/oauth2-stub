@@ -15,7 +15,6 @@ import uk.gov.cshr.repository.InviteRepository;
 import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -28,29 +27,6 @@ public class InviteServiceTest {
 
     @Mock
     private InviteRepository inviteRepository;
-
-    @Mock
-    private Invite invite;
-
-    @Test
-    public void hasEmailBeenInvitedBeforeShouldReturnFalseIfNotInInviteRepo() {
-        final String emailAddress = "test@example.org";
-
-        assertThat(inviteService.hasEmailBeenInvitedBefore(emailAddress), equalTo(false));
-    }
-
-    @Test
-    public void hasEmailBeenInvitedBeforeShouldReturnTrueIfInInviteRepo() {
-        final String emailAddress = "test@example.org";
-
-        Invite invite = new Invite();
-        invite.setForEmail(emailAddress);
-
-        when(inviteRepository.findByForEmail(emailAddress))
-                .thenReturn(invite);
-
-        assertThat(inviteService.hasEmailBeenInvitedBefore(emailAddress), equalTo(true));
-    }
 
     @Test
     public void updateInviteByCodeShouldUpdateStatusCorrectly() {

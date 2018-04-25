@@ -20,7 +20,9 @@ import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import uk.gov.cshr.repository.ClientRepository;
 import uk.gov.cshr.repository.IdentityRepository;
+import uk.gov.cshr.repository.InviteRepository;
 import uk.gov.cshr.repository.TokenRepository;
+import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.security.ClientDetailsService;
 import uk.gov.cshr.service.security.IdentityService;
 
@@ -45,7 +47,13 @@ public class SecurityConfig {
     private IdentityRepository identityRepository;
 
     @Autowired
+    private InviteRepository inviteRepository;
+
+    @Autowired
     private TokenRepository tokenRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     static RequestMatcher forPortAndPath(int port, String... pathPatterns) {
         List<RequestMatcher> requestMatchers = new ArrayList<>();
@@ -66,7 +74,12 @@ public class SecurityConfig {
 
     @Bean
     public IdentityService identityService() {
-        return new IdentityService(identityRepository);
+        return new IdentityService(identityRepository, passwordEncoder);
+    }
+
+    @Bean
+    public InviteService inviteService() {
+        return new InviteService(inviteRepository);
     }
 
     @Autowired

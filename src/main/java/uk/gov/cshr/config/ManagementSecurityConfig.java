@@ -12,7 +12,6 @@ import org.springframework.security.web.authentication.LoginUrlAuthenticationEnt
 import uk.gov.cshr.service.security.WebSecurityExpressionHandler;
 
 import static uk.gov.cshr.config.SecurityConfig.forPort;
-import static uk.gov.cshr.config.SecurityConfig.forPortAndPath;
 
 @Configuration
 @Order(100)
@@ -26,12 +25,12 @@ public class ManagementSecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .requestMatcher(forPort(managementPort))
                 .authorizeRequests()
-                    .antMatchers("/management/login", "/webjars/**", "/assets/**").permitAll()
-                    .anyRequest().authenticated().and()
+                .antMatchers("/management/login", "/webjars/**", "/assets/**").permitAll()
+                .anyRequest().authenticated().and()
                 .formLogin()
-                    .loginPage("/management/login")
-                    .defaultSuccessUrl("/management")
-                    .failureUrl("/management/login?error=true").and()
+                .loginPage("/management/login")
+                .defaultSuccessUrl("/management/roles")
+                .failureUrl("/management/login?error=true").and()
                 .exceptionHandling()
                 .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/management/login"));
     }
