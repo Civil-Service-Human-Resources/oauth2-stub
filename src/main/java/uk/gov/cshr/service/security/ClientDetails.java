@@ -21,6 +21,7 @@ public class ClientDetails implements org.springframework.security.oauth2.provid
     private static final Set<String> GRANT_TYPES = new HashSet<String>() {{
         add("implicit");
         add("password");
+        add("authorization_code");
     }};
 
     private static final Set<String> SCOPE = new HashSet<String>() {{
