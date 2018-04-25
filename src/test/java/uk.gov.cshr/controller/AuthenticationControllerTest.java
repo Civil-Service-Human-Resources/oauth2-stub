@@ -79,10 +79,11 @@ public class AuthenticationControllerTest {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("grant_type", "password");
         params.add("client_id", "9fbd4ae2-2db3-44c7-9544-88e80255b56e");
+        params.add("client_secret", "test");
         params.add("username", username);
         params.add("password", password);
 
-        ResultActions result = mockMvc.perform(post("/ oauth/token")
+        ResultActions result = mockMvc.perform(post("/oauth/token")
                 .params(params)
                 .header("Authorization", "Basic OWZiZDRhZTItMmRiMy00NGM3LTk1NDQtODhlODAyNTViNTZlOnRlc3Q=")
                 .accept("application/json;charset=UTF-8"))
