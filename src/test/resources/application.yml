@@ -9,5 +9,8 @@ api:
 template:
   id: ${GOV_NOTIFY_TEMPLATE_ID}
 
+invite:
+  validityInMilliseconds: 86400000
+
 accessToken:
   validityInSeconds: 86400

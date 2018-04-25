@@ -24,7 +24,6 @@ public class InviteService {
     private static final Logger LOGGER = LoggerFactory.getLogger(InviteService.class);
     private static final String EMAIL_PERMISSION = "email";
     private static final String ACTIVATION_URL_PERMISSION = "activationUrl";
-    private static final long EXPIRATION_IN_MILLISECONDS = 86400000; // 24hrs = 86400000ms
 
     private InviteRepository inviteRepository;
 
@@ -34,12 +33,16 @@ public class InviteService {
     @Value("${template.id}")
     private String templateId;
 
+    @Value("${invite.validityInMilliseconds}")
+    private String validityInMilliseconds;
+
     private String baseUrl = "http://localhost:8081/signup/";
 
     @Autowired
     public InviteService(InviteRepository inviteRepository) {
         this.inviteRepository = inviteRepository;
     }
+
 
     @ReadOnlyProperty
     public Invite findByCode(String code) {
@@ -50,7 +53,7 @@ public class InviteService {
         Invite invite = inviteRepository.findByCode(code);
         long diffInMs = new Date().getTime() - invite.getInvitedAt().getTime();
 
-        if (diffInMs > EXPIRATION_IN_MILLISECONDS && invite.getStatus().equals(Status.PENDING)) {
+        if (diffInMs > Long.parseLong(validityInMilliseconds) && invite.getStatus().equals(Status.PENDING)) {
             updateInviteByCode(code, Status.ACCEPTED);
             return true;
         }

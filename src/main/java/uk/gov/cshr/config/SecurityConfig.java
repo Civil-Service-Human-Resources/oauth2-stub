@@ -55,6 +55,7 @@ public class SecurityConfig {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+
     static RequestMatcher forPortAndPath(int port, String... pathPatterns) {
         List<RequestMatcher> requestMatchers = new ArrayList<>();
         for (String pathPattern : pathPatterns) {
