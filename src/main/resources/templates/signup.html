@@ -7,15 +7,10 @@
         <form th:action="@{|/signup/${invite.code}|}" method="post">
             <table class="table">
                 <tr>
-                    <th scope="col">Email:</th>
                     <th scope="col">Password:</th>
                     <th scope="col">Confirm Password:</th>
                 </tr>
                 <tr>
-                    <td><label class="d-none" th:for="email">Email:</label>
-                        <input type="hidden" th:text="${invite.forEmail}" id="email"
-                               name="email"/>
-                    </td>
                     <td>
                         <label class="d-none" th:for="password">Password:</label>
                         <input type="text" id="password" name="password"/>

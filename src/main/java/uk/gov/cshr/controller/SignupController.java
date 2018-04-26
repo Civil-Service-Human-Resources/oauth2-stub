@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Status;
 import uk.gov.cshr.repository.InviteRepository;
 import uk.gov.cshr.service.InviteService;
@@ -34,7 +33,6 @@ public class SignupController {
         if (inviteRepository.existsByCode(code)) {
             if (!inviteService.isCodeExpired(code)) {
                 model.addAttribute("invite", inviteRepository.findByCode(code));
-                model.addAttribute("identity", new Identity());
                 return "signup";
             }
         }
