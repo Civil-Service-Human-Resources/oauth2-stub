@@ -11,7 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.cshr.domain.Invite;
-import uk.gov.cshr.domain.Status;
+import uk.gov.cshr.domain.InviteStatus;
 import uk.gov.cshr.repository.InviteRepository;
 
 import java.util.Date;
@@ -40,13 +40,13 @@ public class InviteServiceTest {
         final String code = "123abc";
 
         Invite invite = new Invite();
-        invite.setStatus(Status.PENDING);
+        invite.setStatus(InviteStatus.PENDING);
         invite.setCode(code);
 
         when(inviteRepository.findByCode(code))
                 .thenReturn(invite);
 
-        inviteService.updateInviteByCode(code, Status.ACCEPTED);
+        inviteService.updateInviteByCode(code, InviteStatus.ACCEPTED);
 
         ArgumentCaptor<Invite> inviteArgumentCaptor = ArgumentCaptor.forClass(Invite.class);
 
@@ -54,7 +54,7 @@ public class InviteServiceTest {
 
         invite = inviteArgumentCaptor.getValue();
         MatcherAssert.assertThat(invite.getCode(), equalTo(code));
-        MatcherAssert.assertThat(invite.getStatus(), equalTo(Status.ACCEPTED));
+        MatcherAssert.assertThat(invite.getStatus(), equalTo(InviteStatus.ACCEPTED));
     }
 
     @Test
@@ -62,7 +62,7 @@ public class InviteServiceTest {
         final String code = "123abc";
 
         Invite invite = new Invite();
-        invite.setStatus(Status.PENDING);
+        invite.setStatus(InviteStatus.PENDING);
         invite.setCode(code);
         invite.setInvitedAt(new Date(2323223232L));
 
@@ -77,6 +77,6 @@ public class InviteServiceTest {
 
         invite = inviteArgumentCaptor.getValue();
         MatcherAssert.assertThat(invite.getCode(), equalTo(code));
-        MatcherAssert.assertThat(invite.getStatus(), equalTo(Status.ACCEPTED));
+        MatcherAssert.assertThat(invite.getStatus(), equalTo(InviteStatus.ACCEPTED));
     }
 }

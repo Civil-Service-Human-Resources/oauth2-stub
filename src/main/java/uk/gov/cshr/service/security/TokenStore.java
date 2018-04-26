@@ -8,11 +8,17 @@ import org.springframework.security.oauth2.provider.token.AuthenticationKeyGener
 import org.springframework.security.oauth2.provider.token.DefaultAuthenticationKeyGenerator;
 import org.springframework.stereotype.Service;
 import uk.gov.cshr.domain.Token;
+import uk.gov.cshr.domain.TokenStatus;
 import uk.gov.cshr.repository.TokenRepository;
 
+import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 
 import static java.util.stream.Collectors.toSet;
+import static uk.gov.cshr.domain.Token.extractTokenKey;
 
 @Service
 public class TokenStore implements org.springframework.security.oauth2.provider.token.TokenStore {
@@ -33,8 +39,8 @@ public class TokenStore implements org.springframework.security.oauth2.provider.
 
     @Override
     public OAuth2Authentication readAuthentication(String tokenValue) {
-        Token token = tokenRepository.findByTokenId(tokenValue);
-        if (token != null) {
+        Token token = tokenRepository.findByTokenId(extractTokenKey(tokenValue));
+        if (token != null && token.getStatus() == TokenStatus.ACTIVE) {
             return token.getAuthentication();
         }
         return null;
@@ -48,8 +54,8 @@ public class TokenStore implements org.springframework.security.oauth2.provider.
 
     @Override
     public OAuth2AccessToken readAccessToken(String tokenValue) {
-        Token token = tokenRepository.findByTokenId(tokenValue);
-        if (token != null) {
+        Token token = tokenRepository.findByTokenId(extractTokenKey(tokenValue));
+        if (token != null && token.getStatus() == TokenStatus.ACTIVE) {
             return token.getToken();
         }
         return null;
@@ -57,9 +63,10 @@ public class TokenStore implements org.springframework.security.oauth2.provider.
 
     @Override
     public void removeAccessToken(OAuth2AccessToken token) {
-        Token storedToken = tokenRepository.findByTokenId(token.getValue());
+        Token storedToken = tokenRepository.findByTokenId(extractTokenKey(token.getValue()));
         if (storedToken != null) {
-            tokenRepository.delete(storedToken);
+            storedToken.setStatus(TokenStatus.REVOKED);
+            tokenRepository.save(storedToken);
         }
     }
 

@@ -7,12 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.Errors;
-import org.springframework.validation.Validator;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.cshr.controller.InviteController;
-import uk.gov.cshr.domain.Status;
+import uk.gov.cshr.domain.InviteStatus;
 import uk.gov.cshr.repository.InviteRepository;
 import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.security.IdentityService;
@@ -64,7 +62,7 @@ public class SignupController {
         }
 
         identityService.createIdentityFromInviteCode(code, form.getPassword());
-        inviteService.updateInviteByCode(code, Status.ACCEPTED);
+        inviteService.updateInviteByCode(code, InviteStatus.ACCEPTED);
 
         return "signupSuccess";
     }

@@ -17,7 +17,7 @@ public class Invite implements Serializable {
 
     @Column
     @Enumerated(EnumType.STRING)
-    private Status status;
+    private InviteStatus status;
 
     @OneToOne
     private Identity inviter;
@@ -52,11 +52,11 @@ public class Invite implements Serializable {
         this.code = code;
     }
 
-    public Status getStatus() {
+    public InviteStatus getStatus() {
         return status;
     }
 
-    public void setStatus(Status status) {
+    public void setStatus(InviteStatus status) {
         this.status = status;
     }
 
