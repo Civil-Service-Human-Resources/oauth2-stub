@@ -27,10 +27,10 @@ public class InviteService {
 
     private InviteRepository inviteRepository;
 
-    @Value("${api.key}")
+    @Value("${govNotify.key}")
     private String api;
 
-    @Value("${template.id}")
+    @Value("${govNotify.template}")
     private String templateId;
 
     @Value("${invite.validityInSeconds}")
