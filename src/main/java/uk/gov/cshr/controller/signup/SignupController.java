@@ -35,6 +35,9 @@ public class SignupController {
     @Autowired
     private InviteRepository inviteRepository;
 
+    @Autowired
+    private SignupFormValidator signupFormValidator;
+
     @GetMapping("/{code}")
     public String signup(Model model, @PathVariable(value = "code") String code) {
         LOGGER.info("User accessing sign up screen with code {}", code);
@@ -69,7 +72,7 @@ public class SignupController {
     @InitBinder
     public void setupValidation(WebDataBinder binder) {
         if (binder.getTarget() instanceof SignupForm) {
-            binder.addValidators(new SignupFormValidator());
+            binder.addValidators(signupFormValidator);
         }
     }
 }

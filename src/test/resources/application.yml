@@ -12,3 +12,6 @@ invite:
 
 accessToken:
   validityInSeconds: 86400
+
+accountValidation:
+  passwordPattern: ${PASSWORD_PATTERN:.*}

@@ -7,7 +7,6 @@ import javax.validation.constraints.Pattern;
 
 public class SignupForm {
 
-    @Pattern(regexp = Identity.PASSWORD_PATTERN, message = "{validation.password}")
     private String password;
 
     private String confirmPassword;
