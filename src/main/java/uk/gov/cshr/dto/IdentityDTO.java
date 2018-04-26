@@ -3,9 +3,7 @@ package uk.gov.cshr.dto;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Role;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class IdentityDTO {
