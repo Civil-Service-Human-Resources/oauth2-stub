@@ -13,6 +13,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import uk.gov.cshr.repository.IdentityRepository;
+import uk.gov.cshr.repository.InviteRepository;
 import uk.gov.cshr.repository.RoleRepository;
 import uk.gov.cshr.service.AuthenticationDetails;
 
@@ -39,6 +40,9 @@ public class InviteControllerTest {
 
     @Mock
     private IdentityRepository identityRepository;
+
+    @Mock
+    private InviteRepository inviteRepository;
 
     @Mock
     private AuthenticationDetails authenticationDetails;
