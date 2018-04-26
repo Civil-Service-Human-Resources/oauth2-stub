@@ -24,7 +24,7 @@ import javax.validation.Valid;
 @RequestMapping("/signup")
 public class SignupController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(InviteController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SignupController.class);
 
     @Autowired
     private InviteService inviteService;

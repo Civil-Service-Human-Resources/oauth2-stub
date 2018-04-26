@@ -14,7 +14,7 @@ public class SignupFormValidator implements Validator {
     public void validate(Object target, Errors errors) {
         SignupForm form = (SignupForm) target;
         if (form.getConfirmPassword() == null || !form.getConfirmPassword().equals(form.getPassword())) {
-            errors.rejectValue("confirmPassword", "{validation.confirmPassword}");
+            errors.rejectValue("confirmPassword", "validation.confirmPassword");
         }
     }
 }
