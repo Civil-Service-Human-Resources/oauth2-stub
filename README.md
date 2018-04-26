@@ -21,9 +21,7 @@ OR
 ### Environment Variables
 You will need to add the following env variables to run code locally, or to run test suite 
 ```
-GOV_NOTIFY_API_KEY_DEV
-GOV_NOTIFY_API_KEY_TEST
-ENV_URL
+GOV_NOTIFY_API_KEY
 GOV_NOTIFY_TEMPLATE_ID
 ```
 
