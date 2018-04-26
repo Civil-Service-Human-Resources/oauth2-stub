@@ -1,5 +1,6 @@
 package uk.gov.cshr.service;
 
+import org.apache.commons.lang.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,7 +8,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Invite;
+import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.domain.Status;
 import uk.gov.cshr.repository.InviteRepository;
 import uk.gov.service.notify.NotificationClient;
@@ -16,6 +19,7 @@ import uk.gov.service.notify.SendEmailResponse;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Set;
 
 @Service
 @Transactional
@@ -78,13 +82,22 @@ public class InviteService {
         LOGGER.info(response.getBody());
     }
 
-    public void saveInvite(Invite invite) {
-        inviteRepository.save(invite);
-    }
 
     public void updateInviteByCode(String code, Status newStatus) {
         Invite invite = inviteRepository.findByCode(code);
         invite.setStatus(newStatus);
+        inviteRepository.save(invite);
+    }
+
+    public void createNewInviteForEmailAndRoles(String email, Set<Role> roleSet, Identity inviter) throws NotificationClientException {
+        Invite invite = new Invite();
+        invite.setForEmail(email);
+        invite.setForRoles(roleSet);
+        invite.setInviter(inviter);
+        invite.setInvitedAt(new Date());
+        invite.setStatus(Status.PENDING);
+        invite.setCode(RandomStringUtils.random(40, true, true));
+        sendEmail(invite);
         inviteRepository.save(invite);
     }
 }

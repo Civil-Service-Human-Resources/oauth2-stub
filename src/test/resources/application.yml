@@ -4,8 +4,8 @@ server:
   managementPort: 8081
 
 govNotify:
-  key: ${GOV_NOTIFY_API_KEY_TEST}
-  template: ${GOV_NOTIFY_TEMPLATE_ID}
+  key: ${GOV_NOTIFY_API_KEY_TEST:key}
+  template: ${GOV_NOTIFY_TEMPLATE_ID:template}
 
 invite:
   validityInSeconds: 86400

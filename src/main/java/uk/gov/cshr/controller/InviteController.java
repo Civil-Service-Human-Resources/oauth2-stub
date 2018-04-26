@@ -1,14 +1,15 @@
 package uk.gov.cshr.controller;
 
-import org.apache.commons.lang.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.domain.Status;
 import uk.gov.cshr.repository.InviteRepository;
@@ -18,7 +19,10 @@ import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.security.IdentityService;
 import uk.gov.service.notify.NotificationClientException;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 
 @Controller
 @RequestMapping("/management/invite")
@@ -46,29 +50,29 @@ public class InviteController {
     public String invite(Model model) {
         LOGGER.info("{} on Invite screen", authenticationDetails.getCurrentUsername());
 
-        model.addAttribute("invite", new Invite());
         model.addAttribute("roles", roleRepository.findAll());
+        model.addAttribute("invites", inviteRepository.findAll());
 
         return "inviteList";
     }
 
     @PostMapping
-    public String invited(@ModelAttribute("identity") Invite invite, @RequestParam(value = "roleId", required = false) ArrayList<String> roleId, RedirectAttributes redirectAttributes) throws NotificationClientException {
-        LOGGER.info("{} inviting {} ", authenticationDetails.getCurrentUsername(), invite.getForEmail());
+    public String invited(@RequestParam(value = "forEmail") String forEmail, @RequestParam(value = "roleId", required = false) ArrayList<String> roleId, RedirectAttributes redirectAttributes) throws NotificationClientException {
+        LOGGER.info("{} inviting {} ", authenticationDetails.getCurrentUsername(), forEmail);
 
-        if (inviteRepository.existsByForEmailAndStatus(invite.getForEmail(), Status.PENDING)) {
-            LOGGER.info("{} has already been invited", invite.getForEmail());
-            redirectAttributes.addFlashAttribute("status", invite.getForEmail() + " has already been invited");
+        if (inviteRepository.existsByForEmailAndStatus(forEmail, Status.PENDING)) {
+            LOGGER.info("{} has already been invited", forEmail);
+            redirectAttributes.addFlashAttribute("status", forEmail + " has already been invited");
             return "redirect:/management/invite";
         }
 
-        if (identityService.inviteExistsByEmail(invite.getForEmail())) {
-            LOGGER.info("{} is already a user", invite.getForEmail());
-            redirectAttributes.addFlashAttribute("status", "User already exists with email address " + invite.getForEmail());
+        if (identityService.inviteExistsByEmail(forEmail)) {
+            LOGGER.info("{} is already a user", forEmail);
+            redirectAttributes.addFlashAttribute("status", "User already exists with email address " + forEmail);
             return "redirect:/management/invite";
         }
 
-        Set<Role> roleSet = new HashSet();
+        Set<Role> roleSet = new HashSet<>();
 
         if (roleId != null) {
             for (String id : roleId) {
@@ -83,19 +87,12 @@ public class InviteController {
             }
         }
 
-        invite.setForRoles(roleSet);
-        invite.setInviter(authenticationDetails.getCurrentIdentity());
-        invite.setInvitedAt(new Date());
-        invite.setStatus(Status.PENDING);
+        inviteService.createNewInviteForEmailAndRoles(forEmail, roleSet, authenticationDetails.getCurrentIdentity());
 
-        invite.setCode(RandomStringUtils.random(40, true, true));
+        LOGGER.info("{} invited {}", authenticationDetails.getCurrentUsername(), forEmail);
 
-        inviteService.sendEmail(invite);
-        inviteService.saveInvite(invite);
-
-        LOGGER.info("{} invited {}", authenticationDetails.getCurrentUsername(), invite.getForEmail());
-
-        redirectAttributes.addFlashAttribute("status", "Invite sent to " + invite.getForEmail());
+        redirectAttributes.addFlashAttribute("status", "Invite sent to " + forEmail);
         return "redirect:/management/invite";
     }
+
 }
