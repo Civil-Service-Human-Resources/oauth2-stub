@@ -13,7 +13,7 @@ template:
   id: ${GOV_NOTIFY_TEMPLATE_ID}
 
 invite:
-  validityInMilliseconds: 86400000
+  validityInSeconds: 86400
 ---
 
 spring:

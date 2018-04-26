@@ -33,8 +33,8 @@ public class InviteService {
     @Value("${template.id}")
     private String templateId;
 
-    @Value("${invite.validityInMilliseconds}")
-    private String validityInMilliseconds;
+    @Value("${invite.validityInSeconds}")
+    private int validityInSeconds;
 
     private String baseUrl = "http://localhost:8081/signup/";
 
@@ -53,7 +53,7 @@ public class InviteService {
         Invite invite = inviteRepository.findByCode(code);
         long diffInMs = new Date().getTime() - invite.getInvitedAt().getTime();
 
-        if (diffInMs > Long.parseLong(validityInMilliseconds) && invite.getStatus().equals(Status.PENDING)) {
+        if (diffInMs > validityInSeconds * 1000 && invite.getStatus().equals(Status.PENDING)) {
             updateInviteByCode(code, Status.ACCEPTED);
             return true;
         }

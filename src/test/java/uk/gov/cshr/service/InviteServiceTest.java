@@ -32,8 +32,8 @@ public class InviteServiceTest {
 
     @Before
     public void setUp() {
-        ReflectionTestUtils.setField(inviteService, "validityInMilliseconds",
-                "86400000");
+        ReflectionTestUtils.setField(inviteService, "validityInSeconds",
+                86400);
     }
 
     @Test
