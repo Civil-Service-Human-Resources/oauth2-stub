@@ -1,21 +1,30 @@
-package uk.gov.cshr.controller;
+package uk.gov.cshr.controller.signup;
+
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.Errors;
+import org.springframework.validation.Validator;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
+import uk.gov.cshr.controller.InviteController;
 import uk.gov.cshr.domain.Status;
 import uk.gov.cshr.repository.InviteRepository;
 import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.security.IdentityService;
 
+import javax.transaction.Transactional;
+import javax.validation.Valid;
+
 @Controller
 @RequestMapping("/signup")
 public class SignupController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SignupController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(InviteController.class);
 
     @Autowired
     private InviteService inviteService;
@@ -33,6 +42,7 @@ public class SignupController {
         if (inviteRepository.existsByCode(code)) {
             if (!inviteService.isCodeExpired(code)) {
                 model.addAttribute("invite", inviteRepository.findByCode(code));
+                model.addAttribute("signupForm", new SignupForm());
                 return "signup";
             }
         }
@@ -40,13 +50,26 @@ public class SignupController {
     }
 
     @PostMapping("/{code}")
-    public String signup(@PathVariable(value = "code") String code, @RequestParam("password") String password) {
+    @Transactional
+    public String signup(@PathVariable(value = "code") String code, @ModelAttribute @Valid SignupForm form,
+                         BindingResult bindingResult, Model model) {
         LOGGER.info("User attempting sign up with code {}", code);
 
-        identityService.createIdentityFromInviteCode(code, password);
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("invite", inviteRepository.findByCode(code));
+            return "signup";
+        }
 
+        identityService.createIdentityFromInviteCode(code, form.getPassword());
         inviteService.updateInviteByCode(code, Status.ACCEPTED);
 
         return "signupSuccess";
+    }
+
+    @InitBinder
+    public void setupValidation(WebDataBinder binder) {
+        if (binder.getTarget() instanceof SignupForm) {
+            binder.addValidators(new SignupFormValidator());
+        }
     }
 }

@@ -2,11 +2,14 @@ package uk.gov.cshr.domain;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
+import javax.validation.constraints.Pattern;
 import java.io.Serializable;
 import java.util.Set;
 
 @Entity
 public class Identity implements Serializable {
+
+    public static final String PASSWORD_PATTERN = "(?!([a-zA-Z]*|[a-z\\d]*|[^A-Z\\d]*|[A-Z\\d]*|[^a-z\\d]*|[^a-zA-Z]*)$).{8,}";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,6 +23,7 @@ public class Identity implements Serializable {
     private String email;
 
     @Column(length = 100)
+    @Pattern(regexp = PASSWORD_PATTERN, message = "{validation.password}")
     private String password;
 
     private boolean active;

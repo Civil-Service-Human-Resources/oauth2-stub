@@ -1,4 +1,10 @@
 
+spring:
+  thymeleaf:
+    cache: false
+  messages:
+    basename: i18n/messages
+
 server:
   port: 8080
   managementPort: 8081
@@ -12,10 +18,13 @@ govNotify:
 
 invite:
   validityInSeconds: 86400
+
 ---
 
 spring:
   profiles: production
+  thymeleaf:
+    cache: true
   datasource:
     url: ${DATASOURCE:jdbc:mysql://localhost:3306/oauth2?user=root&password=secret&useSSL=false}
     initialization-mode: always
