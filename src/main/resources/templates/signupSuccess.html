@@ -1,9 +1,19 @@
-<page th:replace="fragments/layout :: page(~{::title},~{::content})">
+<page th:replace="fragments/user-layout :: page(~{::title},~{::content})">
     <title>Sign Up Complete</title>
 
     <content>
-        <h1>Sign Up Complete</h1>
-        <br/>
-        <p>Sign up complete - you can now login <a href="/login">here</a></p>
+        <div class="container">
+            <div class="govuk-box-highlight">
+                <h1 class="heading-xlarge">Password creation complete</h1>
+                <p class="font-medium">Your new password has been created</p>
+            </div>
+            <div class="grid-row push-bottom">
+                <div class="column-two-thirds">
+                    <h2 class="heading-medium">What happens next?</h2>
+                    <p>We have sent you a confirmation email.</p>
+                    <p>You can now <a href="/login">sign into the Learning Platform for Government</a> with your new password.</p>
+                </div>
+            </div>
+        </div>
     </content>
 </page>

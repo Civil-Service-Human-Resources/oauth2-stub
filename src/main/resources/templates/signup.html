@@ -5,18 +5,15 @@
         <div class="container">
             <div class="grid-row">
                 <div class="column-two-thirds">
-                    <div th:if="${param.error}" class="error-summary" role="alert" aria-labelledby="error-summary-heading-example-1" tabindex="-1">
+                    <div th:if="${param.passwordError}" class="error-summary" role="alert" aria-labelledby="error-summary-heading-example-1" tabindex="-1">
                         <h2 class="heading-medium error-summary-heading" id="error-summary-heading-example-1">
                             There was a problem with your password
                         </h2>
                         <ul class="error-summary-list">
-                            {% if passwordOneError %}
-                            <li><a href="#password">Password is invalid</a></li>
-                            {% endif %}
 
-                            {% if passwordTwoError %}
-                            <li><a href="#passwordConfirm">{{ passwordErrorMessage }}</a></li>
-                            {% endif %}
+                            <li th:if="${param.passwordError.passwordPolicyError}"><a href="#password">Password is invalid</a></li>
+                            <li th:if="${param.passwordError.passwordNotMatched}"><a href="#passwordConfirm">{{ passwordErrorMessage }}</a></li>
+
                         </ul>
                     </div>
 
@@ -35,13 +32,13 @@
                     <form method="post" class="push-bottom">
 
                         <div class="form-group">
-                            <label th:for="password" class="form-label">
+                            <label th:for="password" class="form-label" th:classappend="${param.passwordError.passwordPolicyError} ? form-group-error :  ''">
                                 Password
                             </label>
                             <input class="form-control form-control-2-3" id="password" name="password" type="password">
                         </div>
 
-                        <div class="form-group" th:classappend="${param.error} ? form-group-error :  ">
+                        <div class="form-group" th:classappend="${param.passwordError.passwordNotMatched} ? form-group-error :  ''">
                             <label th:for="confirm-password" class="form-label">
                                 Re-type your Password
                             </label>
