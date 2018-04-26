@@ -1,29 +1,61 @@
-<page xmlns:th="http://www.w3.org/1999/xhtml" th:replace="fragments/layout :: page(~{::title},~{::content})">
-    <title>Page title</title>
+<page th:replace="fragments/user-layout :: page(~{::title},~{::content})">
+    <title>Create a Password - Learning Platform for Government</title>
 
     <content>
-        <h1>Sign Up</h1>
-        <br/>
-        <form th:action="@{|/signup/${invite.code}|}" method="post">
-            <table class="table">
-                <tr>
-                    <th scope="col">Password:</th>
-                    <th scope="col">Confirm Password:</th>
-                </tr>
-                <tr>
-                    <td>
-                        <label class="d-none" th:for="password">Password:</label>
-                        <input type="text" id="password" name="password"/>
-                    </td>
-                    <td>
-                        <label class="d-none" th:for="password">Confirm Password:</label>
-                        <input type="text" id="passwordConfirm" name="passwordConfirm"/>
-                    </td>
-                    <td align="right">
-                        <button type="submit" class="btn btn-primary">Signup</button>
-                    </td>
-                </tr>
-            </table>
-        </form>
+        <div class="container">
+            <div class="grid-row">
+                <div class="column-two-thirds">
+                    <div th:if="${param.error}" class="error-summary" role="alert" aria-labelledby="error-summary-heading-example-1" tabindex="-1">
+                        <h2 class="heading-medium error-summary-heading" id="error-summary-heading-example-1">
+                            There was a problem with your password
+                        </h2>
+                        <ul class="error-summary-list">
+                            {% if passwordOneError %}
+                            <li><a href="#password">Password is invalid</a></li>
+                            {% endif %}
+
+                            {% if passwordTwoError %}
+                            <li><a href="#passwordConfirm">{{ passwordErrorMessage }}</a></li>
+                            {% endif %}
+                        </ul>
+                    </div>
+
+                    <h1 class="heading-large">Create a password – Learning Platform for Government</h1>
+                    <p class="lede">Create a memorable password for your account.</p>
+
+                    <div class="module-criteria u-space-b30" id="password-criteria-scope">
+                        <p>Your password must have:</p>
+                        <ul class="list-bullet criteria__list">
+                            <li class="criteria__criterion" data-criteria="minLength" data-criteria-param="8">8 or more characters</li>
+                            <li class="criteria__criterion" data-criteria="hasNumeric">at least 1 number</li>
+                            <li class="criteria__criterion" data-criteria="hasMixedCase">upper and lower case letters</li>
+                        </ul>
+                    </div>
+
+                    <form method="post" class="push-bottom">
+
+                        <div class="form-group">
+                            <label th:for="password" class="form-label">
+                                Password
+                            </label>
+                            <input class="form-control form-control-2-3" id="password" name="password" type="password">
+                        </div>
+
+                        <div class="form-group" th:classappend="${param.error} ? form-group-error :  ">
+                            <label th:for="confirm-password" class="form-label">
+                                Re-type your Password
+                            </label>
+                            <input class="form-control form-control-2-3" id="passwordConfirm" name="passwordConfirm" type="password"/>
+                        </div>
+
+                        <input type="submit" class="button" value="Continue">
+
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+
     </content>
 </page>
