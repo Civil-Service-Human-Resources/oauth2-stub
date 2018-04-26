@@ -57,8 +57,7 @@ public class IdentityService implements UserDetailsService {
     public void createIdentityFromInviteCode(String code, String password) {
         Invite invite = inviteService.findByCode(code);
 
-        // TODO: 25/04/2018 Matt - currently no roles being saved, need to sort this out later
-        Identity identity = new Identity(UUID.randomUUID().toString(), invite.getForEmail(), passwordEncoder.encode(password), true, null);
+        Identity identity = new Identity(UUID.randomUUID().toString(), invite.getForEmail(), passwordEncoder.encode(password), true, invite.getForRoles());
         identityRepository.save(identity);
 
         LOGGER.info("New identity {} successfully created", identity.getEmail());
