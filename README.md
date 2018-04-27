@@ -1,11 +1,7 @@
-# Oauth2 Stub Authentication Service
-This is a stub service that implements Oauth2 spec.
+# Identity Service
+Identity service that implements Oauth2 component spec.
 
-We haven't used spring-oauth because of the raw JDBC data source management. 
-
-It is not open to extension and removes the benefits of a sophisticated ORM solution like JPA/Hibernate
-
-Only supported grant option is Resource Owner Credentials - Password currently.
+We haven't used spring-oauth because of the raw JDBC data source management as it is not open to extension and removes the benefits of a sophisticated ORM solution like JPA/Hibernate.
 
 ## Build
 
