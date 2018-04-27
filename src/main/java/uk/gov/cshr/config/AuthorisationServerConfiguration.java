@@ -50,6 +50,7 @@ public class AuthorisationServerConfiguration extends AuthorizationServerConfigu
     @Override
     public void configure(AuthorizationServerSecurityConfigurer oauthServer) throws Exception {
         oauthServer.realm(REALM + "/client")
+            .checkTokenAccess("isAuthenticated()")
             .allowFormAuthenticationForClients();
     }
 }
