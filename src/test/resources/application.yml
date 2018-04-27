@@ -8,6 +8,7 @@ govNotify:
   template: ${GOV_NOTIFY_TEMPLATE_ID:template}
 
 invite:
+  signupUrl: http://localhost:8080/signup/%s
   validityInSeconds: 86400
 
 accessToken:

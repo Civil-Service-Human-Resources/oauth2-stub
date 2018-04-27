@@ -40,7 +40,8 @@ public class InviteService {
     @Value("${invite.validityInSeconds}")
     private int validityInSeconds;
 
-    private String baseUrl = "http://localhost:8081/signup/";
+    @Value("${invite.signupUrl}")
+    private String signupUrlFormat;
 
     @Autowired
     public InviteService(InviteRepository inviteRepository) {
@@ -67,21 +68,17 @@ public class InviteService {
     }
 
     public void sendEmail(Invite invite) throws NotificationClientException {
-        StringBuilder activationUrl = new StringBuilder();
-        activationUrl.append(baseUrl);
-        activationUrl.append(invite.getCode());
+        String activationUrl = String.format(signupUrlFormat, invite.getCode());
 
         HashMap<String, String> personalisation = new HashMap<>();
         personalisation.put(EMAIL_PERMISSION, invite.getForEmail());
-        personalisation.put(ACTIVATION_URL_PERMISSION, activationUrl.toString());
+        personalisation.put(ACTIVATION_URL_PERMISSION, activationUrl);
 
         NotificationClient client = new NotificationClient(api);
         SendEmailResponse response = client.sendEmail(templateId, invite.getForEmail(), personalisation, "");
 
-        // TODO: 25/04/2018 Matt - remove this log later, just using for dev purposes to output email contents so we can get the signup activation link
-        LOGGER.info(response.getBody());
+        LOGGER.debug("Invite email sent: {}", response.getBody());
     }
-
 
     public void updateInviteByCode(String code, Status newStatus) {
         Invite invite = inviteRepository.findByCode(code);
