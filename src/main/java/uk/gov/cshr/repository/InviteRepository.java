@@ -3,7 +3,7 @@ package uk.gov.cshr.repository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 import uk.gov.cshr.domain.Invite;
-import uk.gov.cshr.domain.Status;
+import uk.gov.cshr.domain.InviteStatus;
 
 @Repository
 public interface InviteRepository extends CrudRepository<Invite, Long> {
@@ -14,5 +14,5 @@ public interface InviteRepository extends CrudRepository<Invite, Long> {
 
     boolean existsByCode(String code);
 
-    boolean existsByForEmailAndStatus(String email, Status status);
+    boolean existsByForEmailAndStatus(String email, InviteStatus status);
 }

@@ -10,8 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Invite;
+import uk.gov.cshr.domain.InviteStatus;
 import uk.gov.cshr.domain.Role;
-import uk.gov.cshr.domain.Status;
 import uk.gov.cshr.repository.InviteRepository;
 import uk.gov.service.notify.NotificationClient;
 import uk.gov.service.notify.NotificationClientException;
@@ -58,12 +58,12 @@ public class InviteService {
         Invite invite = inviteRepository.findByCode(code);
         long diffInMs = new Date().getTime() - invite.getInvitedAt().getTime();
 
-        if (diffInMs > validityInSeconds * 1000 && invite.getStatus().equals(Status.PENDING)) {
-            updateInviteByCode(code, Status.ACCEPTED);
+        if (diffInMs > validityInSeconds * 1000 && invite.getStatus().equals(InviteStatus.PENDING)) {
+            updateInviteByCode(code, InviteStatus.ACCEPTED);
             return true;
         }
 
-        updateInviteByCode(code, Status.EXPIRED);
+        updateInviteByCode(code, InviteStatus.EXPIRED);
         return false;
     }
 
@@ -80,7 +80,7 @@ public class InviteService {
         LOGGER.debug("Invite email sent: {}", response.getBody());
     }
 
-    public void updateInviteByCode(String code, Status newStatus) {
+    public void updateInviteByCode(String code, InviteStatus newStatus) {
         Invite invite = inviteRepository.findByCode(code);
         invite.setStatus(newStatus);
         inviteRepository.save(invite);
@@ -92,7 +92,7 @@ public class InviteService {
         invite.setForRoles(roleSet);
         invite.setInviter(inviter);
         invite.setInvitedAt(new Date());
-        invite.setStatus(Status.PENDING);
+        invite.setStatus(InviteStatus.PENDING);
         invite.setCode(RandomStringUtils.random(40, true, true));
         sendEmail(invite);
         inviteRepository.save(invite);

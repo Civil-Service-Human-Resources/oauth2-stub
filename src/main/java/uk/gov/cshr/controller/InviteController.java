@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import uk.gov.cshr.domain.InviteStatus;
 import uk.gov.cshr.domain.Role;
-import uk.gov.cshr.domain.Status;
 import uk.gov.cshr.repository.InviteRepository;
 import uk.gov.cshr.repository.RoleRepository;
 import uk.gov.cshr.service.AuthenticationDetails;
@@ -60,7 +60,7 @@ public class InviteController {
     public String invited(@RequestParam(value = "forEmail") String forEmail, @RequestParam(value = "roleId", required = false) ArrayList<String> roleId, RedirectAttributes redirectAttributes) throws NotificationClientException {
         LOGGER.info("{} inviting {} ", authenticationDetails.getCurrentUsername(), forEmail);
 
-        if (inviteRepository.existsByForEmailAndStatus(forEmail, Status.PENDING)) {
+        if (inviteRepository.existsByForEmailAndStatus(forEmail, InviteStatus.PENDING)) {
             LOGGER.info("{} has already been invited", forEmail);
             redirectAttributes.addFlashAttribute("status", forEmail + " has already been invited");
             return "redirect:/management/invite";

@@ -3,15 +3,16 @@ package uk.gov.cshr.repository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 import uk.gov.cshr.domain.Token;
+import uk.gov.cshr.domain.TokenStatus;
 
 import java.util.Collection;
 
 @Repository
 public interface TokenRepository extends CrudRepository<Token, Long> {
 
-    Token findByTokenId(String tokenId);
+    Token findByTokenIdAndStatus(String tokenId, TokenStatus status);
 
-    Token findByAuthenticationId(String authenticationId);
+    Token findByAuthenticationIdAndStatus(String authenticationId, TokenStatus status);
 
     Collection<Token> findByClientIdAndUserName(String clientId, String userName);
 

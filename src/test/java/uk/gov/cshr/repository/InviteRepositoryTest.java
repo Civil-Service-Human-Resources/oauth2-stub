@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.cshr.domain.Invite;
-import uk.gov.cshr.domain.Status;
+import uk.gov.cshr.domain.InviteStatus;
 
 import javax.transaction.Transactional;
 
@@ -66,17 +66,17 @@ public class InviteRepositoryTest {
         final String pendingEmail = "pending@example.org";
         Invite pendingInvite = new Invite();
         pendingInvite.setForEmail(pendingEmail);
-        pendingInvite.setStatus(Status.PENDING);
+        pendingInvite.setStatus(InviteStatus.PENDING);
         inviteRepository.save(pendingInvite);
 
         final String expiredEmail = "expired@example.org";
         Invite expiredInvite = new Invite();
         expiredInvite.setForEmail(expiredEmail);
-        expiredInvite.setStatus(Status.EXPIRED);
+        expiredInvite.setStatus(InviteStatus.EXPIRED);
         inviteRepository.save(expiredInvite);
 
-        boolean existsByCodeAndStatusForPendingInvite = inviteRepository.existsByForEmailAndStatus(pendingEmail, Status.PENDING);
-        boolean existsByCodeAndStatusForExpiredInvite = inviteRepository.existsByForEmailAndStatus(expiredEmail, Status.PENDING);
+        boolean existsByCodeAndStatusForPendingInvite = inviteRepository.existsByForEmailAndStatus(pendingEmail, InviteStatus.PENDING);
+        boolean existsByCodeAndStatusForExpiredInvite = inviteRepository.existsByForEmailAndStatus(expiredEmail, InviteStatus.PENDING);
 
         assertThat(existsByCodeAndStatusForPendingInvite, equalTo(true));
         assertThat(existsByCodeAndStatusForExpiredInvite, equalTo(false));

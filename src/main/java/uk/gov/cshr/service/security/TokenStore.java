@@ -39,8 +39,8 @@ public class TokenStore implements org.springframework.security.oauth2.provider.
 
     @Override
     public OAuth2Authentication readAuthentication(String tokenValue) {
-        Token token = tokenRepository.findByTokenId(extractTokenKey(tokenValue));
-        if (token != null && token.getStatus() == TokenStatus.ACTIVE) {
+        Token token = tokenRepository.findByTokenIdAndStatus(extractTokenKey(tokenValue), TokenStatus.ACTIVE);
+        if (token != null) {
             return token.getAuthentication();
         }
         return null;
@@ -48,14 +48,19 @@ public class TokenStore implements org.springframework.security.oauth2.provider.
 
     @Override
     public void storeAccessToken(OAuth2AccessToken token, OAuth2Authentication authentication) {
-        Token storedToken = new Token(authenticationKeyGenerator.extractKey(authentication), token, authentication);
+        Token storedToken = tokenRepository.findByTokenIdAndStatus(extractTokenKey(token.getValue()), TokenStatus.ACTIVE);
+        if (storedToken == null) {
+            storedToken = new Token(authenticationKeyGenerator.extractKey(authentication), token, authentication);
+        } else {
+            storedToken.setAuthentication(authentication);
+        }
         tokenRepository.save(storedToken);
     }
 
     @Override
     public OAuth2AccessToken readAccessToken(String tokenValue) {
-        Token token = tokenRepository.findByTokenId(extractTokenKey(tokenValue));
-        if (token != null && token.getStatus() == TokenStatus.ACTIVE) {
+        Token token = tokenRepository.findByTokenIdAndStatus(extractTokenKey(tokenValue), TokenStatus.ACTIVE);
+        if (token != null) {
             return token.getToken();
         }
         return null;
@@ -63,7 +68,7 @@ public class TokenStore implements org.springframework.security.oauth2.provider.
 
     @Override
     public void removeAccessToken(OAuth2AccessToken token) {
-        Token storedToken = tokenRepository.findByTokenId(extractTokenKey(token.getValue()));
+        Token storedToken = tokenRepository.findByTokenIdAndStatus(extractTokenKey(token.getValue()), TokenStatus.ACTIVE);
         if (storedToken != null) {
             storedToken.setStatus(TokenStatus.REVOKED);
             tokenRepository.save(storedToken);
@@ -94,7 +99,7 @@ public class TokenStore implements org.springframework.security.oauth2.provider.
 
     @Override
     public OAuth2AccessToken getAccessToken(OAuth2Authentication authentication) {
-        Token storedToken = tokenRepository.findByAuthenticationId(authenticationKeyGenerator.extractKey(authentication));
+        Token storedToken = tokenRepository.findByAuthenticationIdAndStatus(authenticationKeyGenerator.extractKey(authentication), TokenStatus.ACTIVE);
         if (storedToken != null) {
             return storedToken.getToken();
         }

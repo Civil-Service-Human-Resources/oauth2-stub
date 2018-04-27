@@ -41,6 +41,7 @@ public class Token {
     @Lob
     private byte[] token;
 
+    @Column(unique = true)
     private String tokenId;
 
     private String authenticationId;
@@ -61,11 +62,12 @@ public class Token {
 
     public Token(String authenticationId, OAuth2AccessToken token, OAuth2Authentication authentication) {
         this.authenticationId = authenticationId;
-        this.authentication = SerializationUtils.serialize(authentication);
         this.clientId = authentication.getOAuth2Request().getClientId();
         this.token = SerializationUtils.serialize(token);
         this.tokenId = extractTokenKey(token.getValue());
         this.status = TokenStatus.ACTIVE;
+
+        setAuthentication(authentication);
 
         if (token.getRefreshToken() != null) {
             this.refreshToken = extractTokenKey(token.getRefreshToken().getValue());
@@ -89,5 +91,9 @@ public class Token {
 
     public void setStatus(TokenStatus status) {
         this.status = status;
+    }
+
+    public void setAuthentication(OAuth2Authentication authentication) {
+        this.authentication = SerializationUtils.serialize(authentication);
     }
 }
