@@ -13,11 +13,16 @@ accessToken:
   validityInSeconds: 86400
 
 govNotify:
-  key: ${GOV_NOTIFY_API_KEY:key}
-  template: ${GOV_NOTIFY_TEMPLATE_ID:template}
+  key: ${GOV_NOTIFY_API_KEY_TEST:key}
+  inviteTemplate: ${GOV_NOTIFY_INVITE_TEMPLATE_ID:template}
+  resetTemplate: ${GOV_NOTIFY_RESET_TEMPLATE_ID:template}
 
 invite:
   signupUrl: ${INVITE_SIGNUP_URL:http://localhost:8080/signup/%s}
+  validityInSeconds: 86400
+
+reset:
+  signupUrl: ${RESET_SIGNUP_URL:http://localhost:8080/reset/%s}
   validityInSeconds: 86400
 
 accountValidation:

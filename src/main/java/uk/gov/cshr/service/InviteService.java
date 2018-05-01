@@ -13,12 +13,9 @@ import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.domain.InviteStatus;
 import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.repository.InviteRepository;
-import uk.gov.service.notify.NotificationClient;
 import uk.gov.service.notify.NotificationClientException;
-import uk.gov.service.notify.SendEmailResponse;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Set;
 
 @Service
@@ -26,16 +23,14 @@ import java.util.Set;
 public class InviteService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InviteService.class);
-    private static final String EMAIL_PERMISSION = "email";
-    private static final String ACTIVATION_URL_PERMISSION = "activationUrl";
+
+    @Autowired
+    private NotifyService notifyService;
 
     private InviteRepository inviteRepository;
 
-    @Value("${govNotify.key}")
-    private String api;
-
-    @Value("${govNotify.template}")
-    private String templateId;
+    @Value("${govNotify.inviteTemplate}")
+    private String govNotifyInviteTemplateId;
 
     @Value("${invite.validityInSeconds}")
     private int validityInSeconds;
@@ -67,19 +62,6 @@ public class InviteService {
         return false;
     }
 
-    public void sendEmail(Invite invite) throws NotificationClientException {
-        String activationUrl = String.format(signupUrlFormat, invite.getCode());
-
-        HashMap<String, String> personalisation = new HashMap<>();
-        personalisation.put(EMAIL_PERMISSION, invite.getForEmail());
-        personalisation.put(ACTIVATION_URL_PERMISSION, activationUrl);
-
-        NotificationClient client = new NotificationClient(api);
-        SendEmailResponse response = client.sendEmail(templateId, invite.getForEmail(), personalisation, "");
-
-        LOGGER.debug("Invite email sent: {}", response.getBody());
-    }
-
     public void updateInviteByCode(String code, InviteStatus newStatus) {
         Invite invite = inviteRepository.findByCode(code);
         invite.setStatus(newStatus);
@@ -94,7 +76,9 @@ public class InviteService {
         invite.setInvitedAt(new Date());
         invite.setStatus(InviteStatus.PENDING);
         invite.setCode(RandomStringUtils.random(40, true, true));
-        sendEmail(invite);
+
+        notifyService.notify(invite.getForEmail(), invite.getCode(), govNotifyInviteTemplateId, signupUrlFormat);
+
         inviteRepository.save(invite);
     }
 }

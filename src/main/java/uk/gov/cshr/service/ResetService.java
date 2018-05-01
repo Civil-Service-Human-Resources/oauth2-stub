@@ -2,6 +2,7 @@ package uk.gov.cshr.service;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.domain.Reset;
@@ -18,6 +19,13 @@ public class ResetService {
     @Autowired
     private NotifyService notifyService;
 
+    @Value("${govNotify.resetTemplate}")
+    private String govNotifyResetTemplateId;
+
+    @Value("${reset.signupUrl}")
+    private String resetUrlFormat;
+
+
     private ResetRepository resetRepository;
 
     @Autowired
@@ -31,7 +39,9 @@ public class ResetService {
         reset.setInvitedAt(new Date());
         reset.setResetStatus(ResetStatus.PENDING);
         reset.setCode(RandomStringUtils.random(40, true, true));
-        notifyService.sendResetEmail(reset);
+
+        notifyService.notify(reset.getEmail(), reset.getCode(), govNotifyResetTemplateId, resetUrlFormat);
+
         resetRepository.save(reset);
     }
 }

@@ -1,6 +1,6 @@
 <configuration>
 
-    <property scope="context" name="profile" value="${spring.profile:-development}" />
+    <property scope="context" name="profile" value="${spring.profile:-development}"/>
 
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -8,9 +8,9 @@
         </encoder>
     </appender>
 
-    <root level="debug">
-        <appender-ref ref="console" />
+    <root level="info">
+        <appender-ref ref="console"/>
     </root>
 
-    <logger name="org.apache.http" level="warn" />
+    <logger name="org.apache.http" level="warn"/>
 </configuration>

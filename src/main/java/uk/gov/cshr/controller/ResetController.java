@@ -17,7 +17,7 @@ public class ResetController {
 
     @GetMapping
     public String reset() {
-        return "reset";
+        return "user-reset";
     }
 
     @PostMapping
@@ -26,7 +26,7 @@ public class ResetController {
 
         resetService.createNewResetForEmail(email);
 
-        return "resetSuccess";
+        return "user-checkEmail";
     }
 
     @GetMapping("/{code}")
