@@ -36,7 +36,7 @@ public class ResetService {
     public void createNewResetForEmail(String email) throws NotificationClientException {
         Reset reset = new Reset();
         reset.setEmail(email);
-        reset.setInvitedAt(new Date());
+        reset.setRequestedAt(new Date());
         reset.setResetStatus(ResetStatus.PENDING);
         reset.setCode(RandomStringUtils.random(40, true, true));
 
