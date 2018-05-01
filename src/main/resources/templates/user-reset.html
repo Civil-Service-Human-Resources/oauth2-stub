@@ -1,0 +1,43 @@
+<page th:replace="fragments/user-layout :: page(~{::title},~{::content})">
+    <title>Create a Password - Learning Platform for Government</title>
+
+    <content>
+        <div class="container">
+            <div class="grid-row">
+                <div class="column-two-thirds">
+                    <div th:if="${#fields.hasErrors('${resetForm.*}')}" class="error-summary" role="alert" aria-labelledby="error-summary-heading-example-1" tabindex="-1">
+                        <h2 class="heading-medium error-summary-heading" id="error-summary-heading-example-1">
+                            There was a problem with your input
+                        </h2>
+                        <ul class="error-summary-list">
+                            <li th:if="${#fields.hasErrors('${resetForm.email}')}">
+                                <a href="#email" th:errors="${resetForm.email}">Email address is invalid</a></li>
+
+                        </ul>
+                    </div>
+                    <h1 class="heading-xlarge heading heading--page-heading">
+                        <span class="heading-secondary">Reset your password</span>
+                        Enter your email
+                    </h1>
+
+                    <form method="post" class="push-bottom" th:object="${resetForm}">
+
+                        <div class="form-group" th:classappend="${#fields.hasErrors('email')} ? form-group-error : ''">
+                            <label th:for="email" class="form-label">
+                                Email address
+                            </label>
+                            <span th:if="${#fields.hasErrors('${resetForm.*}')}" class="error-message">
+                                Email address is invalid
+                            </span>
+                            <input class="form-control form-control-2-3" id="email" type="email" th:field="*{email}">
+                        </div>
+
+                        <input type="submit" class="button" value="Continue">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    </form>
+                    <a href="#">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </content>
+</page>
