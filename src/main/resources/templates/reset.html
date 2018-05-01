@@ -1,0 +1,24 @@
+<page th:replace="fragments/layout :: page(~{::title},~{::content})">
+    <title>Reset Password</title>
+
+    <content>
+        <h1>Reset your password</h1>
+        <br/>
+        <form action="#" th:action="@{/reset}" method="POST">
+            <table class="table">
+                <tr>
+                    <th scope="col">Email</th>
+                </tr>
+                <tr>
+                    <td>
+                        <label class="d-none" th:for="name">Email:</label>
+                        <input type="text" name="email"/>
+                    </td>
+                    <td>
+                        <button type="submit" class="btn btn-primary">Reset</button>
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </content>
+</page>
