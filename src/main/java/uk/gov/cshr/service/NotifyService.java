@@ -22,8 +22,8 @@ public class NotifyService {
     @Value("${govNotify.key}")
     private String govNotifyKey;
 
-    public void notify(String email, String code, String templateId, String signupUrlFormat) throws NotificationClientException {
-        String activationUrl = String.format(signupUrlFormat, code);
+    public void notify(String email, String code, String templateId, String actionUrl) throws NotificationClientException {
+        String activationUrl = String.format(actionUrl, code);
 
         HashMap<String, String> personalisation = new HashMap<>();
         personalisation.put(EMAIL_PERMISSION, email);
