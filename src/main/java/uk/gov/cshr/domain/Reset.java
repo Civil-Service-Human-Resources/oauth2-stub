@@ -17,9 +17,9 @@ public class Reset {
     @Enumerated(EnumType.STRING)
     private ResetStatus resetStatus;
 
-    private Date invitedAt;
+    private Date requestedAt;
 
-    private Date acceptedAt;
+    private Date resetAt;
 
     @Column
     private String email;
@@ -48,20 +48,20 @@ public class Reset {
         this.resetStatus = resetStatus;
     }
 
-    public Date getInvitedAt() {
-        return invitedAt;
+    public Date getRequestedAt() {
+        return requestedAt;
     }
 
-    public void setInvitedAt(Date invitedAt) {
-        this.invitedAt = invitedAt;
+    public void setRequestedAt(Date requestedAt) {
+        this.requestedAt = requestedAt;
     }
 
-    public Date getAcceptedAt() {
-        return acceptedAt;
+    public Date getResetAt() {
+        return resetAt;
     }
 
-    public void setAcceptedAt(Date acceptedAt) {
-        this.acceptedAt = acceptedAt;
+    public void setResetAt(Date resetAt) {
+        this.resetAt = resetAt;
     }
 
     public String getEmail() {

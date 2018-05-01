@@ -13,7 +13,7 @@ accessToken:
   validityInSeconds: 86400
 
 govNotify:
-  key: ${GOV_NOTIFY_API_KEY_TEST:key}
+  key: ${GOV_NOTIFY_API_KEY:key}
   inviteTemplate: ${GOV_NOTIFY_INVITE_TEMPLATE_ID:template}
   resetTemplate: ${GOV_NOTIFY_RESET_TEMPLATE_ID:template}
 
