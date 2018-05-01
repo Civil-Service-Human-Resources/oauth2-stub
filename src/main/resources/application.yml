@@ -16,6 +16,7 @@ govNotify:
   key: ${GOV_NOTIFY_API_KEY:key}
   inviteTemplate: ${GOV_NOTIFY_INVITE_TEMPLATE_ID:template}
   resetTemplate: ${GOV_NOTIFY_RESET_TEMPLATE_ID:template}
+  resetSuccessfulTemplate: ${GOV_NOTIFY_RESET_SUCCESSFUL_TEMPLATE_ID:template}
 
 invite:
   signupUrl: ${INVITE_SIGNUP_URL:http://localhost:8080/signup/%s}
