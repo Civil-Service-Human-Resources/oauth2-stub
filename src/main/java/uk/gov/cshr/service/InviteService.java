@@ -29,13 +29,13 @@ public class InviteService {
 
     private InviteRepository inviteRepository;
 
-    @Value("${govNotify.inviteTemplate}")
+    @Value("${govNotify.template.invite}")
     private String govNotifyInviteTemplateId;
 
     @Value("${invite.validityInSeconds}")
     private int validityInSeconds;
 
-    @Value("${invite.signupUrl}")
+    @Value("${invite.url}")
     private String signupUrlFormat;
 
     @Autowired

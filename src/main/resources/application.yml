@@ -14,16 +14,17 @@ accessToken:
 
 govNotify:
   key: ${GOV_NOTIFY_API_KEY:key}
-  inviteTemplate: ${GOV_NOTIFY_INVITE_TEMPLATE_ID:template}
-  resetTemplate: ${GOV_NOTIFY_RESET_TEMPLATE_ID:template}
-  resetSuccessfulTemplate: ${GOV_NOTIFY_RESET_SUCCESSFUL_TEMPLATE_ID:template}
+  template:
+    invite: ${GOV_NOTIFY_INVITE_TEMPLATE_ID:template}
+    reset: ${GOV_NOTIFY_RESET_TEMPLATE_ID:template}
+    resetSuccessful: ${GOV_NOTIFY_RESET_SUCCESSFUL_TEMPLATE_ID:template}
 
 invite:
-  signupUrl: ${INVITE_SIGNUP_URL:http://localhost:8080/signup/%s}
+  url: ${INVITE_SIGNUP_URL:http://localhost:8080/signup/%s}
   validityInSeconds: 86400
 
 reset:
-  signupUrl: ${RESET_SIGNUP_URL:http://localhost:8080/reset/%s}
+  url: ${RESET_URL:http://localhost:8080/reset/%s}
   validityInSeconds: 86400
 
 accountValidation:

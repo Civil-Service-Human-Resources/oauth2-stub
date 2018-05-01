@@ -19,12 +19,11 @@ public class ResetService {
     @Autowired
     private NotifyService notifyService;
 
-    @Value("${govNotify.resetTemplate}")
+    @Value("${govNotify.template.reset}")
     private String govNotifyResetTemplateId;
 
-    @Value("${reset.signupUrl}")
+    @Value("${reset.url}")
     private String resetUrlFormat;
-
 
     private ResetRepository resetRepository;
 
