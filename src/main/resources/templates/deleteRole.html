@@ -4,7 +4,7 @@
     <content>
         <h1>Delete Role</h1>
         <p>Are you sure you want to delete the following role:</p>
-        <form action="#" th:action="@{/management/roles/delete}" th:object="${role}" method="POST">
+        <form autocomplete="nope" action="#" th:action="@{/management/roles/delete}" th:object="${role}" method="POST">
             <label class="d-none" th:for="id">User ID</label>
             <input type="hidden" th:field="*{id}"/>
             <table class="table">

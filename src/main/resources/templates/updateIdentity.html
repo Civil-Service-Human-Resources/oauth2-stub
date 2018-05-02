@@ -4,7 +4,7 @@
     <content>
         <h1>Update Identity</h1>
 
-        <form action="#" th:action="@{/management/identities/update}" th:object="${identity}" method="POST">
+        <form autocomplete="nope" action="#" th:action="@{/management/identities/update}" th:object="${identity}" method="POST">
             <input type="hidden" th:field="*{uid}" /></p>
             <table class="table">
                 <tr>

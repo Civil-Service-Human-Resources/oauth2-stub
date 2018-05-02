@@ -4,7 +4,7 @@
     <content>
         <h1>Update Role</h1>
 
-        <form action="#" th:action="@{/management/roles/update}" th:object="${role}" method="POST">
+        <form autocomplete="nope" action="#" th:action="@{/management/roles/update}" th:object="${role}" method="POST">
             <label class="d-none" th:for="id">User ID</label>
             <input type="hidden" th:field="*{id}"/>
 

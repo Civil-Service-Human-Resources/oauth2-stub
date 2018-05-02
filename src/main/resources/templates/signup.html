@@ -27,7 +27,7 @@
                         </ul>
                     </div>
 
-                    <form method="post" class="push-bottom" th:object="${signupForm}">
+                    <form autocomplete="nope" method="post" class="push-bottom" th:object="${signupForm}">
 
                         <div class="form-group" th:classappend="${#fields.hasErrors('password')} ? form-group-error : ''">
                             <label th:for="password" class="form-label">
