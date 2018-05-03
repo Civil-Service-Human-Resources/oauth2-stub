@@ -18,11 +18,10 @@ import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
-import uk.gov.cshr.repository.ClientRepository;
-import uk.gov.cshr.repository.IdentityRepository;
-import uk.gov.cshr.repository.InviteRepository;
-import uk.gov.cshr.repository.TokenRepository;
+import uk.gov.cshr.repository.*;
 import uk.gov.cshr.service.InviteService;
+import uk.gov.cshr.service.NotifyService;
+import uk.gov.cshr.service.ResetService;
 import uk.gov.cshr.service.security.ClientDetailsService;
 import uk.gov.cshr.service.security.IdentityService;
 
@@ -50,11 +49,16 @@ public class SecurityConfig {
     private InviteRepository inviteRepository;
 
     @Autowired
+    private ResetRepository resetRepository;
+
+    @Autowired
     private TokenRepository tokenRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private NotifyService notifyService;
 
     static RequestMatcher forPortAndPath(int port, String... pathPatterns) {
         List<RequestMatcher> requestMatchers = new ArrayList<>();
@@ -81,6 +85,11 @@ public class SecurityConfig {
     @Bean
     public InviteService inviteService() {
         return new InviteService(inviteRepository);
+    }
+
+    @Bean
+    public ResetService resetService() {
+        return new ResetService(resetRepository, notifyService);
     }
 
     @Autowired

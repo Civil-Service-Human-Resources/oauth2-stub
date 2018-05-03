@@ -5,15 +5,24 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import uk.gov.cshr.repository.IdentityRepository;
+import uk.gov.cshr.repository.ResetRepository;
 import uk.gov.cshr.service.ResetService;
 
 @Controller
 @RequestMapping("/reset")
 public class ResetController {
-    private static final Logger LOGGER = LoggerFactory.getLogger(InviteController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ResetController.class);
 
     @Autowired
     private ResetService resetService;
+
+    @Autowired
+    private ResetRepository resetRepository;
+
+    @Autowired
+    private IdentityRepository identityRepository;
 
     @GetMapping
     public String reset() {
@@ -21,8 +30,14 @@ public class ResetController {
     }
 
     @PostMapping
-    public String reset(@RequestParam(value = "email") String email) throws Exception {
+    public String reset(@RequestParam(value = "email") String email, RedirectAttributes redirectAttributes) throws Exception {
         LOGGER.info("Resetting {} ", email);
+
+        if (!identityRepository.existsByEmail(email)) {
+            LOGGER.info("{} tried to reset but does not exist", email);
+            redirectAttributes.addFlashAttribute("status", email + " does not exist");
+            return "redirect:/reset";
+        }
 
         resetService.createNewResetForEmail(email);
 
@@ -30,9 +45,15 @@ public class ResetController {
     }
 
     @GetMapping("/{code}")
-    public String signup(@PathVariable(value = "code") String code) {
-        LOGGER.info("User resetting password screen with code {}", code);
+    public String signup(@PathVariable(value = "code") String code, RedirectAttributes redirectAttributes) {
+        LOGGER.info("User on reset screen with code {}", code);
 
-        return "login";
+        if (!resetRepository.existsByCode(code)) {
+            LOGGER.info("{} reset code does not exist", code);
+            redirectAttributes.addFlashAttribute("status", "There was an error with your reset, please try again.");
+            return "redirect:/reset";
+        }
+
+        return "user-passwordForm";
     }
 }

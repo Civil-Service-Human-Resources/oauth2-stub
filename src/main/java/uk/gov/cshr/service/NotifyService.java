@@ -32,7 +32,7 @@ public class NotifyService {
         NotificationClient client = new NotificationClient(govNotifyKey);
         SendEmailResponse response = client.sendEmail(templateId, email, personalisation, "");
 
-        LOGGER.info("Invite email sent: {}", response.getBody());
+        LOGGER.info("Notify email sent to: {}", response.getBody());
     }
 
 }

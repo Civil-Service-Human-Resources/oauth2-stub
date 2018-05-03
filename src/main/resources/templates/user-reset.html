@@ -20,7 +20,7 @@
                         <span class="heading-secondary">Reset your password</span>
                         Enter your email
                     </h1>
-
+                    <h3 th:text="${status}"></h3>
                     <form autocomplete="nope" action="#" th:action="@{/reset}" method="POST">
                         <table class="table">
                             <tr>

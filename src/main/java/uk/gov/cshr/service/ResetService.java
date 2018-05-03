@@ -1,6 +1,8 @@
 package uk.gov.cshr.service;
 
 import org.apache.commons.lang.RandomStringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -16,8 +18,7 @@ import java.util.Date;
 @Transactional
 public class ResetService {
 
-    @Autowired
-    private NotifyService notifyService;
+    private static final Logger LOGGER = LoggerFactory.getLogger(ResetService.class);
 
     @Value("${govNotify.template.reset}")
     private String govNotifyResetTemplateId;
@@ -27,9 +28,12 @@ public class ResetService {
 
     private ResetRepository resetRepository;
 
+    private NotifyService notifyService;
+
     @Autowired
-    public ResetService(ResetRepository resetRepository) {
+    public ResetService(ResetRepository resetRepository, NotifyService notifyService) {
         this.resetRepository = resetRepository;
+        this.notifyService = notifyService;
     }
 
     public void createNewResetForEmail(String email) throws NotificationClientException {
@@ -42,5 +46,7 @@ public class ResetService {
         notifyService.notify(reset.getEmail(), reset.getCode(), govNotifyResetTemplateId, resetUrlFormat);
 
         resetRepository.save(reset);
+        
+        LOGGER.info("Reset sent to {} ", email);
     }
 }
