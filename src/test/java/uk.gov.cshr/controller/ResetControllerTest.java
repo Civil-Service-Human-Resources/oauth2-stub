@@ -12,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import uk.gov.cshr.controller.reset.ResetController;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Reset;
 import uk.gov.cshr.domain.Role;
@@ -43,7 +44,6 @@ public class ResetControllerTest {
     private static final Boolean ACTIVE = true;
     private static final String PASSWORD = "password";
     private static final Set<Role> ROLES = new HashSet();
-
 
     @Autowired
     private MockMvc mockMvc;
@@ -192,13 +192,4 @@ public class ResetControllerTest {
                 .andExpect(redirectedUrl("/reset"));
     }
 
-//    @Ignore
-//    public void resetPassword1() throws Exception {
-//        when(identityRepository.findFirstByUid(UID)).thenReturn(optionalIdentity);
-//
-//        this.mockMvc.perform(post("/reset")
-//                .param("code", CODE)
-//                .param("uid", UID))
-//                .andExpect(redirectedUrl("/reset"));
-//    }
 }
