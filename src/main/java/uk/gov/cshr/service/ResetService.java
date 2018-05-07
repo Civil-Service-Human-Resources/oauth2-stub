@@ -23,6 +23,9 @@ public class ResetService {
     @Value("${govNotify.template.reset}")
     private String govNotifyResetTemplateId;
 
+    @Value("${govNotify.template.resetSuccessful}")
+    private String govNotifySuccessfulResetTemplateId;
+
     @Value("${reset.url}")
     private String resetUrlFormat;
 
@@ -46,7 +49,18 @@ public class ResetService {
         notifyService.notify(reset.getEmail(), reset.getCode(), govNotifyResetTemplateId, resetUrlFormat);
 
         resetRepository.save(reset);
-        
-        LOGGER.info("Reset sent to {} ", email);
+
+        LOGGER.info("Reset request sent to {} ", email);
+    }
+
+    public void createSuccessfulPasswordResetForEmail(Reset reset) throws NotificationClientException {
+        reset.setResetAt(new Date());
+        reset.setResetStatus(ResetStatus.RESET);
+
+        notifyService.notify(reset.getEmail(), reset.getCode(), govNotifyResetTemplateId, resetUrlFormat);
+
+        resetRepository.save(reset);
+
+        LOGGER.info("Reset success sent to {} ", reset.getEmail());
     }
 }

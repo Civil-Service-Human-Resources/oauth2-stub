@@ -12,11 +12,17 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import uk.gov.cshr.domain.Identity;
+import uk.gov.cshr.domain.Reset;
+import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.ResetRepository;
 import uk.gov.cshr.service.ResetService;
 
 import javax.transaction.Transactional;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
@@ -31,8 +37,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 public class ResetControllerTest {
 
-    public static final String EMAIL = "test@example.com";
-    public static final String CODE = "abc123";
+    private static final String EMAIL = "test@example.com";
+    private static final String CODE = "abc123";
+    private static final String UID = "uid123";
+    private static final Boolean ACTIVE = true;
+    private static final String PASSWORD = "password";
+    private static final Set<Role> ROLES = new HashSet();
 
 
     @Autowired
@@ -85,20 +95,110 @@ public class ResetControllerTest {
     }
 
     @Test
-    public void shouldLoadSignupWithCode() throws Exception {
-        when(resetRepository.existsByCode(CODE)).thenReturn(true);
+    public void shouldRedirectSignupIfInvalidCode() throws Exception {
+        when(resetRepository.existsByCode(CODE)).thenReturn(false);
 
-        this.mockMvc.perform(get("/reset/abc123"))
-                .andExpect(forwardedUrl("user-passwordForm"));
+        this.mockMvc.perform(get("/reset/" + CODE))
+                .andExpect(redirectedUrl("/reset"));
 
     }
 
     @Test
-    public void shouldRedirectSignupIfInvalidCode() throws Exception {
-        when(resetRepository.existsByCode(CODE)).thenReturn(false);
+    public void shouldForwardSignupIfResetExists() throws Exception {
+        when(resetRepository.existsByCode(CODE)).thenReturn(true);
 
-        this.mockMvc.perform(get("/reset/abc123"))
-                .andExpect(redirectedUrl("/reset"));
+        Reset reset = new Reset();
+        reset.setEmail(EMAIL);
+        reset.setCode(CODE);
 
+        when(resetRepository.findByCode(CODE)).thenReturn(reset);
+
+        Identity identity = new Identity(UID, EMAIL, PASSWORD, ACTIVE, ROLES);
+        when(identityRepository.findFirstByActiveTrueAndEmailEquals(EMAIL)).thenReturn(identity);
+
+        this.mockMvc.perform(get("/reset/" + CODE))
+                .andExpect(forwardedUrl("user-passwordForm"));
     }
+
+    @Test
+    public void shouldRedirectSignupIfResetDoesntExists() throws Exception {
+        when(resetRepository.existsByCode(CODE)).thenReturn(true);
+
+        when(resetRepository.findByCode(CODE)).thenReturn(null);
+
+        this.mockMvc.perform(get("/reset/" + CODE))
+                .andExpect(redirectedUrl("/reset"));
+    }
+
+    @Test
+    public void shouldRedirectSignupIfResetExistsButEmailDoesnt() throws Exception {
+        when(resetRepository.existsByCode(CODE)).thenReturn(true);
+
+        Reset reset = new Reset();
+        reset.setEmail(null); //setting email to null
+        reset.setCode(CODE);
+
+        when(resetRepository.findByCode(CODE)).thenReturn(reset);
+
+        this.mockMvc.perform(get("/reset/" + CODE))
+                .andExpect(redirectedUrl("/reset"));
+    }
+
+    @Test
+    public void shouldRedirectIfIdentityNotPresent() throws Exception {
+        Optional<Identity> optionalIdentity = Optional.empty();
+
+        when(identityRepository.findFirstByUid(UID)).thenReturn(optionalIdentity);
+
+        this.mockMvc.perform(post("/reset/" + CODE)
+                .param("code", CODE)
+                .param("uid", UID))
+                .andExpect(redirectedUrl("/reset"));
+    }
+
+    @Test
+    public void shouldRedirectIfIdentityIsNull() throws Exception {
+        Identity identity = new Identity(UID, EMAIL, PASSWORD, ACTIVE, ROLES);
+
+        when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
+
+        Reset reset = new Reset();
+        reset.setCode(CODE);
+        reset.setEmail(EMAIL);
+
+        when(resetRepository.findByCode(CODE)).thenReturn(reset);
+
+        this.mockMvc.perform(post("/reset/" + CODE)
+                .param("code", CODE)
+                .param("uid", UID))
+                .andExpect(redirectedUrl("/reset"));
+    }
+
+    @Test
+    public void shouldRedirectIfResetAndIdentityDoNotMatch() throws Exception {
+        Identity identity = new Identity(UID, EMAIL, PASSWORD, ACTIVE, ROLES);
+
+        when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
+
+        Reset reset = new Reset();
+        reset.setCode(CODE);
+        reset.setEmail("differentemail@example.com");
+
+        when(resetRepository.findByCode(CODE)).thenReturn(reset);
+
+        this.mockMvc.perform(post("/reset/" + CODE)
+                .param("code", CODE)
+                .param("uid", UID))
+                .andExpect(redirectedUrl("/reset"));
+    }
+
+//    @Ignore
+//    public void resetPassword1() throws Exception {
+//        when(identityRepository.findFirstByUid(UID)).thenReturn(optionalIdentity);
+//
+//        this.mockMvc.perform(post("/reset")
+//                .param("code", CODE)
+//                .param("uid", UID))
+//                .andExpect(redirectedUrl("/reset"));
+//    }
 }

@@ -9,4 +9,6 @@ public interface ResetRepository extends CrudRepository<Reset, Long> {
 
     boolean existsByCode(String code);
 
+    Reset findByCode(String code);
+
 }

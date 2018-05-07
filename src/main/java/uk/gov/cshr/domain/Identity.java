@@ -62,6 +62,10 @@ public class Identity implements Serializable {
         return password;
     }
 
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
     public String getUid() {
         return uid;
     }
@@ -77,7 +81,6 @@ public class Identity implements Serializable {
     public void setId(Long id) {
         this.id = id;
     }
-
 
     @Override
     public String toString() {

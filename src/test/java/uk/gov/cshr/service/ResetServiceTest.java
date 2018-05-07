@@ -44,7 +44,7 @@ public class ResetServiceTest {
     public void shouldSaveNewResetWhenCreateNewResetForEmail() throws NotificationClientException {
         doNothing().when(notifyService).notify(EMAIL, CODE, TEMPLATE_ID, URL);
 
-        resetService.createNewResetForEmail("test@example.com");
+        resetService.createNewResetForEmail(EMAIL);
 
         ArgumentCaptor<Reset> resetArgumentCaptor = ArgumentCaptor.forClass(Reset.class);
 
@@ -53,6 +53,26 @@ public class ResetServiceTest {
         Reset reset = resetArgumentCaptor.getValue();
         MatcherAssert.assertThat(reset.getEmail(), equalTo(EMAIL));
         MatcherAssert.assertThat(reset.getResetStatus(), equalTo(ResetStatus.PENDING));
+
+    }
+
+    @Test
+    public void shouldModifyExistingResetWhenResetSuccessFor() throws NotificationClientException {
+        doNothing().when(notifyService).notify(EMAIL, CODE, TEMPLATE_ID, URL);
+
+        Reset expectedReset = new Reset();
+        expectedReset.setEmail(EMAIL);
+        expectedReset.setResetStatus(ResetStatus.PENDING);
+
+        resetService.createSuccessfulPasswordResetForEmail(expectedReset);
+
+        ArgumentCaptor<Reset> resetArgumentCaptor = ArgumentCaptor.forClass(Reset.class);
+
+        verify(resetRepository).save(resetArgumentCaptor.capture());
+
+        Reset actualReset = resetArgumentCaptor.getValue();
+        MatcherAssert.assertThat(actualReset.getEmail(), equalTo(EMAIL));
+        MatcherAssert.assertThat(actualReset.getResetStatus(), equalTo(ResetStatus.RESET));
 
     }
 }
