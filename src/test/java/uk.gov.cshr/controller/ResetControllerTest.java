@@ -77,7 +77,7 @@ public class ResetControllerTest {
 
     @Test
     public void shouldLoadCheckEmailIfUserNameExists() throws Exception {
-        doNothing().when(resetService).createNewResetForEmail(EMAIL);
+        doNothing().when(resetService).notifyForResetRequest(EMAIL);
         when(identityRepository.existsByEmail(EMAIL)).thenReturn(true);
 
         this.mockMvc.perform(post("/reset")

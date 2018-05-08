@@ -43,7 +43,6 @@ public class InviteService {
         this.inviteRepository = inviteRepository;
     }
 
-
     @ReadOnlyProperty
     public Invite findByCode(String code) {
         return inviteRepository.findByCode(code);

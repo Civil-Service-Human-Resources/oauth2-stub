@@ -14,6 +14,8 @@ import uk.gov.cshr.domain.ResetStatus;
 import uk.gov.cshr.repository.ResetRepository;
 import uk.gov.service.notify.NotificationClientException;
 
+import java.util.Date;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
@@ -44,7 +46,7 @@ public class ResetServiceTest {
     public void shouldSaveNewResetWhenCreateNewResetForEmail() throws NotificationClientException {
         doNothing().when(notifyService).notify(EMAIL, CODE, TEMPLATE_ID, URL);
 
-        resetService.createNewResetForEmail(EMAIL);
+        resetService.notifyForResetRequest(EMAIL);
 
         ArgumentCaptor<Reset> resetArgumentCaptor = ArgumentCaptor.forClass(Reset.class);
 
@@ -64,7 +66,7 @@ public class ResetServiceTest {
         expectedReset.setEmail(EMAIL);
         expectedReset.setResetStatus(ResetStatus.PENDING);
 
-        resetService.createSuccessfulPasswordResetForEmail(expectedReset);
+        resetService.notifyOfSuccessfulReset(expectedReset);
 
         ArgumentCaptor<Reset> resetArgumentCaptor = ArgumentCaptor.forClass(Reset.class);
 
@@ -74,5 +76,21 @@ public class ResetServiceTest {
         MatcherAssert.assertThat(actualReset.getEmail(), equalTo(EMAIL));
         MatcherAssert.assertThat(actualReset.getResetStatus(), equalTo(ResetStatus.RESET));
 
+    }
+
+    @Test
+    public void isResetExpiredShouldReturnExpiredIfRequestedAtMoreThan24H() {
+        Reset reset = new Reset();
+        reset.setResetStatus(ResetStatus.PENDING);
+        reset.setCode(CODE);
+        reset.setRequestedAt(new Date(2323223232L));
+
+        MatcherAssert.assertThat(resetService.isResetExpired(reset), equalTo(true));
+
+        ArgumentCaptor<Reset> resetArgumentCaptor = ArgumentCaptor.forClass(Reset.class);
+        verify(resetRepository).save(resetArgumentCaptor.capture());
+        Reset actualReset = resetArgumentCaptor.getValue();
+
+        MatcherAssert.assertThat(actualReset.getResetStatus(), equalTo(ResetStatus.EXPIRED));
     }
 }

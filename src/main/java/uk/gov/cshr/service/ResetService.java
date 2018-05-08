@@ -29,6 +29,9 @@ public class ResetService {
     @Value("${reset.url}")
     private String resetUrlFormat;
 
+    @Value("${reset.validityInSeconds}")
+    private int validityInSeconds;
+
     private ResetRepository resetRepository;
 
     private NotifyService notifyService;
@@ -39,7 +42,19 @@ public class ResetService {
         this.notifyService = notifyService;
     }
 
-    public void createNewResetForEmail(String email) throws NotificationClientException {
+    public boolean isResetExpired(Reset reset) {
+        long diffInMs = new Date().getTime() - reset.getRequestedAt().getTime();
+
+        if (diffInMs > validityInSeconds * 1000 && reset.getResetStatus().equals(ResetStatus.PENDING)) {
+            reset.setResetStatus(ResetStatus.EXPIRED);
+            resetRepository.save(reset);
+            return true;
+        }
+
+        return false;
+    }
+
+    public void notifyForResetRequest(String email) throws NotificationClientException {
         Reset reset = new Reset();
         reset.setEmail(email);
         reset.setRequestedAt(new Date());
@@ -53,11 +68,11 @@ public class ResetService {
         LOGGER.info("Reset request sent to {} ", email);
     }
 
-    public void createSuccessfulPasswordResetForEmail(Reset reset) throws NotificationClientException {
+    public void notifyOfSuccessfulReset(Reset reset) throws NotificationClientException {
         reset.setResetAt(new Date());
         reset.setResetStatus(ResetStatus.RESET);
 
-        notifyService.notify(reset.getEmail(), reset.getCode(), govNotifyResetTemplateId, resetUrlFormat);
+        notifyService.notify(reset.getEmail(), reset.getCode(), govNotifySuccessfulResetTemplateId, resetUrlFormat);
 
         resetRepository.save(reset);
 
