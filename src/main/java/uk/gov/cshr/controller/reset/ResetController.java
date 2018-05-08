@@ -6,11 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import uk.gov.cshr.controller.signup.SignupForm;
-import uk.gov.cshr.controller.signup.SignupFormValidator;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Reset;
 import uk.gov.cshr.repository.IdentityRepository;
@@ -38,7 +37,7 @@ public class ResetController {
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private SignupFormValidator signupFormValidator;
+    private ResetFormValidator resetFormValidator;
 
     @GetMapping
     public String reset() {
@@ -62,31 +61,37 @@ public class ResetController {
 
         Reset reset = resetRepository.findByCode(code);
 
-        if (resetService.isResetExpired(reset) || !resetService.isResetValid(reset)) {
-            LOGGER.info("Reset  is not valid for code {}", code);
-            return "redirect:/reset";
-        }
-
         if (!resetRepository.existsByCode(code)) {
             LOGGER.info("{} reset code does not exist", code);
             redirectAttributes.addFlashAttribute("status", "There was an error with your reset, please try again.");
             return "redirect:/login";
         }
 
+        if (resetService.isResetExpired(reset) || !resetService.isResetValid(reset)) {
+            LOGGER.info("Reset is not valid for code {}", code);
+            return "redirect:/reset";
+        }
+
         ResetForm resetForm = new ResetForm();
         resetForm.setCode(code);
 
-        model.addAttribute("resetPasswordForm", resetForm);
+        model.addAttribute("resetForm", resetForm);
 
         return "user-passwordForm";
     }
 
     @PostMapping("/{code}")
-    public String resetPassword(@PathVariable(value = "code") String code, @ModelAttribute @Valid ResetForm resetForm) throws NotificationClientException {
+    public String resetPassword(@PathVariable(value = "code") String code, @ModelAttribute @Valid ResetForm resetForm, BindingResult bindingResult, Model model) throws NotificationClientException {
+
+        if (bindingResult.hasErrors()) {
+
+            model.addAttribute("resetForm", resetForm);
+            return "user-passwordForm";
+        }
         Reset reset = resetRepository.findByCode(code);
 
         if (resetService.isResetExpired(reset) || !resetService.isResetValid(reset)) {
-            LOGGER.info("Reset  is not valid for code {}", code);
+            LOGGER.info("Reset is not valid for code {}", code);
             return "redirect:/reset";
         }
 
@@ -118,9 +123,9 @@ public class ResetController {
     }
 
     @InitBinder
-    public void setupValidation(WebDataBinder binder) {
-        if (binder.getTarget() instanceof SignupForm) {
-            binder.addValidators(signupFormValidator);
+    public void resetValidation(WebDataBinder binder) {
+        if (binder.getTarget() instanceof ResetForm) {
+            binder.addValidators(resetFormValidator);
         }
     }
 }
