@@ -1,7 +1,6 @@
 package uk.gov.cshr.controller;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -35,7 +34,8 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -82,7 +82,7 @@ public class ResetControllerTest {
     public void shouldLoadResetSuccessfully() throws Exception {
         this.mockMvc.perform(get("/reset"))
                 .andExpect(status().is2xxSuccessful())
-                .andExpect(forwardedUrl("user-reset"))
+                .andExpect(forwardedUrl("reset/requestReset"))
                 .andDo(print());
     }
 
@@ -93,18 +93,25 @@ public class ResetControllerTest {
 
         this.mockMvc.perform(post("/reset")
                 .param("email", EMAIL))
-                .andExpect(forwardedUrl("user-checkEmail"));
+                .andExpect(forwardedUrl("reset/checkEmail"));
     }
 
-    @Ignore
+    @Test
     public void shouldLoadRedirectIfUserNameDoesntExist() throws Exception {
         doNothing().when(resetService).notifyForResetRequest(EMAIL);
+
+        Reset reset = new Reset();
+        reset.setEmail(EMAIL);
+        reset.setCode(CODE);
+        reset.setResetStatus(ResetStatus.PENDING);
+        reset.setRequestedAt(new Date(2323223232L));
+        when(resetRepository.findByCode(CODE)).thenReturn(reset);
 
         when(identityRepository.existsByEmail(EMAIL)).thenReturn(false);
 
         this.mockMvc.perform(post("/reset")
                 .param("email", EMAIL))
-                .andExpect(redirectedUrl("/login"));
+                .andExpect(forwardedUrl("reset/checkEmail"));
     }
 
     @Test
@@ -112,7 +119,7 @@ public class ResetControllerTest {
         when(resetRepository.existsByCode(CODE)).thenReturn(false);
 
         this.mockMvc.perform(get("/reset/" + CODE))
-                .andExpect(redirectedUrl("/login"));
+                .andExpect(status().isNotFound());
 
     }
 
@@ -134,7 +141,7 @@ public class ResetControllerTest {
         when(identityRepository.findFirstByActiveTrueAndEmailEquals(EMAIL)).thenReturn(identity);
 
         this.mockMvc.perform(get("/reset/" + CODE))
-                .andExpect(forwardedUrl("user-passwordForm"));
+                .andExpect(forwardedUrl("reset/passwordForm"));
     }
 
     @Test
@@ -142,7 +149,7 @@ public class ResetControllerTest {
         when(resetRepository.existsByCode(CODE)).thenReturn(false);
 
         this.mockMvc.perform(get("/reset/" + CODE))
-                .andExpect(redirectedUrl("/login"));
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -151,8 +158,8 @@ public class ResetControllerTest {
 
         when(identityRepository.findFirstByUid(UID)).thenReturn(optionalIdentity);
 
-        this.mockMvc.perform(post("/reset/" + CODE)
+        this.mockMvc.perform(post("reset/" + CODE)
                 .param("code", CODE))
-                .andExpect(redirectedUrl("/reset"));
+                .andExpect(status().isNotFound());
     }
 }
