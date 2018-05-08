@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import uk.gov.cshr.controller.reset.ResetController;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Reset;
+import uk.gov.cshr.domain.ResetStatus;
 import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.ResetRepository;
@@ -24,6 +25,7 @@ import uk.gov.cshr.service.NotifyService;
 import uk.gov.cshr.service.ResetService;
 
 import javax.transaction.Transactional;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -121,8 +123,12 @@ public class ResetControllerTest {
         Reset reset = new Reset();
         reset.setEmail(EMAIL);
         reset.setCode(CODE);
+        reset.setResetStatus(ResetStatus.PENDING);
+        reset.setRequestedAt(new Date(2323223232L));
 
         when(resetRepository.findByCode(CODE)).thenReturn(reset);
+        when(resetService.isResetExpired(reset)).thenReturn(false);
+        when(resetService.isResetValid(reset)).thenReturn(true);
 
         Identity identity = new Identity(UID, EMAIL, PASSWORD, ACTIVE, ROLES);
         when(identityRepository.findFirstByActiveTrueAndEmailEquals(EMAIL)).thenReturn(identity);
