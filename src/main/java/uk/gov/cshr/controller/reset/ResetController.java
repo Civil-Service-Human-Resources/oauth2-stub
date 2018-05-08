@@ -19,7 +19,6 @@ import uk.gov.cshr.service.ResetService;
 import uk.gov.service.notify.NotificationClientException;
 
 import javax.validation.Valid;
-import java.util.Optional;
 
 @Controller
 @RequestMapping("/reset")
@@ -65,46 +64,16 @@ public class ResetController {
             return "redirect:/login";
         }
 
-        Reset reset = resetRepository.findByCode(code);
-
-        if (reset == null || reset.getEmail() == null) {
-            LOGGER.info("Reset does not exist with code {}", code);
-            return "redirect:/login";
-        }
-
-        Identity identity = identityRepository.findFirstByActiveTrueAndEmailEquals(reset.getEmail());
-
-        if (identity == null || identity.getUid() == null) {
-            LOGGER.info("Identity does not exist");
-            return "redirect:/login";
-        }
-
         ResetForm resetForm = new ResetForm();
         resetForm.setCode(code);
 
         model.addAttribute("resetPasswordForm", resetForm);
-        model.addAttribute("uid", identity.getUid());
 
         return "user-passwordForm";
     }
 
-    @PostMapping("/{uid}")
-    public String resetPassword(@PathVariable(value = "uid") String uid, @ModelAttribute @Valid ResetForm resetForm) throws NotificationClientException {
-        String code = resetForm.getCode();
-
-        Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
-
-        if (!optionalIdentity.isPresent()) {
-            return "redirect:/reset";
-        }
-
-        Identity identity = optionalIdentity.get();
-
-        if (identity == null || identity.getEmail() == null) {
-            LOGGER.info("Identity does not exist with reset code {}", code);
-            return "redirect:/reset";
-        }
-
+    @PostMapping("/{code}")
+    public String resetPassword(@PathVariable(value = "code") String code, @ModelAttribute @Valid ResetForm resetForm) throws NotificationClientException {
         Reset reset = resetRepository.findByCode(code);
 
         if (resetService.isResetExpired(reset)) {
@@ -117,8 +86,15 @@ public class ResetController {
             return "redirect:/reset";
         }
 
+        Identity identity = identityRepository.findFirstByActiveTrueAndEmailEquals(reset.getEmail());
+
         if (!reset.getEmail().equals(identity.getEmail())) {
             LOGGER.info("Reset email and Identity email do not match for code {}, and email", code, identity.getEmail());
+            return "redirect:/reset";
+        }
+
+        if (identity == null || identity.getEmail() == null) {
+            LOGGER.info("Identity does not exist with reset code {}", code);
             return "redirect:/reset";
         }
 
