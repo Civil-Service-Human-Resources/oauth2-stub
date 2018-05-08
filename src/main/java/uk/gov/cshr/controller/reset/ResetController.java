@@ -3,7 +3,6 @@ package uk.gov.cshr.controller.reset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -12,9 +11,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Reset;
+import uk.gov.cshr.exception.ResourceNotFoundException;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.ResetRepository;
 import uk.gov.cshr.service.ResetService;
+import uk.gov.cshr.service.security.IdentityService;
 import uk.gov.service.notify.NotificationClientException;
 
 import javax.validation.Valid;
@@ -34,14 +35,14 @@ public class ResetController {
     private IdentityRepository identityRepository;
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private IdentityService identityService;
 
     @Autowired
     private ResetFormValidator resetFormValidator;
 
     @GetMapping
     public String reset() {
-        return "user-reset";
+        return "reset/requestReset";
     }
 
     @PostMapping
@@ -52,23 +53,18 @@ public class ResetController {
             resetService.notifyForResetRequest(email);
         }
 
-        return "user-checkEmail";
+        return "reset/checkEmail";
     }
 
     @GetMapping("/{code}")
     public String loadResetForm(@PathVariable(value = "code") String code, RedirectAttributes redirectAttributes, Model model) {
         LOGGER.info("User on reset screen with code {}", code);
 
+        doesResetCodeExist(code);
+
         Reset reset = resetRepository.findByCode(code);
 
-        if (!resetRepository.existsByCode(code)) {
-            LOGGER.info("{} reset code does not exist", code);
-            redirectAttributes.addFlashAttribute("status", "There was an error with your reset, please try again.");
-            return "redirect:/login";
-        }
-
-        if (resetService.isResetExpired(reset) || !resetService.isResetValid(reset)) {
-            LOGGER.info("Reset is not valid for code {}", code);
+        if (isResetValid(reset)) {
             return "redirect:/reset";
         }
 
@@ -77,55 +73,66 @@ public class ResetController {
 
         model.addAttribute("resetForm", resetForm);
 
-        return "user-passwordForm";
+        return "reset/passwordForm";
     }
+
 
     @PostMapping("/{code}")
     public String resetPassword(@PathVariable(value = "code") String code, @ModelAttribute @Valid ResetForm resetForm, BindingResult bindingResult, Model model) throws NotificationClientException {
-
         if (bindingResult.hasErrors()) {
-
             model.addAttribute("resetForm", resetForm);
-            return "user-passwordForm";
+            return "reset/passwordForm";
         }
+
+        doesResetCodeExist(code);
+
         Reset reset = resetRepository.findByCode(code);
 
-        if (resetService.isResetExpired(reset) || !resetService.isResetValid(reset)) {
-            LOGGER.info("Reset is not valid for code {}", code);
+        if (isResetValid(reset)) {
             return "redirect:/reset";
         }
 
         if (reset == null || reset.getEmail() == null) {
             LOGGER.info("Reset does not exist with code {}", code);
-            return "redirect:/reset";
+            throw new ResourceNotFoundException();
         }
 
         Identity identity = identityRepository.findFirstByActiveTrueAndEmailEquals(reset.getEmail());
 
-        if (!reset.getEmail().equals(identity.getEmail())) {
-            LOGGER.info("Reset email and Identity email do not match for code {}, and email", code, identity.getEmail());
-            return "redirect:/reset";
-        }
-
         if (identity == null || identity.getEmail() == null) {
             LOGGER.info("Identity does not exist with reset code {}", code);
-            return "redirect:/reset";
+            throw new ResourceNotFoundException();
         }
 
-        identity.setPassword(passwordEncoder.encode(resetForm.getPassword()));
-        identityRepository.save(identity);
+        identityService.updatePassword(identity, resetForm.getPassword());
 
         resetService.notifyOfSuccessfulReset(reset);
 
         LOGGER.info("Password reset successfully for {}", identity.getEmail());
 
-        return "user-passwordReset";
+        return "reset/passwordReset";
     }
+
 
     @InitBinder
     public void resetValidation(WebDataBinder binder) {
         if (binder.getTarget() instanceof ResetForm) {
             binder.addValidators(resetFormValidator);
+        }
+    }
+
+    private boolean isResetValid(Reset reset) {
+        if (resetService.isResetExpired(reset) || !resetService.isResetPending(reset)) {
+            LOGGER.info("Reset is not valid for code {}", reset.getCode());
+            return true;
+        }
+        return false;
+    }
+
+    private void doesResetCodeExist(String code) {
+        if (!resetRepository.existsByCode(code)) {
+            LOGGER.info("Reset code does not exist {}", code);
+            throw new ResourceNotFoundException();
         }
     }
 }

@@ -62,4 +62,9 @@ public class IdentityService implements UserDetailsService {
 
         LOGGER.info("New identity {} successfully created", identity.getEmail());
     }
+
+    public void updatePassword(Identity identity, String password) {
+        identity.setPassword(passwordEncoder.encode(password));
+        identityRepository.save(identity);
+    }
 }

@@ -128,7 +128,7 @@ public class ResetControllerTest {
 
         when(resetRepository.findByCode(CODE)).thenReturn(reset);
         when(resetService.isResetExpired(reset)).thenReturn(false);
-        when(resetService.isResetValid(reset)).thenReturn(true);
+        when(resetService.isResetPending(reset)).thenReturn(true);
 
         Identity identity = new Identity(UID, EMAIL, PASSWORD, ACTIVE, ROLES);
         when(identityRepository.findFirstByActiveTrueAndEmailEquals(EMAIL)).thenReturn(identity);

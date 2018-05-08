@@ -54,7 +54,7 @@ public class ResetService {
         return false;
     }
 
-    public boolean isResetValid(Reset reset) {
+    public boolean isResetPending(Reset reset) {
         if (reset.getResetStatus().equals(ResetStatus.PENDING)) {
             return true;
         }
