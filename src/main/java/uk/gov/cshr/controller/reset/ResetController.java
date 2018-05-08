@@ -49,7 +49,9 @@ public class ResetController {
     public String requestReset(@RequestParam(value = "email") String email) throws Exception {
         LOGGER.info("Requesting reset for {} ", email);
 
-        resetService.notifyForResetRequest(email);
+        if (identityRepository.existsByEmail(email)) {
+            resetService.notifyForResetRequest(email);
+        }
 
         return "user-checkEmail";
     }
@@ -57,6 +59,13 @@ public class ResetController {
     @GetMapping("/{code}")
     public String loadResetForm(@PathVariable(value = "code") String code, RedirectAttributes redirectAttributes, Model model) {
         LOGGER.info("User on reset screen with code {}", code);
+
+        Reset reset = resetRepository.findByCode(code);
+
+        if (resetService.isResetExpired(reset) || !resetService.isResetValid(reset)) {
+            LOGGER.info("Reset  is not valid for code {}", code);
+            return "redirect:/reset";
+        }
 
         if (!resetRepository.existsByCode(code)) {
             LOGGER.info("{} reset code does not exist", code);
@@ -76,8 +85,8 @@ public class ResetController {
     public String resetPassword(@PathVariable(value = "code") String code, @ModelAttribute @Valid ResetForm resetForm) throws NotificationClientException {
         Reset reset = resetRepository.findByCode(code);
 
-        if (resetService.isResetExpired(reset)) {
-            LOGGER.info("Reset has expired for code {}", code);
+        if (resetService.isResetExpired(reset) || !resetService.isResetValid(reset)) {
+            LOGGER.info("Reset  is not valid for code {}", code);
             return "redirect:/reset";
         }
 
@@ -99,7 +108,6 @@ public class ResetController {
         }
 
         identity.setPassword(passwordEncoder.encode(resetForm.getPassword()));
-
         identityRepository.save(identity);
 
         resetService.notifyOfSuccessfulReset(reset);

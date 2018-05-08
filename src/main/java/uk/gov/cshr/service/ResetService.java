@@ -54,6 +54,13 @@ public class ResetService {
         return false;
     }
 
+    public boolean isResetValid(Reset reset) {
+        if (reset.getResetStatus().equals(ResetStatus.PENDING)) {
+            return true;
+        }
+        return false;
+    }
+
     public void notifyForResetRequest(String email) throws NotificationClientException {
         Reset reset = new Reset();
         reset.setEmail(email);
