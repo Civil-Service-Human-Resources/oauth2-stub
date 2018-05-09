@@ -64,7 +64,7 @@ public class ResetController {
 
         Reset reset = resetRepository.findByCode(code);
 
-        if (isResetValid(reset)) {
+        if (isResetInvalid(reset)) {
             return "redirect:/reset";
         }
 
@@ -88,7 +88,7 @@ public class ResetController {
 
         Reset reset = resetRepository.findByCode(code);
 
-        if (isResetValid(reset)) {
+        if (isResetInvalid(reset)) {
             return "redirect:/reset";
         }
 
@@ -121,7 +121,7 @@ public class ResetController {
         }
     }
 
-    private boolean isResetValid(Reset reset) {
+    private boolean isResetInvalid(Reset reset) {
         if (resetService.isResetExpired(reset) || !resetService.isResetPending(reset)) {
             LOGGER.info("Reset is not valid for code {}", reset.getCode());
             return true;

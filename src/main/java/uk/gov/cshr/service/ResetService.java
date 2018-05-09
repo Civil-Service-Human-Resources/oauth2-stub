@@ -55,10 +55,7 @@ public class ResetService {
     }
 
     public boolean isResetPending(Reset reset) {
-        if (reset.getResetStatus().equals(ResetStatus.PENDING)) {
-            return true;
-        }
-        return false;
+        return reset.getResetStatus().equals(ResetStatus.PENDING);
     }
 
     public void notifyForResetRequest(String email) throws NotificationClientException {
