@@ -60,7 +60,7 @@ public class ResetController {
     public String loadResetForm(@PathVariable(value = "code") String code, RedirectAttributes redirectAttributes, Model model) {
         LOGGER.info("User on reset screen with code {}", code);
 
-        doesResetCodeExist(code);
+        checkResetCodeExists(code);
 
         Reset reset = resetRepository.findByCode(code);
 
@@ -84,7 +84,7 @@ public class ResetController {
             return "reset/passwordForm";
         }
 
-        doesResetCodeExist(code);
+        checkResetCodeExists(code);
 
         Reset reset = resetRepository.findByCode(code);
 
@@ -129,7 +129,7 @@ public class ResetController {
         return false;
     }
 
-    private void doesResetCodeExist(String code) {
+    private void checkResetCodeExists(String code) {
         if (!resetRepository.existsByCode(code)) {
             LOGGER.info("Reset code does not exist {}", code);
             throw new ResourceNotFoundException();
