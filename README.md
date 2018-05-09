@@ -1,27 +1,33 @@
-# Identity Service
-Identity service that implements Oauth2 component spec.
+# Identity Service  
+## Overview
+The Identity Service uses [Spring Security OAuth](http://projects.spring.io/spring-security-oauth/) to utilise OAuth components. We are using with custom Details, Providers and Services in this implementation.
 
-We haven't used spring-oauth because of the raw JDBC data source management as it is not open to extension and removes the benefits of a sophisticated ORM solution like JPA/Hibernate.
-
-## Build
-
-```./gradlew build```
-
-## Running Locally
-- Import project into IntelliJ and Run Application
-
-OR 
-
-- ```./gradlew bootRun```
-
+## Getting Started
 ### Environment Variables
-You will need to add the following env variables to run code locally, or to run test suite 
-```
-GOV_NOTIFY_API_KEY
-GOV_NOTIFY_TEMPLATE_ID
-```
+You will need to add the following env variables to run code locally, or to run the test suite.
 
-# Deployment
+* GOV_NOTIFY_API_KEY
+* GOV_NOTIFY_INVITE_TEMPLATE_ID
+* GOV_NOTIFY_RESET_TEMPLATE_ID
+* GOV_NOTIFY_RESET_SUCCESSFUL_TEMPLATE_ID
+
+### Build
+Build the application using Gradle ```./gradlew build```  
+
+Run the project with Gradle or ```./gradlew bootRun``` import project into IntelliJ and Run Application.  
+
+The application has two interfaces, a user interface for standard login to LPG, and a management for admin tasks. When the application runs on localhost, these components will run on individual ports:
+e.g.  
+* USER - `localhost:8080/login`  
+* MANAGEMENT - `localhost:8081/management/login`  
+
+
+### Using the application
+The user can log in to the management portal to perform CRUD operations on Roles, Identities as well as Inviting new users.
+
+With the standard user interface, this can be used for logging in and resetting a password.
+
+## Deployment
 
 ## Requirements
 
@@ -29,36 +35,18 @@ A Backing storage solution is required.
 
 Currently MySQL is chosen for the small footprint and Free plans. 
 
-For setting up and linking the storage solution please see.
-
-https://docs.cloud.service.gov.uk/#set-up-a-mysql-service
+For setting up and linking the storage solution please see - https://docs.cloud.service.gov.uk/#set-up-a-mysql-service
 
 
-## Publishing
+## Usage
 
-Currently it is deployed on Cloud Foundary for CSHR.
-
-Run the following command to deploy as a CF app.
-
-```cf push {APPNAME} -p build/libs/oauth2-{VERSION}.jar```
-
-Set the following environment variables to configure the application.
-
-```cf set-env {APPNAME} DATASOURCE {JDBC URL WITH CREDENTIALS}```
-
-### Notes
-
-There are some extra packages and unnecessary dependencies in the gradle. They are required by CF unfortunately.
-
-# Usage
-
-## Requesting an access token
+### Requesting an access token
 
 `https://{SERVER_URL}:{SERVER_PORT}/oauth/authorize?response_type=token&client_id={CLIENT_ID}&redirect_uri={SERVICE_URI}`
 
 This will redirect you to a login page which will, on successful authentication direct you back to your service with a token.
 
-## Retrieving identity information from an access token
+### Retrieving identity information from an access token
 
 ```
 curl -X GET \

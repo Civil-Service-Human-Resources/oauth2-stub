@@ -21,20 +21,19 @@
                         Enter your email
                     </h1>
                     <h3 th:text="${status}"></h3>
-                    <form autocomplete="nope" action="#" th:action="@{/reset}" method="POST">
-                        <table class="table">
-                            <tr>
-                                <td>
-                                    <label class="d-none" th:for="name">Email:</label>
-                                    <input type="text" name="email"/>
-                                </td>
-                                <td>
-                                    <button type="submit" class="btn btn-primary">Reset</button>
-                                </td>
-                            </tr>
-                        </table>
+                    <form autocomplete="nope" action="#" th:action="@{/reset}" method="POST" class="push-bottom">
+                        <div class="form-group">
+                            <label for="email" class="form-label">
+                                Email address
+                            </label>
+                            <input class="form-control form-control-2-3" id="email" name="email"
+                                   type="email">
+                        </div>
+                        <div>
+                            <input type="submit" class="button" value="Continue">
+                        </div>
                     </form>
-                    <a href="#">Cancel</a>
+                    <a href="/login">Cancel</a>
                 </div>
             </div>
         </div>
