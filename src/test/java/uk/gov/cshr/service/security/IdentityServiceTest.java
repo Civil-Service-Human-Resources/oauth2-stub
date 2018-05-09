@@ -11,9 +11,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Invite;
+import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.InviteRepository;
 import uk.gov.cshr.service.InviteService;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import static java.util.Collections.emptySet;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -87,9 +91,16 @@ public class IdentityServiceTest {
     public void createIdentityFromInviteCode() {
         final String code = "123abc";
         final String email = "test@example.com";
+        Role role = new Role();
+        role.setName("USER");
+
+        Set<Role> roles = new HashSet<>();
+        roles.add(role);
+
         Invite invite = new Invite();
         invite.setCode(code);
         invite.setForEmail(email);
+        invite.setForRoles(roles);
 
         when(inviteService.findByCode(code)).thenReturn(invite);
 
@@ -104,5 +115,8 @@ public class IdentityServiceTest {
         verify(identityRepository).save(inviteArgumentCaptor.capture());
 
         Identity identity = inviteArgumentCaptor.getValue();
+        assertThat(identity.getRoles().contains(role), equalTo(true));
+        assertThat(identity.getPassword(), equalTo("password"));
+        assertThat(identity.getEmail(), equalTo("test@example.com"));
     }
 }
