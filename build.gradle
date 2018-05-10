@@ -22,6 +22,7 @@ repositories {
     jcenter()
 }
 bootJar {
+    archiveName = 'identity-service.jar'
     mainClassName = 'uk.gov.cshr.Application'
 }
 
