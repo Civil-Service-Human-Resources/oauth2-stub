@@ -1,5 +1,15 @@
 #! /usr/bin/env bash
 
+SERVICE_NAME=identity-service
+
 ./gradlew init
 ./gradlew build
 ./gradlew test
+
+docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
+docker pull cshr/${SERVICE_NAME} || true
+
+docker build -t cshr/${SERVICE_NAME}:latest .
+
+docker tag cshr/${SERVICE_NAME}:latest cshr/${SERVICE_NAME}:${TRAVIS_COMMIT}
+docker push cshr/${SERVICE_NAME}
