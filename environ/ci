@@ -1,6 +1,7 @@
 #! /usr/bin/env bash
 
 SERVICE_NAME=identity-service
+TAG=${TRAVIS_TAG:-$TRAVIS_COMMIT}
 
 ./gradlew init
 ./gradlew build
@@ -11,5 +12,5 @@ docker pull cshr/${SERVICE_NAME} || true
 
 docker build -t cshr/${SERVICE_NAME}:latest .
 
-docker tag cshr/${SERVICE_NAME}:latest cshr/${SERVICE_NAME}:${TRAVIS_COMMIT}
+docker tag cshr/${SERVICE_NAME}:latest cshr/${SERVICE_NAME}:${TAG}
 docker push cshr/${SERVICE_NAME}
