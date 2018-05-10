@@ -6,10 +6,16 @@ The Identity Service uses [Spring Security OAuth](http://projects.spring.io/spri
 ### Environment Variables
 You will need to add the following env variables to run code locally, or to run the test suite.
 
-* GOV_NOTIFY_API_KEY
-* GOV_NOTIFY_INVITE_TEMPLATE_ID
-* GOV_NOTIFY_RESET_TEMPLATE_ID
-* GOV_NOTIFY_RESET_SUCCESSFUL_TEMPLATE_ID
+| VARIABLE | DESCRIPTION | DEFAULT |
+|--|--|--|
+|GOV_NOTIFY_API_KEY | Api key for Gov Notify|NO|
+|GOV_NOTIFY_INVITE_TEMPLATE_ID|Template ID for invite emails|NO|
+|GOV_NOTIFY_RESET_TEMPLATE_ID|Template ID for password reset emails|NO|
+|GOV_NOTIFY_RESET_SUCCESSFUL_TEMPLATE_ID|Template ID for successful password reset emails|NO|
+|INVITE_SIGNUP_URL|The External Url to be sent for invites|NO|
+|RESET_URL|The External Url to be sent for password reset|NO|
+|DATASOURCE|The Datasource connectiong string|NO|
+|PASSWORD_PATTERN|The Regex pattern to apply password policy on|YES|
 
 ### Build
 Build the application using Gradle ```./gradlew build```  
@@ -18,7 +24,7 @@ Run the project with Gradle or ```./gradlew bootRun``` import project into Intel
 
 The application has two interfaces, a user interface for standard login to LPG, and a management for admin tasks. When the application runs on localhost, these components will run on individual ports:
 e.g.  
-* USER - `localhost:8080/login`  
+* OAUTH2 - `localhost:8080/oauth/*`  
 * MANAGEMENT - `localhost:8081/management/login`  
 
 
