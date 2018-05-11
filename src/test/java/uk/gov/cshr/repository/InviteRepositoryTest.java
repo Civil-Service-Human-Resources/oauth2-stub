@@ -9,6 +9,7 @@ import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.domain.InviteStatus;
 
 import javax.transaction.Transactional;
+import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -64,14 +65,10 @@ public class InviteRepositoryTest {
     @Test
     public void existsByCodeAndStatusReturnsCorrectResult() {
         final String pendingEmail = "pending@example.org";
-        Invite pendingInvite = new Invite();
-        pendingInvite.setForEmail(pendingEmail);
-        pendingInvite.setStatus(InviteStatus.PENDING);
-        inviteRepository.save(pendingInvite);
-
         final String expiredEmail = "expired@example.org";
-        Invite expiredInvite = new Invite();
-        expiredInvite.setForEmail(expiredEmail);
+
+        inviteRepository.save(createInvite("code", pendingEmail));
+        Invite expiredInvite = createInvite("code2", expiredEmail);
         expiredInvite.setStatus(InviteStatus.EXPIRED);
         inviteRepository.save(expiredInvite);
 
@@ -80,7 +77,6 @@ public class InviteRepositoryTest {
 
         assertThat(existsByCodeAndStatusForPendingInvite, equalTo(true));
         assertThat(existsByCodeAndStatusForExpiredInvite, equalTo(false));
-
     }
 
     private Invite createInvite() {
@@ -91,6 +87,8 @@ public class InviteRepositoryTest {
         Invite invite = new Invite();
         invite.setCode(code);
         invite.setForEmail(forEmail);
+        invite.setInvitedAt(new Date());
+        invite.setStatus(InviteStatus.PENDING);
         return invite;
     }
 }

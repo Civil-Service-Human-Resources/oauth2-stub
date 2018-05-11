@@ -10,6 +10,8 @@ import uk.gov.cshr.domain.ResetStatus;
 
 import javax.transaction.Transactional;
 
+import java.util.Date;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -26,9 +28,7 @@ public class ResetRepositoryTest {
 
     @Test
     public void existsByCodeReturnsCorrectBoolean() {
-        Reset reset = createReset();
-
-        resetRepository.save(reset);
+        resetRepository.save(createReset());
 
         assertThat(resetRepository.existsByCode(CODE), equalTo(true));
         assertThat(resetRepository.existsByCode("def567"), equalTo(false));
@@ -37,9 +37,7 @@ public class ResetRepositoryTest {
     @Test
     public void findByCodeShouldReturnCorrectCode() {
         Reset expectedReset = createReset();
-
         resetRepository.save(expectedReset);
-
         Reset actualReset = resetRepository.findByCode(CODE);
 
         assertThat(actualReset.getCode(), equalTo(expectedReset.getCode()));
@@ -48,11 +46,10 @@ public class ResetRepositoryTest {
 
     private Reset createReset() {
         Reset reset = new Reset();
-
         reset.setCode(CODE);
         reset.setEmail(EMAIL);
         reset.setResetStatus(ResetStatus.PENDING);
-
+        reset.setRequestedAt(new Date());
         return reset;
     }
 

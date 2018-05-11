@@ -37,14 +37,14 @@ spring:
   thymeleaf:
     cache: true
   datasource:
-    url: ${DATASOURCE:jdbc:mysql://localhost:3306/oauth2?user=root&password=secret&useSSL=false}
-    initialization-mode: always
+    url: ${DATASOURCE:jdbc:mysql://localhost:3306/oauth2?user=root&password=secret&useSSL=false}}
+    platform: mysql
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQL5Dialect
+        dialect: org.hibernate.dialect.MySQL5InnoDBDialect
         enable_lazy_load_no_trans: true
 
 

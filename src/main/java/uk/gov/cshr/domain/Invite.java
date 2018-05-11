@@ -12,21 +12,22 @@ public class Invite implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column
+    @Column(unique = true, length = 40, nullable = false)
     private String code;
 
-    @Column
+    @Column(length = 10, nullable = false)
     @Enumerated(EnumType.STRING)
     private InviteStatus status;
 
     @OneToOne
     private Identity inviter;
 
+    @Column(nullable = false)
     private Date invitedAt;
 
     private Date acceptedAt;
 
-    @Column
+    @Column(length = 150, nullable = false)
     private String forEmail;
 
     @ManyToMany(fetch = FetchType.EAGER)

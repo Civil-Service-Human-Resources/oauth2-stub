@@ -10,18 +10,19 @@ public class Reset {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column
+    @Column(unique = true, length = 40, nullable = false)
     private String code;
 
-    @Column
+    @Column(length = 10, nullable = false)
     @Enumerated(EnumType.STRING)
     private ResetStatus resetStatus;
 
+    @Column(nullable = false)
     private Date requestedAt;
 
     private Date resetAt;
 
-    @Column
+    @Column(length = 150, nullable = false)
     private String email;
 
     public long getId() {
