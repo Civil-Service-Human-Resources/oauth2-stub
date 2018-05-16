@@ -12,6 +12,7 @@ VALUES (true, '9fbd4ae2-2db3-44c7-9544-88e80255b56e', '$2a$10$AbxhLGtIx7yv8jhF0B
 INSERT INTO `role` (name) VALUES
 ('USER'),
 ('SUPER_USER'),
+('MANAGEMENT'),
 ('IDENTITY_MANAGER');
 
 INSERT INTO `identity` (active, email, uid, password) VALUES
@@ -21,6 +22,7 @@ INSERT INTO `identity` (active, email, uid, password) VALUES
 
 INSERT INTO `identity_role` (identity_id, role_id) VALUES
 (SELECT id FROM identity WHERE email = 'user@domain.com', SELECT id FROM role WHERE name = 'USER'),
+(SELECT id FROM identity WHERE email = 'user@domain.com', SELECT id FROM role WHERE name = 'MANAGEMENT'),
 (SELECT id FROM identity WHERE email = 'identity-manager@domain.com', SELECT id FROM role WHERE name = 'IDENTITY_MANAGER'),
 (SELECT id FROM identity WHERE email = 'super@domain.com', SELECT id FROM role WHERE name = 'SUPER_USER');
 
