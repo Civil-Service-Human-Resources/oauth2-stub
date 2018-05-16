@@ -22,6 +22,7 @@ public class ClientDetails implements org.springframework.security.oauth2.provid
         add("implicit");
         add("password");
         add("authorization_code");
+        add("client_credentials");
     }};
 
     private static final Set<String> SCOPE = new HashSet<String>() {{
