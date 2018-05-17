@@ -1,5 +1,7 @@
 package uk.gov.cshr.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -14,6 +16,8 @@ import uk.gov.cshr.service.security.WebSecurityExpressionHandler;
 public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter {
 
     private static final String RESOURCE_ID = "identity_api";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ResourceServerConfiguration.class);
 
     @Value("${server.port}")
     private int serverPort;
@@ -34,7 +38,7 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
                     .antMatchers("/oauth/resolve", "/oauth/revoke", "/api/**")
                 .and()
                     .authorizeRequests()
-                        .requestMatchers(request -> serverPort != -1 && request.getServerPort() != serverPort).denyAll()
+                        .requestMatchers(request -> serverPort != -1 && request.getLocalPort() != serverPort).denyAll()
                         .antMatchers("/api/**").access("hasAuthority('CLIENT')")
                         .antMatchers("/**").authenticated()
                 .and()
