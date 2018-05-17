@@ -20,7 +20,7 @@ INSERT INTO `identity` (active, email, uid, password) VALUES
 (true, 'identity-manager@domain.com', '65313ea4-59ea-4802-a521-71f9a92c85cd', '$2a$10$sGfnyPnJ8a0b9R.vqIphKu5vjetS3.Bvi6ISv39bOphq5On0U2m36');
 
 INSERT INTO `identity_role` (identity_id, role_id) VALUES
-((SELECT id FROM identity WHERE email = 'leaner@domain.com'), (SELECT id FROM role WHERE name = 'LEARNER')),
+((SELECT id FROM identity WHERE email = 'learner@domain.com'), (SELECT id FROM role WHERE name = 'LEARNER')),
 ((SELECT id FROM identity WHERE email = 'course-manager@domain.com'), (SELECT id FROM role WHERE name = 'COURSE_MANAGER')),
 ((SELECT id FROM identity WHERE email = 'identity-manager@domain.com'), (SELECT id FROM role WHERE name = 'IDENTITY_MANAGER'));
 
