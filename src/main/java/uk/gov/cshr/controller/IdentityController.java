@@ -24,7 +24,7 @@ import java.util.Set;
 @RequestMapping("/management/")
 public class IdentityController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(RoleController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(IdentityController.class);
 
     @Autowired
     private IdentityRepository identityRepository;
