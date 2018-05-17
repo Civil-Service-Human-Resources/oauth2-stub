@@ -23,14 +23,13 @@ public class RoleRepositoryTest {
 
     @Test
     public void shouldSaveRole() {
-        // There will be two roles stored on load
-        assertThat(repository.count(), equalTo(2L));
+        long currentCount = repository.count();
 
         Role role = createRole();
 
         repository.save(role);
 
-        assertThat(repository.count(), equalTo(3L));
+        assertThat(repository.count(), equalTo(currentCount + 1));
     }
 
     @Test
