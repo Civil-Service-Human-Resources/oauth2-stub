@@ -34,13 +34,13 @@ public class AuthenticationControllerTest {
 
     @Test
     public void shouldReturnDetailsWhenAuthenticated() throws Exception {
-        String accessToken = obtainAccessToken("user@domain.com", "test");
+        String accessToken = obtainAccessToken("learner@domain.com", "test");
 
         mockMvc.perform(get("/oauth/resolve")
                 .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andExpect(jsonPath("$.username", is("user@domain.com")));
+                .andExpect(jsonPath("$.username", is("learner@domain.com")));
     }
 
     @Test
@@ -54,7 +54,7 @@ public class AuthenticationControllerTest {
 
     @Test
     public void shouldReturnNoContentWhenRevokingValidAccessToken() throws Exception {
-        String accessToken = obtainAccessToken("user@domain.com", "test");
+        String accessToken = obtainAccessToken("learner@domain.com", "test");
 
         mockMvc.perform(get("/oauth/revoke")
                 .header("Authorization", "Bearer " + accessToken))
@@ -63,7 +63,7 @@ public class AuthenticationControllerTest {
 
     @Test
     public void shouldReturnUnauthorisedWhenRevokingRevokedAccessToken() throws Exception {
-        String accessToken = obtainAccessToken("user@domain.com", "test");
+        String accessToken = obtainAccessToken("learner@domain.com", "test");
 
         mockMvc.perform(get("/oauth/revoke")
                 .header("Authorization", "Bearer " + accessToken))
