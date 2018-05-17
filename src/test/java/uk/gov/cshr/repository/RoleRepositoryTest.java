@@ -23,13 +23,13 @@ public class RoleRepositoryTest {
 
     @Test
     public void shouldSaveRole() {
-        long currentCount = repository.count();
+        long repositoryCount = repository.count();
 
         Role role = createRole();
 
         repository.save(role);
 
-        assertThat(repository.count(), equalTo(currentCount + 1));
+        assertThat(repository.count(), equalTo(repositoryCount + 1));
     }
 
     @Test
