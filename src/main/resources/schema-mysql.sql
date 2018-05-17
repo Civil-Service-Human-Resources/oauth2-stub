@@ -127,7 +127,7 @@ CREATE TABLE IF NOT EXISTS `role` (
 -- Dumping structure for table identity.token
 DROP TABLE IF EXISTS `token`;
 CREATE TABLE IF NOT EXISTS `token` (
-  `id` bigint(20) unsigned NOT NULL,
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `status` int(11) unsigned DEFAULT NULL,
   `token_id` varchar(255) DEFAULT NULL,
   `authentication` longblob,
