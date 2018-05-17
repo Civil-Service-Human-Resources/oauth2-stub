@@ -13,19 +13,48 @@ import java.security.NoSuchAlgorithmException;
 @Entity
 public class Token {
 
+    public static String extractTokenKey(String value) {
+        if (value == null) {
+            return null;
+        }
+        MessageDigest digest;
+        try {
+            digest = MessageDigest.getInstance("MD5");
+        }
+        catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("MD5 algorithm not available.  Fatal (should be in the JDK).");
+        }
+
+        try {
+            byte[] bytes = digest.digest(value.getBytes("UTF-8"));
+            return String.format("%032x", new BigInteger(1, bytes));
+        }
+        catch (UnsupportedEncodingException e) {
+            throw new IllegalStateException("UTF-8 encoding not available.  Fatal (should be in the JDK).");
+        }
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Lob
     private byte[] token;
+
     @Column(unique = true)
     private String tokenId;
+
     private String authenticationId;
+
     private String userName;
+
     private String clientId;
+
     private TokenStatus status;
+
     @Lob
     private byte[] authentication;
+
     private String refreshToken;
 
     protected Token() {
@@ -48,31 +77,8 @@ public class Token {
         }
     }
 
-    public static String extractTokenKey(String value) {
-        if (value == null) {
-            return null;
-        }
-        MessageDigest digest;
-        try {
-            digest = MessageDigest.getInstance("MD5");
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("MD5 algorithm not available.  Fatal (should be in the JDK).");
-        }
-
-        try {
-            byte[] bytes = digest.digest(value.getBytes("UTF-8"));
-            return String.format("%032x", new BigInteger(1, bytes));
-        } catch (UnsupportedEncodingException e) {
-            throw new IllegalStateException("UTF-8 encoding not available.  Fatal (should be in the JDK).");
-        }
-    }
-
     public OAuth2Authentication getAuthentication() {
         return SerializationUtils.deserialize(authentication);
-    }
-
-    public void setAuthentication(OAuth2Authentication authentication) {
-        this.authentication = SerializationUtils.serialize(authentication);
     }
 
     public OAuth2AccessToken getToken() {
@@ -85,5 +91,9 @@ public class Token {
 
     public void setStatus(TokenStatus status) {
         this.status = status;
+    }
+
+    public void setAuthentication(OAuth2Authentication authentication) {
+        this.authentication = SerializationUtils.serialize(authentication);
     }
 }
