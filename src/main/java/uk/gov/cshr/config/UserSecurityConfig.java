@@ -7,7 +7,10 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import uk.gov.cshr.service.security.WebSecurityExpressionHandler;
+
+import javax.servlet.http.HttpServletResponse;
 
 import static uk.gov.cshr.config.SecurityConfig.forPort;
 
@@ -29,6 +32,16 @@ public class UserSecurityConfig extends WebSecurityConfigurerAdapter {
                 .formLogin()
                 .loginPage("/login")
                 .failureUrl("/login?error=true").and()
+                .logout()
+                    .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+                    .logoutSuccessHandler((request, response, authentication) -> {
+                        String redirectUrl = request.getParameter("returnTo");
+                        if (redirectUrl == null) {
+                            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+                        } else {
+                            response.sendRedirect(redirectUrl);
+                        }
+                    }).and()
                 .exceptionHandling()
                 .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"));
     }
