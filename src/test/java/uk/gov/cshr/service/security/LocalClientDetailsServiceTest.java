@@ -18,10 +18,10 @@ import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class ClientDetailsServiceTest {
+public class LocalClientDetailsServiceTest {
 
     @InjectMocks
-    private ClientDetailsService clientDetailsService;
+    private LocalClientDetailsService clientDetailsService;
 
     @Mock
     private ClientRepository clientRepository;

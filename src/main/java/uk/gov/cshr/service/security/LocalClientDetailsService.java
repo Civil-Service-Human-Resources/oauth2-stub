@@ -1,18 +1,19 @@
 package uk.gov.cshr.service.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.stereotype.Service;
 import uk.gov.cshr.domain.Client;
 import uk.gov.cshr.repository.ClientRepository;
 
 @Service
-public class ClientDetailsService implements org.springframework.security.oauth2.provider.ClientDetailsService {
+public class LocalClientDetailsService implements ClientDetailsService {
 
     private ClientRepository clientRepository;
 
     @Autowired
-    public ClientDetailsService(ClientRepository clientRepository) {
+    public LocalClientDetailsService(ClientRepository clientRepository) {
         this.clientRepository = clientRepository;
     }
 

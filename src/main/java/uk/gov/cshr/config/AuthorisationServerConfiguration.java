@@ -10,7 +10,7 @@ import org.springframework.security.oauth2.config.annotation.web.configurers.Aut
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.approval.UserApprovalHandler;
 import org.springframework.security.oauth2.provider.token.TokenStore;
-import uk.gov.cshr.service.security.ClientDetailsService;
+import uk.gov.cshr.service.security.LocalClientDetailsService;
 import uk.gov.cshr.service.security.TokenServices;
 
 @Configuration
@@ -29,7 +29,7 @@ public class AuthorisationServerConfiguration extends AuthorizationServerConfigu
     private AuthenticationManager authenticationManager;
 
     @Autowired
-    private ClientDetailsService clientDetailsService;
+    private LocalClientDetailsService clientDetailsService;
 
     @Autowired
     private TokenServices tokenServices;
@@ -40,7 +40,7 @@ public class AuthorisationServerConfiguration extends AuthorizationServerConfigu
     }
 
     @Override
-    public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+    public void configure(AuthorizationServerEndpointsConfigurer endpoints) {
         endpoints.tokenStore(tokenStore)
                 .userApprovalHandler(userApprovalHandler)
                 .authenticationManager(authenticationManager)
@@ -48,7 +48,7 @@ public class AuthorisationServerConfiguration extends AuthorizationServerConfigu
     }
 
     @Override
-    public void configure(AuthorizationServerSecurityConfigurer oauthServer) throws Exception {
+    public void configure(AuthorizationServerSecurityConfigurer oauthServer) {
         oauthServer.realm(REALM + "/client")
             .checkTokenAccess("isAuthenticated()")
             .allowFormAuthenticationForClients();
