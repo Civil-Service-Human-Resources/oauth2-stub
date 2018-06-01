@@ -33,7 +33,7 @@ public class IdentityDetails implements UserDetails {
 
     @Override
     public String getUsername() {
-        return identity.getEmail();
+        return identity.getUid();
     }
 
     @Override

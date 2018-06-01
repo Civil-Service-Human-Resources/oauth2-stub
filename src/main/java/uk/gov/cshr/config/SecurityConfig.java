@@ -46,8 +46,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public TokenStoreUserApprovalHandler userApprovalHandler(ClientRepository clientRepository, TokenStore tokenStore) {
-        LocalClientDetailsService clientDetailsService = new LocalClientDetailsService(clientRepository);
+    public TokenStoreUserApprovalHandler userApprovalHandler(LocalClientDetailsService clientDetailsService, TokenStore tokenStore) {
         TokenStoreUserApprovalHandler handler = new TokenStoreUserApprovalHandler();
         handler.setTokenStore(tokenStore);
         handler.setRequestFactory(new DefaultOAuth2RequestFactory(clientDetailsService));
