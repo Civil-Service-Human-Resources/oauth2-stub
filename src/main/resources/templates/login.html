@@ -18,10 +18,10 @@
                         You have been logged out.
                     </div>
 
-
                     <h1 class="heading-large">Sign in</h1>
 
-                    <a href="/reset">Forgotten your password?</a>
+                    <p>If you do not have an account, or have forgotten your password, please
+                        <a class="lpg-get-in-touch" href="mailto:feedback@cslearning.gov.uk">get in touch to create one</a>.</p>
 
                     <form autocomplete="nope" th:action="@{/login}" method="post" class="push-bottom">
                         <div class="form-group">
@@ -40,6 +40,7 @@
                             <input type="submit" class="button" value="Continue">
                         </div>
                     </form>
+                    <a href="/reset" class="push-bottom">Forgotten your password?</a>
                 </div>
             </div>
         </div>
