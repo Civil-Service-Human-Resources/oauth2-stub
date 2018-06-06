@@ -49,7 +49,8 @@ public class IdentityServiceTest {
     public void shouldLoadIdentityByEmailAddress() {
 
         final String emailAddress = "test@example.org";
-        final Identity identity = new Identity("uid", emailAddress, "password", true, emptySet());
+        final String uid = "uid";
+        final Identity identity = new Identity(uid, emailAddress, "password", true, emptySet());
 
         when(identityRepository.findFirstByActiveTrueAndEmailEquals(emailAddress))
                 .thenReturn(identity);
@@ -57,7 +58,7 @@ public class IdentityServiceTest {
         IdentityDetails identityDetails = (IdentityDetails) identityService.loadUserByUsername(emailAddress);
 
         assertThat(identityDetails, notNullValue());
-        assertThat(identityDetails.getUsername(), equalTo(emailAddress));
+        assertThat(identityDetails.getUsername(), equalTo(uid));
         assertThat(identityDetails.getIdentity(), equalTo(identity));
     }
 

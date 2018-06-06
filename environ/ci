@@ -1,5 +1,7 @@
 #! /usr/bin/env bash
 
+set -e -o pipefail
+
 SERVICE_NAME=identity-service
 
 BRANCH_TAG=`echo ${TRAVIS_PULL_REQUEST_BRANCH:-${TRAVIS_BRANCH}} | sed 's/\//-/g'`
