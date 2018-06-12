@@ -10,6 +10,7 @@ import uk.gov.cshr.dto.IdentityDTO;
 import uk.gov.cshr.repository.IdentityRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.StreamSupport;
 
 import static java.util.stream.Collectors.toList;
@@ -40,5 +41,13 @@ public class ListIdentitiesController {
             return ResponseEntity.ok(new IdentityDTO(identity));
         }
         return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping(value = "/api/identities", params = "uid")
+    public ResponseEntity<IdentityDTO> findByUid(@RequestParam String uid) {
+        Optional<Identity> identity = identityRepository.findFirstByUid(uid);
+        return identity
+                .map(i -> ResponseEntity.ok(new IdentityDTO(i)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }
