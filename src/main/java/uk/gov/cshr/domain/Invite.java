@@ -19,7 +19,7 @@ public class Invite implements Serializable {
     @Enumerated(EnumType.STRING)
     private InviteStatus status;
 
-    @OneToOne
+    @OneToOne(optional = false)
     private Identity inviter;
 
     @Column(nullable = false)

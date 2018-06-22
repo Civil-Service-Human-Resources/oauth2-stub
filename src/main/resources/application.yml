@@ -4,6 +4,11 @@ spring:
     cache: false
   messages:
     basename: i18n/messages
+  flyway:
+    locations: classpath:db/migration/{vendor}
+  jpa:
+    hibernate:
+      ddl-auto: none
 
 server:
   port: 8080
@@ -37,15 +42,11 @@ spring:
   thymeleaf:
     cache: true
   datasource:
-    url: ${DATASOURCE:jdbc:mysql://localhost:3306/oauth2?user=root&password=secret&useSSL=false}
+    url: ${DATASOURCE:jdbc:mysql://localhost:3306/oauth2?user=root&password=password&useSSL=false}
     platform: mysql
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
-    hibernate:
-      ddl-auto: none
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL5InnoDBDialect
         enable_lazy_load_no_trans: true
-
-

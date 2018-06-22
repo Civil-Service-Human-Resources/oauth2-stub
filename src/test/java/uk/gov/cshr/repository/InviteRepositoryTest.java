@@ -5,6 +5,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.domain.InviteStatus;
 
@@ -21,6 +22,9 @@ public class InviteRepositoryTest {
 
     @Autowired
     private InviteRepository inviteRepository;
+
+    @Autowired
+    private IdentityRepository identityRepository;
 
     @Test
     public void findByForEmailShouldReturnCorrectInvite() {
@@ -84,11 +88,16 @@ public class InviteRepositoryTest {
     }
 
     private Invite createInvite(String code, String forEmail) {
+
+        Identity identity = identityRepository.findFirstByActiveTrueAndEmailEquals("learner@domain.com");
+
         Invite invite = new Invite();
+        invite.setInviter(identity);
         invite.setCode(code);
         invite.setForEmail(forEmail);
         invite.setInvitedAt(new Date());
         invite.setStatus(InviteStatus.PENDING);
+
         return invite;
     }
 }
