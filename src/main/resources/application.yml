@@ -14,6 +14,13 @@ server:
   port: 8080
   managementPort: 8081
 
+logging:
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  level:
+    root: ${ROOT_LOGGING_LEVEL:INFO}
+    org.apache.http: WARN
+
 accessToken:
   validityInSeconds: 86400
 
