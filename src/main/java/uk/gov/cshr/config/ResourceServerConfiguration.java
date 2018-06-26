@@ -39,7 +39,7 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
                 .and()
                     .authorizeRequests()
                         .requestMatchers(request -> serverPort != -1 && request.getLocalPort() != serverPort).denyAll()
-                        .antMatchers("/api/**").access("hasAuthority('CLIENT')")
+                        .antMatchers("/api/**").access("hasAnyAuthority('CLIENT', 'DOWNLOAD_BOOKING_FEED')")
                         .antMatchers("/**").authenticated()
                 .and()
                     .exceptionHandling().accessDeniedHandler(new OAuth2AccessDeniedHandler());
