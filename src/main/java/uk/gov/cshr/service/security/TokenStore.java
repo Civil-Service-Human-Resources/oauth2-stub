@@ -20,7 +20,7 @@ import java.util.Collection;
 import static java.util.stream.Collectors.toSet;
 import static uk.gov.cshr.domain.Token.extractTokenKey;
 
-@Service
+//@Service
 public class TokenStore implements org.springframework.security.oauth2.provider.token.TokenStore {
 
     private AuthenticationKeyGenerator authenticationKeyGenerator = new DefaultAuthenticationKeyGenerator();

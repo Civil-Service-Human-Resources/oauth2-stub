@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
+import org.springframework.security.oauth2.provider.token.ConsumerTokenServices;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.cshr.dto.IdentityDTO;
@@ -18,10 +19,10 @@ public class AuthenticationController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthenticationController.class);
 
-    private TokenServices tokenServices;
+    private ConsumerTokenServices tokenServices;
 
     @Autowired
-    public AuthenticationController(TokenServices tokenServices) {
+    public AuthenticationController(ConsumerTokenServices tokenServices) {
         this.tokenServices = tokenServices;
     }
 
