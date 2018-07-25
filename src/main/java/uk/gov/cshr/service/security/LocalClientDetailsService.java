@@ -1,6 +1,7 @@
 package uk.gov.cshr.service.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ public class LocalClientDetailsService implements ClientDetailsService {
     }
 
     @Override
+    @Cacheable(cacheNames = "loadClientByClientIdCache", key = "#clientId")
     public org.springframework.security.oauth2.provider.ClientDetails loadClientByClientId(String clientId) throws ClientRegistrationException {
         Client client = clientRepository.findFirstByActiveTrueAndUidEquals(clientId);
         if (client == null) {

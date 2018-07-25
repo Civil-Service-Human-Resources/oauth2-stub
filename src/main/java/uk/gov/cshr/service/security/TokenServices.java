@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 
-//@Service
+@Service
 public class TokenServices implements AuthorizationServerTokenServices, ConsumerTokenServices {
 
     private org.springframework.security.oauth2.provider.token.TokenStore tokenStore;

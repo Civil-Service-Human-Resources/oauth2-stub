@@ -2,7 +2,9 @@ package uk.gov.cshr;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.core.token.TokenService;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
@@ -22,17 +24,5 @@ public class Application {
         LocalValidatorFactoryBean bean = new LocalValidatorFactoryBean();
         bean.setValidationMessageSource(messageSource);
         return bean;
-    }
-
-    @Bean
-    public DefaultTokenServices tokenServices() {
-        DefaultTokenServices tokenServices = new DefaultTokenServices();
-        tokenServices.setTokenStore(tokenStore());
-        return tokenServices;
-    }
-
-    @Bean
-    public TokenStore tokenStore() {
-        return new InMemoryTokenStore();
     }
 }
