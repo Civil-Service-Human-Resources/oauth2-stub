@@ -3,10 +3,10 @@ package uk.gov.cshr.config;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.cache.interceptor.CacheErrorHandler;
 import org.springframework.cache.interceptor.CacheResolver;
 import org.springframework.cache.interceptor.KeyGenerator;
-import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.Configuration;
 
@@ -16,7 +16,7 @@ public class CacheConfig implements CachingConfigurer {
 
     @Override
     public CacheManager cacheManager() {
-        return new SimpleCacheManager();
+        return new ConcurrentMapCacheManager();
     }
 
     @Override
