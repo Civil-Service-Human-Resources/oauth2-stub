@@ -1,6 +1,7 @@
 package uk.gov.cshr.service.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2RefreshToken;
@@ -70,6 +71,7 @@ public class TokenStore implements org.springframework.security.oauth2.provider.
     }
 
     @Override
+    @CacheEvict(cacheNames = "readAccessTokenCache", key = "#token.getValue()")
     public void removeAccessToken(OAuth2AccessToken token) {
         Token storedToken = tokenRepository.findByTokenIdAndStatus(extractTokenKey(token.getValue()), TokenStatus.ACTIVE);
         if (storedToken != null) {
