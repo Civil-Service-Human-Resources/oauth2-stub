@@ -12,6 +12,7 @@ CREATE TABLE `client` (
 CREATE TABLE `identity` (
   `id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
   `active` bit(1) NOT NULL,
+  `locked` bit(1) NOT NULL,
   `uid` char(36) NOT NULL,
   `email` varchar(150) NOT NULL,
   `password` varchar(100) NOT NULL,

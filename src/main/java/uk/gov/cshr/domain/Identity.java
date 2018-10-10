@@ -24,6 +24,8 @@ public class Identity implements Serializable {
 
     private boolean active;
 
+    private boolean locked;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "identity_role",
             joinColumns = @JoinColumn(name = "identity_id", referencedColumnName = "id"),
@@ -34,15 +36,16 @@ public class Identity implements Serializable {
     public Identity() {
     }
 
-    public Identity(String uid, String email, String password, boolean active, Set<Role> roles) {
+    public Identity(String uid, String email, String password, boolean active, boolean locked, Set<Role> roles) {
         this.uid = uid;
         this.email = email;
         this.password = password;
         this.active = active;
         this.roles = roles;
+        this.locked = locked;
     }
 
-    public boolean getActive() {
+    public boolean isActive() {
         return active;
     }
 
@@ -82,6 +85,14 @@ public class Identity implements Serializable {
         this.id = id;
     }
 
+    public boolean isLocked() {
+        return locked;
+    }
+
+    public void setLocked(boolean locked) {
+        this.locked = locked;
+    }
+
     @Override
     public String toString() {
         return "Identity{" +
@@ -90,7 +101,9 @@ public class Identity implements Serializable {
                 ", email='" + email + '\'' +
                 ", password='" + password + '\'' +
                 ", active=" + active +
+                ", locked=" + locked +
                 ", roles=" + roles +
                 '}';
     }
+
 }

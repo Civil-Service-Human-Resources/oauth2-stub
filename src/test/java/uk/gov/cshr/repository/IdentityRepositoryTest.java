@@ -35,7 +35,7 @@ public class IdentityRepositoryTest {
     }
 
     private Identity createIdentity() {
-        Identity identity = new Identity(UID, EMAIL, PASSWORD, true, null);
+        Identity identity = new Identity(UID, EMAIL, PASSWORD, true, false, null);
         return identity;
     }
 }

@@ -13,7 +13,6 @@ import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.repository.IdentityRepository;
-import uk.gov.cshr.repository.InviteRepository;
 import uk.gov.cshr.service.InviteService;
 
 import java.util.HashSet;
@@ -37,9 +36,6 @@ public class IdentityServiceTest {
     private IdentityRepository identityRepository;
 
     @Mock
-    private InviteRepository inviteRepository;
-
-    @Mock
     private InviteService inviteService;
 
     @Mock
@@ -50,7 +46,7 @@ public class IdentityServiceTest {
 
         final String emailAddress = "test@example.org";
         final String uid = "uid";
-        final Identity identity = new Identity(uid, emailAddress, "password", true, emptySet());
+        final Identity identity = new Identity(uid, emailAddress, "password", true, false, emptySet());
 
         when(identityRepository.findFirstByActiveTrueAndEmailEquals(emailAddress))
                 .thenReturn(identity);

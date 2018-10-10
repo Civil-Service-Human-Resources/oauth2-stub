@@ -42,6 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class IdentityControllerTest {
 
     private final Boolean ACTIVE = true;
+    private final Boolean LOCKED = false;
     private final String DESCRIPTION = "User";
     private final String EMAIL = "email";
     private final String NAME = "User";
@@ -78,7 +79,7 @@ public class IdentityControllerTest {
 
         ArrayList<Identity> identities = new ArrayList<>();
 
-        identities.add(new Identity(UID, EMAIL, PASSWORD, ACTIVE, ROLES));
+        identities.add(new Identity(UID, EMAIL, PASSWORD, ACTIVE, LOCKED, ROLES));
         ArrayList<Role> roles = new ArrayList<>();
 
         roles.add(new Role(NAME, DESCRIPTION));
@@ -106,7 +107,7 @@ public class IdentityControllerTest {
     @Test
     public void shouldLoadIdentityToEdit() throws Exception {
 
-        Identity identity = new Identity(UID, EMAIL, PASSWORD, ACTIVE, ROLES);
+        Identity identity = new Identity(UID, EMAIL, PASSWORD, ACTIVE, LOCKED, ROLES);
         when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
         this.mockMvc.perform(get("/management/identities/update/uid"))
                 .andExpect(model().attribute("identity", hasProperty("uid", is(UID))));
@@ -115,7 +116,7 @@ public class IdentityControllerTest {
     @Test
     public void shouldSaveEditedIdentity() throws Exception {
 
-        Identity identity = new Identity(UID, EMAIL, PASSWORD, ACTIVE, ROLES);
+        Identity identity = new Identity(UID, EMAIL, PASSWORD, ACTIVE, LOCKED, ROLES);
         when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
 
 
@@ -137,7 +138,7 @@ public class IdentityControllerTest {
     @Test
     public void shouldInsertRolesByIDForEditedIdentity() throws Exception {
 
-        Identity identity = new Identity(UID, EMAIL, PASSWORD, ACTIVE, ROLES);
+        Identity identity = new Identity(UID, EMAIL, PASSWORD, ACTIVE, LOCKED, ROLES);
         when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
 
 

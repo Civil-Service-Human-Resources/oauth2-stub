@@ -47,6 +47,7 @@ public class ResetControllerTest {
     private static final String CODE = "abc123";
     private static final String UID = "uid123";
     private static final Boolean ACTIVE = true;
+    private static final Boolean LOCKED = false;
     private static final String PASSWORD = "password";
     private static final Set<Role> ROLES = new HashSet();
 
@@ -137,7 +138,7 @@ public class ResetControllerTest {
         when(resetService.isResetExpired(reset)).thenReturn(false);
         when(resetService.isResetPending(reset)).thenReturn(true);
 
-        Identity identity = new Identity(UID, EMAIL, PASSWORD, ACTIVE, ROLES);
+        Identity identity = new Identity(UID, EMAIL, PASSWORD, ACTIVE, LOCKED, ROLES);
         when(identityRepository.findFirstByActiveTrueAndEmailEquals(EMAIL)).thenReturn(identity);
 
         this.mockMvc.perform(get("/reset/" + CODE))
