@@ -44,7 +44,7 @@ accountValidation:
 
 account:
   lockout:
-    maxAttempt: 2
+    maxAttempt: 5
 
 ---
 
