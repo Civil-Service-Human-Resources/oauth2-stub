@@ -42,6 +42,10 @@ reset:
 accountValidation:
   passwordPattern: ${PASSWORD_PATTERN:(?!([a-zA-Z]*|[a-z\d]*|[^A-Z\d]*|[A-Z\d]*|[^a-z\d]*|[^a-zA-Z]*)$).{8,}}
 
+account:
+  lockout:
+    maxAttempt: 2
+
 ---
 
 spring:

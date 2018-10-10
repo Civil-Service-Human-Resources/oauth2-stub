@@ -43,7 +43,7 @@ public class IdentityDetails implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return identity.isLocked();
+        return !identity.isLocked();
     }
 
     @Override
