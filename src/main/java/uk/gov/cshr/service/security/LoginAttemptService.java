@@ -30,6 +30,7 @@ public class LoginAttemptService {
 
     public void loginFailed(String email) {
         if (identityExists(email)) {
+            incrementAttempts(email);
             if (areAttemptsMoreThanAllowedLimit(email)) {
                 lockIdentity(email);
             }
@@ -47,7 +48,6 @@ public class LoginAttemptService {
     }
 
     private boolean areAttemptsMoreThanAllowedLimit(String email) {
-        incrementAttempts(email);
         return attemptCache.get(email) >= maxAttempt;
     }
 
