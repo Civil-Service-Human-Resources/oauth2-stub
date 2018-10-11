@@ -66,7 +66,7 @@ public class InviteController {
             return "redirect:/management/invite";
         }
 
-        if (identityService.inviteExistsByEmail(forEmail)) {
+        if (identityService.existsByEmail(forEmail)) {
             LOGGER.info("{} is already a user", forEmail);
             redirectAttributes.addFlashAttribute("status", "User already exists with email address " + forEmail);
             return "redirect:/management/invite";
