@@ -20,6 +20,7 @@ public class LoginAttemptService {
         this.identityService = identityService;
         this.loginAttemptCache = loginAttemptCache;
     }
+
     public void loginSucceeded(String email) {
         loginAttemptCache.replace(email, 0);
     }
@@ -29,7 +30,8 @@ public class LoginAttemptService {
             incrementAttempts(email);
             if (areAttemptsMoreThanAllowedLimit(email)) {
                 lockIdentity(email);
-                throw new AuthenticationException("User account is locked") { };
+                throw new AuthenticationException("User account is locked") {
+                };
             }
         }
     }

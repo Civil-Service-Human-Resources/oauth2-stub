@@ -5,9 +5,8 @@
         <div class="container">
             <div class="grid-row">
                 <div class="column-two-thirds">
-                    <div th:if="${param.error}" class="error-summary" role="alert" aria-labelledby="error-summary-heading-example-1" tabindex="-1">
-
-                    <p class="errorMsg"></p>
+                    <div th:if="${param.error}" class="error-summary" role="alert"
+                         aria-labelledby="error-summary-heading-example-1" tabindex="-1">
 
                         <h2 class="heading-medium error-summary-heading" id="error-summary-heading-example-1">
                             Login failed
@@ -15,25 +14,29 @@
                         <p>
 
                             <span th:if="${param.error[0] == 'failed'}">You have entered the wrong email address or password, please try again.</span>
-                            <span th:if="${param.error[0] == 'locked'}">Your account has been locked. Please contact us to <a href="mailto:feedback@cslearning.gov.uk">unlock your account.</a></span>
+                            <span th:if="${param.error[0] == 'locked'}">Your account has been locked. Please contact us to <a
+                                    href="mailto:feedback@cslearning.gov.uk">unlock your account.</a></span>
                         </p>
                     </div>
 
-                    <div th:if="${param.logout}" class="error-summary" role="alert" aria-labelledby="error-summary-heading-example-1" tabindex="-1">
+                    <div th:if="${param.logout}" class="error-summary" role="alert"
+                         aria-labelledby="error-summary-heading-example-1" tabindex="-1">
                         You have been logged out.
                     </div>
 
                     <h1 class="heading-large">Sign in</h1>
 
                     <p>If you do not have an account, please
-                        <a class="lpg-get-in-touch" href="mailto:feedback@cslearning.gov.uk">get in touch to create one</a>.</p>
+                        <a class="lpg-get-in-touch" href="mailto:feedback@cslearning.gov.uk">get in touch to create
+                            one</a>.</p>
 
                     <form autocomplete="nope" th:action="@{/login}" method="post" class="push-bottom">
                         <div class="form-group">
                             <label for="email-address" class="form-label">
                                 Email address
                             </label>
-                            <input class="form-control form-control-2-3" id="email-address" name="username" type="email">
+                            <input class="form-control form-control-2-3" id="email-address" name="username"
+                                   type="email">
                         </div>
                         <div class="form-group">
                             <label for="password" class="form-label">

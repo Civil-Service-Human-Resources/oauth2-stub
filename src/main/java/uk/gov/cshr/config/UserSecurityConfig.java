@@ -34,15 +34,15 @@ public class UserSecurityConfig extends WebSecurityConfigurerAdapter {
                 .failureHandler(new CustomAuthenticationFailureHandler())
                 .and()
                 .logout()
-                    .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
-                    .logoutSuccessHandler((request, response, authentication) -> {
-                        String redirectUrl = request.getParameter("returnTo");
-                        if (redirectUrl == null) {
-                            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-                        } else {
-                            response.sendRedirect(redirectUrl);
-                        }
-                    }).and()
+                .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+                .logoutSuccessHandler((request, response, authentication) -> {
+                    String redirectUrl = request.getParameter("returnTo");
+                    if (redirectUrl == null) {
+                        response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+                    } else {
+                        response.sendRedirect(redirectUrl);
+                    }
+                }).and()
                 .exceptionHandling()
                 .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"));
     }
@@ -51,6 +51,4 @@ public class UserSecurityConfig extends WebSecurityConfigurerAdapter {
     public void configure(WebSecurity web) {
         web.expressionHandler(new WebSecurityExpressionHandler());
     }
-
-
 }
