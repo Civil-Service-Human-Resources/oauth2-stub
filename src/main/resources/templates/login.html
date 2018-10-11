@@ -6,11 +6,16 @@
             <div class="grid-row">
                 <div class="column-two-thirds">
                     <div th:if="${param.error}" class="error-summary" role="alert" aria-labelledby="error-summary-heading-example-1" tabindex="-1">
+
+                    <p class="errorMsg"></p>
+
                         <h2 class="heading-medium error-summary-heading" id="error-summary-heading-example-1">
                             Login failed
                         </h2>
                         <p>
-                            You have entered the wrong email address or password, please try again.
+
+                            <span th:if="${param.error[0] == 'failed'}">You have entered the wrong email address or password, please try again.</span>
+                            <span th:if="${param.error[0] == 'locked'}">Your account has been locked. Please contact us to <a href="mailto:feedback@cslearning.gov.uk">unlock your account.</a></span>
                         </p>
                     </div>
 
