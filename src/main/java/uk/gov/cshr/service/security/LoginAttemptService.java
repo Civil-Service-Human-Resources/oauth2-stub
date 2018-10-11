@@ -2,6 +2,7 @@ package uk.gov.cshr.service.security;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -28,6 +29,7 @@ public class LoginAttemptService {
             incrementAttempts(email);
             if (areAttemptsMoreThanAllowedLimit(email)) {
                 lockIdentity(email);
+                throw new AuthenticationException("User account is locked") { };
             }
         }
     }

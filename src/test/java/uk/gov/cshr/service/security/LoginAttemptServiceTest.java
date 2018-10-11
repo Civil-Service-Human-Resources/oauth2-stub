@@ -1,6 +1,8 @@
 package uk.gov.cshr.service.security;
 
 import org.junit.Test;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -66,7 +68,11 @@ public class LoginAttemptServiceTest {
 
         when(identityService.existsByEmail(email)).thenReturn(true);
 
-        loginAttemptService.loginFailed(email);
+        try {
+            loginAttemptService.loginFailed(email);
+        } catch (AuthenticationException e) {
+            assertEquals("User account is locked", e.getMessage());
+        }
 
         verify(identityService).lockIdentity(email);
     }
