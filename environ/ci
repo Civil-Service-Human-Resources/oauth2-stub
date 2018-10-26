@@ -1,6 +1,13 @@
-#! /usr/bin/env bash
+#!/bin/bash
 
 set -e -o pipefail
+
+counter=0
+
+function stage {
+  ((counter++)) || true
+  printf "\n\033[34;1m➡  $1  \033[90m[stage $counter] [running ${SECONDS}s]\033[0m\n\n"
+}
 
 SERVICE_NAME=identity-service
 
