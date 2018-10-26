@@ -7,6 +7,7 @@ SERVICE_NAME=identity-service
 BRANCH_TAG=`echo ${TRAVIS_PULL_REQUEST_BRANCH:-${TRAVIS_BRANCH}} | sed 's/\//-/g'`
 COMMIT_TAG="${TRAVIS_COMMIT}"
 
+stage "Gradle build"
 ./gradlew build
 
 docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
@@ -15,6 +16,7 @@ docker pull cshr/${SERVICE_NAME} || true
 
 docker build --cache-from cshr/${SERVICE_NAME}:latest -t cshr/${SERVICE_NAME}:latest .
 
+stage "Pushing the learning-catalogue ${TRAVIS_COMMIT} docker image"
 docker tag cshr/${SERVICE_NAME}:latest cshr/${SERVICE_NAME}:${BRANCH_TAG}
 docker tag cshr/${SERVICE_NAME}:latest cshr/${SERVICE_NAME}:${BRANCH_TAG}-${TRAVIS_BUILD_NUMBER}
 docker tag cshr/${SERVICE_NAME}:latest cshr/${SERVICE_NAME}:${COMMIT_TAG}
