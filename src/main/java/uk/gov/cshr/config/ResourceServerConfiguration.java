@@ -35,13 +35,13 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
         http
                 .anonymous().disable()
                 .requestMatchers()
-                    .antMatchers("/oauth/resolve", "/oauth/revoke", "/api/**")
+                .antMatchers("/oauth/resolve", "/oauth/revoke", "/api/**")
                 .and()
-                    .authorizeRequests()
-                        .requestMatchers(request -> serverPort != -1 && request.getLocalPort() != serverPort).denyAll()
-                        .antMatchers("/api/**").access("hasAnyAuthority('CLIENT', 'DOWNLOAD_BOOKING_FEED')")
-                        .antMatchers("/**").authenticated()
+                .authorizeRequests()
+                .requestMatchers(request -> serverPort != -1 && request.getLocalPort() != serverPort).denyAll()
+                .antMatchers("/api/**").access("hasAnyAuthority('CLIENT', 'DOWNLOAD_BOOKING_FEED')")
+                .antMatchers("/**").authenticated()
                 .and()
-                    .exceptionHandling().accessDeniedHandler(new OAuth2AccessDeniedHandler());
+                .exceptionHandling().accessDeniedHandler(new OAuth2AccessDeniedHandler());
     }
 }

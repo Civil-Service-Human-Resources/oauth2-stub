@@ -19,8 +19,12 @@ public class IdentityLockoutConfiguration {
         private LoginAttemptService loginAttemptService;
 
         public void onApplicationEvent(AuthenticationSuccessEvent e) {
-            IdentityDetails identityDetails = (IdentityDetails) e.getAuthentication().getPrincipal();
-            loginAttemptService.loginSucceeded(identityDetails.getIdentity().getEmail());
+            Object principal = e.getAuthentication().getPrincipal();
+
+            if (principal instanceof IdentityDetails) {
+                IdentityDetails identityDetails = (IdentityDetails) principal;
+                loginAttemptService.loginSucceeded(identityDetails.getIdentity().getEmail());
+            }
         }
     }
 

@@ -26,58 +26,7 @@ bootJar {
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-configurations {
-    ajc
-    aspects
-    compile {
-        extendsFrom aspects
-    }
-}
-
-def aspectj = { destDir, aspectPath, inpath, classpath ->
-    ant.taskdef(resource: "org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties",
-            classpath: configurations.ajc.asPath)
-
-    ant.iajc(
-            maxmem: "1024m", fork: "true", Xlint: "ignore",
-            destDir: destDir,
-            aspectPath: aspectPath,
-            inpath: inpath,
-            classpath: classpath,
-            source: project.sourceCompatibility,
-            target: project.targetCompatibility
-    )
-}
-
-compileJava {
-    doLast {
-        aspectj project.sourceSets.main.output.classesDir.absolutePath,
-                configurations.aspects.asPath,
-                project.sourceSets.main.output.classesDir.absolutePath,
-                project.sourceSets.main.runtimeClasspath.asPath
-    }
-}
-
-compileTestJava {
-    doLast {
-        aspectj project.sourceSets.test.output.classesDir.absolutePath,
-                configurations.aspects.asPath,
-                project.sourceSets.test.output.classesDir.absolutePath,
-                project.sourceSets.test.runtimeClasspath.asPath
-    }
-}
-
 dependencies {
-
-    ajc 'org.aspectj:aspectjtools:1.9.1'
-    aspects 'org.springframework:spring-aspects:5.0.5.RELEASE'
-
-    compile 'org.aspectj:aspectjrt:1.9.1'
-    compile 'org.aspectj:aspectjweaver:1.9.1'
-
-    compile group: 'com.sun.xml.bind', name: 'jaxb-impl', version: '2.1.2'
-    compile group: 'javax.activation', name: 'activation', version: '1.1'
-    compile group: 'javax.xml', name: 'jaxb-api', version: '2.1'
 
     // https://mvnrepository.com/artifact/org.springframework.data/spring-data-jpa
     compile group: 'org.springframework.data', name: 'spring-data-jpa', version: '2.0.5.RELEASE'
