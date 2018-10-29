@@ -34,6 +34,6 @@ public class ServerConfig {
         Connector connector = new Connector("org.apache.coyote.http11.Http11NioProtocol");
         connector.setScheme("http");
         connector.setPort(Integer.valueOf(managementPort));
-        return new Connector[] { connector };
+        return new Connector[]{connector};
     }
 }
