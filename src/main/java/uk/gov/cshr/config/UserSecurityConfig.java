@@ -31,7 +31,8 @@ public class UserSecurityConfig extends WebSecurityConfigurerAdapter {
                 .anyRequest().authenticated().and()
                 .formLogin()
                 .loginPage("/login")
-                .failureUrl("/login?error=true").and()
+                .failureHandler(new CustomAuthenticationFailureHandler())
+                .and()
                 .logout()
                 .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
                 .logoutSuccessHandler((request, response, authentication) -> {
