@@ -4,6 +4,7 @@ package uk.gov.cshr.controller.signup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -36,6 +37,9 @@ public class SignupController {
     @Autowired
     private SignupFormValidator signupFormValidator;
 
+    @Value("${lpg.uiUrl}")
+    private String lpgUiUrl;
+
     @GetMapping("/{code}")
     public String signup(Model model, @PathVariable(value = "code") String code) {
         LOGGER.info("User accessing sign up screen with code {}", code);
@@ -63,6 +67,8 @@ public class SignupController {
 
         identityService.createIdentityFromInviteCode(code, form.getPassword());
         inviteService.updateInviteByCode(code, InviteStatus.ACCEPTED);
+
+        model.addAttribute("lpgUiUrl", lpgUiUrl);
 
         return "signupSuccess";
     }

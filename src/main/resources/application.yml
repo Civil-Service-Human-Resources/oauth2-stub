@@ -46,6 +46,9 @@ account:
   lockout:
     maxAttempt: 5
 
+lpg:
+  uiUrl: ${LPG_UI_URL:http://localhost:3001}
+
 ---
 
 spring:
