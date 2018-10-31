@@ -1,5 +1,6 @@
 package uk.gov.cshr.controller;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -7,9 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class LoginController {
 
     @RequestMapping("/login")
-    public String login() {
-        return "login";
-    }
+    public String login() {return "login";}
 
     @RequestMapping("/management/login")
     public String managementLogin() {
