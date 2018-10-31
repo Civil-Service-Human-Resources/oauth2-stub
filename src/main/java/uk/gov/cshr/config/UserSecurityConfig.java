@@ -21,9 +21,6 @@ public class UserSecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${server.port}")
     private int serverPort;
 
-    @Value("${lpg.uiUrl}")
-    private String lpgUiUrl;
-
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
@@ -33,7 +30,7 @@ public class UserSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/login", "/webjars/**", "/assets/**", "/signup/**", "/reset/**").permitAll()
                 .anyRequest().authenticated().and()
                 .formLogin()
-                .loginPage("/login").defaultSuccessUrl(lpgUiUrl)
+                .loginPage("/login")
                 .failureHandler(new CustomAuthenticationFailureHandler())
                 .and()
                 .logout()
