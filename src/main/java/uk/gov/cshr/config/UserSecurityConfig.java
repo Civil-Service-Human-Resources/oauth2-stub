@@ -30,7 +30,7 @@ public class UserSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/login", "/webjars/**", "/assets/**", "/signup/**", "/reset/**").permitAll()
                 .anyRequest().authenticated().and()
                 .formLogin()
-                .loginPage("/login")
+                .loginPage("/login").defaultSuccessUrl("http://localhost:3001")
                 .failureHandler(new CustomAuthenticationFailureHandler())
                 .and()
                 .logout()
