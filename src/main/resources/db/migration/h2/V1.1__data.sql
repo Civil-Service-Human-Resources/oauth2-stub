@@ -9,7 +9,9 @@ INSERT INTO `role` (name) VALUES
 ('IDENTITY_MANAGER'),
 ('ORGANISATION_REPORTER'),
 ('PROFESSION_REPORTER'),
-('CSHR_REPORTER');
+('CSHR_REPORTER'),
+('ORGANISATION_MANAGER')
+;
 
 INSERT INTO `identity` (active, locked, email, uid, password) VALUES
 (true, false, 'learner@domain.com', '3c706a70-3fff-4e7b-ae7f-102c1d46f569', '$2a$10$sGfnyPnJ8a0b9R.vqIphKu5vjetS3.Bvi6ISv39bOphq5On0U2m36'),
@@ -23,6 +25,8 @@ INSERT INTO `identity` (active, locked, email, uid, password) VALUES
 INSERT INTO `identity_role` (identity_id, role_id) VALUES
 ((SELECT id FROM identity WHERE email = 'learner@domain.com'), (SELECT id FROM role WHERE name = 'LEARNER')),
 ((SELECT id FROM identity WHERE email = 'learner@domain.com'), (SELECT id FROM role WHERE name = 'COURSE_MANAGER')),
+((SELECT id FROM identity WHERE email = 'learner@domain.com'), (SELECT id FROM role WHERE name = 'ORGANISATION_MANAGER')),
+((SELECT id FROM identity WHERE email = 'learner@domain.com'), (SELECT id FROM role WHERE name = 'IDENTITY_MANAGER')),
 ((SELECT id FROM identity WHERE email = 'course-manager@domain.com'), (SELECT id FROM role WHERE name = 'COURSE_MANAGER')),
 ((SELECT id FROM identity WHERE email = 'identity-manager@domain.com'), (SELECT id FROM role WHERE name = 'IDENTITY_MANAGER')),
 ((SELECT id FROM identity WHERE email = 'organisation-reporter@domain.com'), (SELECT id FROM role WHERE name = 'ORGANISATION_REPORTER')),
