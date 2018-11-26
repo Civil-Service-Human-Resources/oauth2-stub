@@ -33,7 +33,7 @@ govNotify:
 
 invite:
   url: ${INVITE_SIGNUP_URL:http://localhost:8080/signup/%s}
-  validityInSeconds: ${INVITE_VALIDITY:86400}
+  validityInSeconds: ${INVITE_VALIDITY:259200}
 
 reset:
   url: ${RESET_URL:http://localhost:8080/reset/%s}
