@@ -22,7 +22,7 @@ logging:
     org.apache.http: WARN
 
 accessToken:
-  validityInSeconds: 86400
+  validityInSeconds: ${ACCESS_TOKEN_VALIDITY:86400}
 
 govNotify:
   key: ${GOV_NOTIFY_API_KEY:key}
@@ -33,11 +33,11 @@ govNotify:
 
 invite:
   url: ${INVITE_SIGNUP_URL:http://localhost:8080/signup/%s}
-  validityInSeconds: 86400
+  validityInSeconds: ${INVITE_VALIDITY:259200}
 
 reset:
   url: ${RESET_URL:http://localhost:8080/reset/%s}
-  validityInSeconds: 86400
+  validityInSeconds: ${RESET_VALIDITY:86400}
 
 accountValidation:
   passwordPattern: ${PASSWORD_PATTERN:(?!([a-zA-Z]*|[a-z\d]*|[^A-Z\d]*|[A-Z\d]*|[^a-z\d]*|[^a-zA-Z]*)$).{8,}}
