@@ -3986,8 +3986,15 @@ hr.clear {
     height: 100%;
   }
 }
+
 #content {
-  padding-bottom: 280px;
+  padding-bottom: 320px;
+}
+
+@media (min-width: 641px) {
+  #content {
+    padding-bottom: 280px;
+  }
 }
 #footer .footer-meta .footer-meta-inner .open-government-licence .logo a {
   display: block;
