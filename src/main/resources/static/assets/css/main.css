@@ -3987,8 +3987,17 @@ hr.clear {
   }
 }
 
+
+.sign-in {
+  font-weight: bold;
+  color: #fff;
+  font-size: 16px;
+  float: right;
+  margin: 0;
+}
+
 #content {
-  padding-bottom: 320px;
+  padding-bottom: 378px;
 }
 
 @media (min-width: 641px) {
@@ -5050,7 +5059,7 @@ hr.clear {
   top: 10px;
 }
 
-.autocomplete__menu {
+.autocomplete__menu { 
   background-color: #fff;
   border: 2px solid #0b0c0c;
   border-top: 0;
