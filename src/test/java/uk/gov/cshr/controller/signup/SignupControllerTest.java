@@ -32,9 +32,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
-@SpringBootTest
+@WebMvcTest({SignupController.class, UserSecurityConfig.class})
 @RunWith(SpringRunner.class)
-@AutoConfigureMockMvc
 public class SignupControllerTest {
 
     @Autowired
@@ -48,6 +47,9 @@ public class SignupControllerTest {
 
     @MockBean
     private InviteRepository inviteRepository;
+
+    @MockBean
+    private SignupFormValidator signupFormValidator;
 
     @Test
     public void shouldReturnCreateAccountForm() throws Exception {

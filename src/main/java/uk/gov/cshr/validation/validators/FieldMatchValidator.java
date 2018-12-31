@@ -1,6 +1,7 @@
 package uk.gov.cshr.validation.validators;
 
 import org.apache.commons.beanutils.BeanUtils;
+import uk.gov.cshr.exception.FieldMatchException;
 import uk.gov.cshr.validation.annotations.FieldMatch;
 
 import javax.validation.ConstraintValidator;
@@ -19,16 +20,13 @@ public class FieldMatchValidator implements ConstraintValidator<FieldMatch, Obje
     }
 
     @Override
-    public boolean isValid(final Object value, final ConstraintValidatorContext context)
-    {
+    public boolean isValid(final Object value, final ConstraintValidatorContext context) {
         try {
             final Object firstObj = BeanUtils.getProperty(value, firstFieldName);
             final Object secondObj = BeanUtils.getProperty(value, secondFieldName);
             return firstObj == null && secondObj == null || firstObj != null && firstObj.equals(secondObj);
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            e.printStackTrace();
+            throw new FieldMatchException(e);
         }
-
-        return true;
     }
 }
