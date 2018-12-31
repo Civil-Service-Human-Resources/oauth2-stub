@@ -87,7 +87,6 @@ dependencies {
 
     testCompile 'org.mockito:mockito-core:2.8.47'
     testCompile 'org.springframework.security:spring-security-test'
-
 }
 
 compileJava.dependsOn(processResources)

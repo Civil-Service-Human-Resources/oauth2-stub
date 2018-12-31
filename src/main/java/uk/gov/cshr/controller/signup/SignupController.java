@@ -10,6 +10,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
+import uk.gov.cshr.controller.InviteController;
 import uk.gov.cshr.domain.InviteStatus;
 import uk.gov.cshr.repository.InviteRepository;
 import uk.gov.cshr.service.InviteService;
@@ -31,20 +32,16 @@ public class SignupController {
 
     private final InviteRepository inviteRepository;
 
-//    private final SignupFormValidator signupFormValidator;
-
     private final String lpgUiUrl;
 
     public SignupController(InviteService inviteService,
                             IdentityService identityService,
                             InviteRepository inviteRepository,
-//                            SignupFormValidator signupFormValidator,
                             @Value("${lpg.uiUrl}") String lpgUiUrl) {
 
         this.inviteService = inviteService;
         this.identityService = identityService;
         this.inviteRepository = inviteRepository;
-//        this.signupFormValidator = signupFormValidator;
         this.lpgUiUrl = lpgUiUrl;
     }
 
