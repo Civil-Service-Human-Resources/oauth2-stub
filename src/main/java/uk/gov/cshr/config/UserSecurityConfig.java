@@ -30,7 +30,7 @@ public class UserSecurityConfig extends WebSecurityConfigurerAdapter {
                 .requestMatcher(forPort(serverPort))
                 .authorizeRequests()
                 .antMatchers("/management/**").denyAll()
-                .antMatchers("/login", "/webjars/**", "/assets/**", "/signup/**", "/reset/**", "/account/passwordUpdated").permitAll()
+                .antMatchers("/login", "/webjars/**", "/assets/**", "/error", "/signup/**", "/reset/**", "/account/passwordUpdated").permitAll()
                 .anyRequest().authenticated().and()
                 .formLogin()
                 .loginPage("/login").defaultSuccessUrl(lpgUiUrl)

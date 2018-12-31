@@ -12,6 +12,7 @@ import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.domain.InviteStatus;
 import uk.gov.cshr.domain.Role;
+import uk.gov.cshr.domain.factory.InviteFactory;
 import uk.gov.cshr.repository.InviteRepository;
 import uk.gov.service.notify.NotificationClientException;
 
@@ -21,26 +22,26 @@ import java.util.Set;
 @Service
 @Transactional
 public class InviteService {
+    private final String govNotifyInviteTemplateId;
+    private final int validityInSeconds;
+    private final String signupUrlFormat;
+    private final NotifyService notifyService;
+    private final InviteRepository inviteRepository;
+    private final InviteFactory inviteFactory;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(InviteService.class);
-
-    @Autowired
-    private NotifyService notifyService;
-
-    private InviteRepository inviteRepository;
-
-    @Value("${govNotify.template.invite}")
-    private String govNotifyInviteTemplateId;
-
-    @Value("${invite.validityInSeconds}")
-    private int validityInSeconds;
-
-    @Value("${invite.url}")
-    private String signupUrlFormat;
-
-    @Autowired
-    public InviteService(InviteRepository inviteRepository) {
+    public InviteService(
+            @Value("${govNotify.template.invite}") String govNotifyInviteTemplateId,
+            @Value("${invite.validityInSeconds}") int validityInSeconds,
+            @Value("${invite.url}") String signupUrlFormat,
+            NotifyService notifyService,
+            InviteRepository inviteRepository,
+            InviteFactory inviteFactory) {
+        this.govNotifyInviteTemplateId = govNotifyInviteTemplateId;
+        this.validityInSeconds = validityInSeconds;
+        this.signupUrlFormat = signupUrlFormat;
+        this.notifyService = notifyService;
         this.inviteRepository = inviteRepository;
+        this.inviteFactory = inviteFactory;
     }
 
     @ReadOnlyProperty
@@ -67,14 +68,17 @@ public class InviteService {
         inviteRepository.save(invite);
     }
 
-    public void createNewInviteForEmailAndRoles(String email, Set<Role> roleSet, Identity inviter) throws NotificationClientException {
-        Invite invite = new Invite();
-        invite.setForEmail(email);
-        invite.setForRoles(roleSet);
-        invite.setInviter(inviter);
-        invite.setInvitedAt(new Date());
-        invite.setStatus(InviteStatus.PENDING);
-        invite.setCode(RandomStringUtils.random(40, true, true));
+    public void createNewInviteForEmailAndRoles(String email, Set<Role> roleSet, Identity inviter)
+            throws NotificationClientException {
+        Invite invite = inviteFactory.create(email, roleSet, inviter);
+
+        notifyService.notify(invite.getForEmail(), invite.getCode(), govNotifyInviteTemplateId, signupUrlFormat);
+
+        inviteRepository.save(invite);
+    }
+
+    public void sendSelfSignupInvite(String email) throws NotificationClientException {
+        Invite invite = inviteFactory.createSelfSignUpInvite(email);
 
         notifyService.notify(invite.getForEmail(), invite.getCode(), govNotifyInviteTemplateId, signupUrlFormat);
 

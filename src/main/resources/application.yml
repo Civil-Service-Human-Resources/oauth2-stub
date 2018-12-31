@@ -20,6 +20,7 @@ logging:
   level:
     root: ${ROOT_LOGGING_LEVEL:INFO}
     org.apache.http: WARN
+#    org.springframework: DEBUG
 
 accessToken:
   validityInSeconds: ${ACCESS_TOKEN_VALIDITY:86400}
@@ -35,6 +36,8 @@ govNotify:
 invite:
   url: ${INVITE_SIGNUP_URL:http://localhost:8080/signup/%s}
   validityInSeconds: ${INVITE_VALIDITY:259200}
+  whitelist:
+    domains: example.org, domain.org
 
 reset:
   url: ${RESET_URL:http://localhost:8080/reset/%s}
