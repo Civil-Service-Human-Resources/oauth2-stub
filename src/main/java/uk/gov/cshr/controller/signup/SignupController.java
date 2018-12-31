@@ -32,16 +32,20 @@ public class SignupController {
 
     private final InviteRepository inviteRepository;
 
+    private final SignupFormValidator signupFormValidator;
+
     private final String lpgUiUrl;
 
     public SignupController(InviteService inviteService,
                             IdentityService identityService,
                             InviteRepository inviteRepository,
+                            SignupFormValidator signupFormValidator,
                             @Value("${lpg.uiUrl}") String lpgUiUrl) {
 
         this.inviteService = inviteService;
         this.identityService = identityService;
         this.inviteRepository = inviteRepository;
+        this.signupFormValidator = signupFormValidator;
         this.lpgUiUrl = lpgUiUrl;
     }
 
@@ -97,10 +101,10 @@ public class SignupController {
         return "signupSuccess";
     }
 
-//    @InitBinder
-//    public void setupValidation(WebDataBinder binder) {
-//        if (binder.getTarget() instanceof SignupForm) {
-//            binder.addValidators(signupFormValidator);
-//        }
-//    }
+    @InitBinder
+    public void setupValidation(WebDataBinder binder) {
+        if (binder.getTarget() instanceof SignupForm) {
+            binder.addValidators(signupFormValidator);
+        }
+    }
 }
