@@ -18,12 +18,12 @@ public class Application {
         SpringApplication.run(Application.class);
     }
 
-    @Bean
-    public LocalValidatorFactoryBean validator(MessageSource messageSource) {
-        LocalValidatorFactoryBean bean = new LocalValidatorFactoryBean();
-        bean.setValidationMessageSource(messageSource);
-        return bean;
-    }
+//    @Bean
+//    public LocalValidatorFactoryBean validator(MessageSource messageSource) {
+//        LocalValidatorFactoryBean bean = new LocalValidatorFactoryBean();
+//        bean.setValidationMessageSource(messageSource);
+//        return bean;
+//    }
 
     @Bean(name = "loginAttemptCache")
     public Map<String, Integer> loginAttemptCache() {

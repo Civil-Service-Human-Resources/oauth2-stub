@@ -10,11 +10,11 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
-import uk.gov.cshr.controller.InviteController;
 import uk.gov.cshr.domain.InviteStatus;
 import uk.gov.cshr.repository.InviteRepository;
 import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.security.IdentityService;
+import uk.gov.service.notify.NotificationClientException;
 
 import javax.transaction.Transactional;
 import javax.validation.Valid;
@@ -25,20 +25,47 @@ public class SignupController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SignupController.class);
 
-    @Autowired
-    private InviteService inviteService;
+    private final InviteService inviteService;
 
-    @Autowired
-    private IdentityService identityService;
+    private final IdentityService identityService;
 
-    @Autowired
-    private InviteRepository inviteRepository;
+    private final InviteRepository inviteRepository;
 
-    @Autowired
-    private SignupFormValidator signupFormValidator;
+//    private final SignupFormValidator signupFormValidator;
 
-    @Value("${lpg.uiUrl}")
-    private String lpgUiUrl;
+    private final String lpgUiUrl;
+
+    public SignupController(InviteService inviteService,
+                            IdentityService identityService,
+                            InviteRepository inviteRepository,
+//                            SignupFormValidator signupFormValidator,
+                            @Value("${lpg.uiUrl}") String lpgUiUrl) {
+
+        this.inviteService = inviteService;
+        this.identityService = identityService;
+        this.inviteRepository = inviteRepository;
+//        this.signupFormValidator = signupFormValidator;
+        this.lpgUiUrl = lpgUiUrl;
+    }
+
+    @GetMapping(path = "/request")
+    public String createAccount(Model model) {
+        model.addAttribute("createAccountForm", new CreateAccountForm());
+        return "createAccount";
+    }
+
+    @PostMapping(path = "/request")
+    public String sendInvite(Model model, @ModelAttribute @Valid CreateAccountForm form, BindingResult bindingResult) throws NotificationClientException {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("createAccountForm", form);
+            return "createAccount";
+        }
+
+        inviteService.sendSelfSignupInvite(form.getEmail());
+
+        return "inviteSent";
+    }
+
 
     @GetMapping("/{code}")
     public String signup(Model model, @PathVariable(value = "code") String code) {
@@ -73,10 +100,10 @@ public class SignupController {
         return "signupSuccess";
     }
 
-    @InitBinder
-    public void setupValidation(WebDataBinder binder) {
-        if (binder.getTarget() instanceof SignupForm) {
-            binder.addValidators(signupFormValidator);
-        }
-    }
+//    @InitBinder
+//    public void setupValidation(WebDataBinder binder) {
+//        if (binder.getTarget() instanceof SignupForm) {
+//            binder.addValidators(signupFormValidator);
+//        }
+//    }
 }
