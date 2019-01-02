@@ -20,7 +20,6 @@ logging:
   level:
     root: ${ROOT_LOGGING_LEVEL:INFO}
     org.apache.http: WARN
-#    org.springframework: DEBUG
 
 accessToken:
   validityInSeconds: ${ACCESS_TOKEN_VALIDITY:86400}

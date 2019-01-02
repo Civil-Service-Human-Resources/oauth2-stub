@@ -50,16 +50,16 @@ public class SignupController {
     }
 
     @GetMapping(path = "/request")
-    public String createAccount(Model model) {
-        model.addAttribute("createAccountForm", new CreateAccountForm());
-        return "createAccount";
+    public String requestInvite(Model model) {
+        model.addAttribute("requestInviteForm", new RequestInviteForm());
+        return "requestInvite";
     }
 
     @PostMapping(path = "/request")
-    public String sendInvite(Model model, @ModelAttribute @Valid CreateAccountForm form, BindingResult bindingResult) throws NotificationClientException {
+    public String sendInvite(Model model, @ModelAttribute @Valid RequestInviteForm form, BindingResult bindingResult) throws NotificationClientException {
         if (bindingResult.hasErrors()) {
-            model.addAttribute("createAccountForm", form);
-            return "createAccount";
+            model.addAttribute("requestInviteForm", form);
+            return "requestInvite";
         }
 
         inviteService.sendSelfSignupInvite(form.getEmail());
