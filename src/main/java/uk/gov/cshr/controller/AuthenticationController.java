@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.cshr.dto.IdentityDTO;
 import uk.gov.cshr.service.security.IdentityDetails;
-import uk.gov.cshr.service.security.TokenServices;
 
 @RestController
 public class AuthenticationController {

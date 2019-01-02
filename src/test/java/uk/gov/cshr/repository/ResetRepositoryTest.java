@@ -9,7 +9,6 @@ import uk.gov.cshr.domain.Reset;
 import uk.gov.cshr.domain.ResetStatus;
 
 import javax.transaction.Transactional;
-
 import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.equalTo;

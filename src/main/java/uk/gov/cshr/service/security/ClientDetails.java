@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 
 public class ClientDetails implements org.springframework.security.oauth2.provider.ClientDetails {

@@ -1,15 +1,12 @@
 package uk.gov.cshr.config;
 
 import org.apache.catalina.connector.Connector;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.util.List;
 
 import static org.apache.commons.lang.StringUtils.isBlank;
 
