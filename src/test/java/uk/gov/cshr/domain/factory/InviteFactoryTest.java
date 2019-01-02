@@ -8,7 +8,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.domain.Role;
-import uk.gov.cshr.repository.InviteRepository;
 import uk.gov.cshr.repository.RoleRepository;
 
 import java.util.*;

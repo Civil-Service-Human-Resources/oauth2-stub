@@ -1,7 +1,6 @@
 package uk.gov.cshr.service.security;
 
 import org.junit.Test;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 
 import java.util.HashMap;

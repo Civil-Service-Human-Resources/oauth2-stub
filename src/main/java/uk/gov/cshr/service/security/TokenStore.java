@@ -13,10 +13,6 @@ import uk.gov.cshr.domain.Token;
 import uk.gov.cshr.domain.TokenStatus;
 import uk.gov.cshr.repository.TokenRepository;
 
-import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 
 import static java.util.stream.Collectors.toSet;
