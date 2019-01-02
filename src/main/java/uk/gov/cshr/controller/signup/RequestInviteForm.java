@@ -9,7 +9,7 @@ import javax.validation.constraints.NotBlank;
 
 @FieldMatch(first = "email", second = "confirmEmail", message = "{validation.confirmEmail.match}")
 @Data
-public class CreateAccountForm {
+public class RequestInviteForm {
     @Email(message = "{validation.email.invalid}")
     @Whitelisted
     private String email;

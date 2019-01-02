@@ -7,21 +7,21 @@
                 <div class="column-two-thirds">
                     <!-- -->
 
-                        <div th:if="${#fields.hasErrors('${createAccountForm.*}')}" class="error-summary" role="alert"
+                        <div th:if="${#fields.hasErrors('${requestInviteForm.*}')}" class="error-summary" role="alert"
                              aria-labelledby="error-summary-heading-example-1" tabindex="-1">
                             <h2 class="heading-medium error-summary-heading" id="error-summary-heading-example-1">
                                 There was a problem with your email address
                             </h2>
                             <ul class="error-summary-list">
 
-                                <form th:object="${createAccountForm}">
-                                <li th:object="${createAccountForm}" th:if="${#fields.hasErrors('global')}" th:errors="*{global}">Input is incorrect</li>
+                                <form th:object="${requestInviteForm}">
+                                <li th:object="${requestInviteForm}" th:if="${#fields.hasErrors('global')}" th:errors="*{global}">Input is incorrect</li>
                                 </form>
 
-                                <li th:if="${#fields.hasErrors('${createAccountForm.email}')}"><a href="#email"
-                                                                                              th:errors="*{createAccountForm.email}">Email is invalid</a></li>
-                                <li th:if="${#fields.hasErrors('${createAccountForm.confirmEmail}')}"><a href="#confirmEmail"
-                                                                                                     th:errors="*{createAccountForm.confirmEmail}">Fields do not match</a></li>
+                                <li th:if="${#fields.hasErrors('${requestInviteForm.email}')}"><a href="#email"
+                                                                                              th:errors="*{requestInviteForm.email}">Email is invalid</a></li>
+                                <li th:if="${#fields.hasErrors('${requestInviteForm.confirmEmail}')}"><a href="#confirmEmail"
+                                                                                                     th:errors="*{requestInviteForm.confirmEmail}">Fields do not match</a></li>
                             </ul>
                         </div>
 
@@ -29,7 +29,7 @@
                         <h1 class="heading-large">Enter your email address</h1>
                         <p class="lede">You need to create an account before using the Learning Platform for Government. This will take 5 - 10 minutes.</p>
 
-                        <form class="push-bottom" th:object="${createAccountForm}">
+                        <form method="post" class="push-bottom" th:object="${requestInviteForm}">
 
                         <div class="form-group"
                              th:classappend="${#fields.hasErrors('email')} ? form-group-error : ''">
