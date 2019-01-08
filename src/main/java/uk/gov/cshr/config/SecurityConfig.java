@@ -7,17 +7,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.core.GrantedAuthorityDefaults;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.provider.approval.ApprovalStore;
 import org.springframework.security.oauth2.provider.approval.TokenApprovalStore;
 import org.springframework.security.oauth2.provider.approval.TokenStoreUserApprovalHandler;
 import org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.web.util.matcher.RequestMatcher;
-import uk.gov.cshr.repository.ClientRepository;
-import uk.gov.cshr.service.security.LocalClientDetailsService;
 import uk.gov.cshr.service.security.IdentityService;
+import uk.gov.cshr.service.security.LocalClientDetailsService;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -38,11 +35,6 @@ public class SecurityConfig {
     @Autowired
     public void globalUserDetails(IdentityService identityService, AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(identityService);
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
     }
 
     @Bean

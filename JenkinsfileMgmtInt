@@ -3,6 +3,6 @@
 javaIntegrationPipeline {
     dockerRepository = 'identity-service'
     environment = 'integration'
-    terraformModuleName = 'identity'
+    terraformModuleName = 'identity-management'
     terraformVarTag = 'identity_docker_tag'
 }
