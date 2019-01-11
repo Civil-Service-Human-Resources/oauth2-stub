@@ -8,6 +8,7 @@
                 <thead>
                     <tr>
                         <th scope="col">Active</th>
+                        <th scope="col">Locked</th>
                         <th scope="col">Email</th>
                         <th scope="col">Roles</th>
                         <th scope="col">Actions</th>
@@ -17,6 +18,9 @@
                     <tr th:each="identity : ${identities}">
                         <td>
                             <input type="checkbox" th:checked="${identity.active}" disabled="disabled">
+                        </td>
+                        <td>
+                            <input type="checkbox" th:checked="${identity.locked}" disabled="disabled">
                         </td>
                         <td th:text="${identity.email}"></td>
                         <td>

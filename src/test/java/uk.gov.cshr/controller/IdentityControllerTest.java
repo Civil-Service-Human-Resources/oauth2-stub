@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.junit.Assert.assertTrue;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -124,7 +125,8 @@ public class IdentityControllerTest {
         this.mockMvc.perform(post("/management/identities/update")
                 .param("uid", UID)
                 .param("active", ACTIVE.toString())
-                .param("roleId", roleID));
+                .param("roleId", roleID)
+                .param("locked", "true"));
 
         ArgumentCaptor<Identity> identityCaptor = ArgumentCaptor.forClass(Identity.class);
 
@@ -133,6 +135,7 @@ public class IdentityControllerTest {
         identity = identityCaptor.getValue();
         assertThat(identity.getUid(), equalTo(UID));
         assertThat(identity.getEmail(), equalTo(EMAIL));
+        assertTrue(identity.isLocked());
     }
 
     @Test

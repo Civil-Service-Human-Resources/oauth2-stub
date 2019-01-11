@@ -11,6 +11,7 @@
                     <th scope="col">Email</th>
                     <th scope="col">Roles</th>
                     <th scope="col">Active</th>
+                    <th scope="col">Locked</th>
                     <th scope="col">Action</th>
                 </tr>
                 <tr>
@@ -23,11 +24,16 @@
                     </td>
                     <td>
                         <label class="d-none" th:for="active">Active:</label>
-                        <input  type="checkbox" th:field="*{active}" th:checked="${identity.active}"></td>
+                        <input  type="checkbox" th:field="*{active}" th:checked="${identity.active}">
+                    </td>
+                    <td>
+                        <label class="d-none" th:for="locked">Locked:</label>
+                        <input type="checkbox" th:field="*{locked}" th:checked="${identity.locked}">
+                    </td>
                     <td><button type="submit" class="btn btn-primary">Update</button></td>
                 </tr>
                 <tr>
-                    <td colspan="4">
+                    <td colspan="5">
                         <a class="btn btn-primary" href="/management/identities">
                             Cancel
                         </a>

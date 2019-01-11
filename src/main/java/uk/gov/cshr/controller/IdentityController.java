@@ -71,7 +71,7 @@ public class IdentityController {
     }
 
     @PostMapping("/identities/update")
-    public String identityUpdate(@RequestParam(value = "active", required = false) Boolean active, @RequestParam(value = "roleId", required = false) ArrayList<String> roleId, @RequestParam("uid") String uid) {
+    public String identityUpdate(@RequestParam(value = "locked", required = false) Boolean locked, @RequestParam(value = "active", required = false) Boolean active, @RequestParam(value = "roleId", required = false) ArrayList<String> roleId, @RequestParam("uid") String uid) {
 
         // get identity to edit
         Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
@@ -101,6 +101,12 @@ public class IdentityController {
                 identity.setActive(active);
             } else {
                 identity.setActive(false);
+            }
+
+            if(locked != null) {
+                identity.setLocked(locked);
+            } else {
+                identity.setLocked(false);
             }
 
             identityRepository.save(identity);
