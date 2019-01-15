@@ -77,4 +77,9 @@ public class IdentityService implements UserDetailsService {
         identity.setLocked(true);
         identityRepository.save(identity);
     }
+
+    public boolean checkPassword(String username, String password) {
+        UserDetails userDetails = loadUserByUsername(username);
+        return passwordEncoder.matches(password, userDetails.getPassword());
+    }
 }
