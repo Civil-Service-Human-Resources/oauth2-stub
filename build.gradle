@@ -75,8 +75,15 @@ dependencies {
 
     compile('org.projectlombok:lombok:1.18.4')
 
+    compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.3'
+
     testCompile("junit:junit")
     testCompile("org.springframework.boot:spring-boot-starter-test")
+
+    testCompile 'org.powermock:powermock-api-mockito2:1.7.4'
+    testCompile 'org.powermock:powermock-module-junit4:1.7.4'
+
+    testCompile 'org.mockito:mockito-core:2.8.47'
 }
 
 compileJava.dependsOn(processResources)
