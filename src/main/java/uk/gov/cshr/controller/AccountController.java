@@ -27,6 +27,11 @@ public class AccountController {
         return "account/updatePassword";
     }
 
+    @GetMapping("/passwordUpdated")
+    public String passwordUpdated() {
+        return "account/passwordUpdated";
+    }
+
     @PostMapping("/password")
     public String updatePassword(Model model, @Valid @ModelAttribute UpdatePasswordForm form, BindingResult bindingResult, Authentication authentication) {
 
@@ -37,6 +42,6 @@ public class AccountController {
 
         identityService.updatePassword(((IdentityDetails) authentication.getPrincipal()).getIdentity(), form.getNewPassword());
 
-        return "redirect:/logout";
+        return "redirect:/account/passwordUpdated";
     }
 }
