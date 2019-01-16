@@ -1,17 +1,12 @@
 package uk.gov.cshr;
 
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.Bean;
-import org.springframework.security.core.token.TokenService;
-import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
-import org.springframework.security.oauth2.provider.token.TokenStore;
-import org.springframework.security.oauth2.provider.token.store.InMemoryTokenStore;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+import uk.gov.service.notify.NotificationClient;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,5 +28,10 @@ public class Application {
     @Bean(name = "loginAttemptCache")
     public Map<String, Integer> loginAttemptCache() {
         return new HashMap<>();
+    }
+
+    @Bean
+    public NotificationClient notificationClient(@Value("${govNotify.key}") String key) {
+        return new NotificationClient(key);
     }
 }

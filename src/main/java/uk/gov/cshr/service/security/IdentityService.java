@@ -3,8 +3,8 @@ package uk.gov.cshr.service.security;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.annotation.ReadOnlyProperty;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -17,6 +17,7 @@ import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.TokenRepository;
 import uk.gov.cshr.service.InviteService;
+import uk.gov.cshr.service.NotifyService;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -28,6 +29,8 @@ public class IdentityService implements UserDetailsService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IdentityService.class);
 
+    private final String updatePasswordEmailTemplateId;
+
     private final IdentityRepository identityRepository;
 
     private InviteService inviteService;
@@ -38,11 +41,20 @@ public class IdentityService implements UserDetailsService {
 
     private final TokenRepository tokenRepository;
 
-    public IdentityService(IdentityRepository identityRepository, PasswordEncoder passwordEncoder, TokenServices tokenServices, TokenRepository tokenRepository) {
+    private final NotifyService notifyService;
+
+    public IdentityService(@Value("${govNotify.template.passwordUpdate}") String updatePasswordEmailTemplateId,
+                           IdentityRepository identityRepository,
+                           PasswordEncoder passwordEncoder,
+                           TokenServices tokenServices,
+                           TokenRepository tokenRepository,
+                           NotifyService notifyService) {
+        this.updatePasswordEmailTemplateId = updatePasswordEmailTemplateId;
         this.identityRepository = identityRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenServices = tokenServices;
         this.tokenRepository = tokenRepository;
+        this.notifyService = notifyService;
     }
 
     @Autowired
@@ -94,6 +106,7 @@ public class IdentityService implements UserDetailsService {
         identity.setPassword(passwordEncoder.encode(password));
         identityRepository.save(identity);
         revokeAccessTokens(identity);
+        notifyService.notify(identity.getEmail(), updatePasswordEmailTemplateId );
     }
 
     public void revokeAccessTokens(Identity identity) {
