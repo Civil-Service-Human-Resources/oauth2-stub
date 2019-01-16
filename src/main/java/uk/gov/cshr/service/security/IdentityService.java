@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.ReadOnlyProperty;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -14,6 +15,7 @@ import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.repository.IdentityRepository;
+import uk.gov.cshr.repository.TokenRepository;
 import uk.gov.cshr.service.InviteService;
 
 import java.util.HashSet;
@@ -26,16 +28,21 @@ public class IdentityService implements UserDetailsService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IdentityService.class);
 
-    private IdentityRepository identityRepository;
+    private final IdentityRepository identityRepository;
 
     private InviteService inviteService;
 
-    private PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    public IdentityService(IdentityRepository identityRepository, PasswordEncoder passwordEncoder) {
+    private final TokenServices tokenServices;
+
+    private final TokenRepository tokenRepository;
+
+    public IdentityService(IdentityRepository identityRepository, PasswordEncoder passwordEncoder, TokenServices tokenServices, TokenRepository tokenRepository) {
         this.identityRepository = identityRepository;
         this.passwordEncoder = passwordEncoder;
+        this.tokenServices = tokenServices;
+        this.tokenRepository = tokenRepository;
     }
 
     @Autowired
@@ -81,5 +88,16 @@ public class IdentityService implements UserDetailsService {
     public boolean checkPassword(String username, String password) {
         UserDetails userDetails = loadUserByUsername(username);
         return passwordEncoder.matches(password, userDetails.getPassword());
+    }
+
+    public void updatePasswordAndRevokeTokens(Identity identity, String password) {
+        identity.setPassword(passwordEncoder.encode(password));
+        identityRepository.save(identity);
+        revokeAccessTokens(identity);
+    }
+
+    public void revokeAccessTokens(Identity identity) {
+        tokenRepository.findAllByUserName(identity.getUid())
+                .forEach(token -> tokenServices.revokeToken(token.getToken().getValue()));
     }
 }

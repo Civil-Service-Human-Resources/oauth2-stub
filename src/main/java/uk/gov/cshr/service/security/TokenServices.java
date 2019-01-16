@@ -11,7 +11,9 @@ import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.security.oauth2.provider.token.ConsumerTokenServices;
 import org.springframework.stereotype.Service;
+import uk.gov.cshr.domain.Token;
 
+import java.util.Collection;
 import java.util.Date;
 
 @Service

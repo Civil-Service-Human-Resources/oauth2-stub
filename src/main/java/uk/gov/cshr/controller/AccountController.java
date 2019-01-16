@@ -40,7 +40,7 @@ public class AccountController {
             return "account/updatePassword";
         }
 
-        identityService.updatePassword(((IdentityDetails) authentication.getPrincipal()).getIdentity(), form.getNewPassword());
+        identityService.updatePasswordAndRevokeTokens(((IdentityDetails) authentication.getPrincipal()).getIdentity(), form.getNewPassword());
 
         return "redirect:/account/passwordUpdated";
     }

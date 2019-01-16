@@ -17,4 +17,6 @@ public interface TokenRepository extends CrudRepository<Token, Long> {
     Collection<Token> findByClientIdAndUserName(String clientId, String userName);
 
     Collection<Token> findByClientId(String clientId);
+
+    Collection<Token> findAllByUserName(String userName);
 }

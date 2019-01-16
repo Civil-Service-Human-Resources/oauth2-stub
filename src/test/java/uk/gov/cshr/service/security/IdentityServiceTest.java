@@ -9,12 +9,16 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.domain.Role;
+import uk.gov.cshr.domain.Token;
 import uk.gov.cshr.repository.IdentityRepository;
+import uk.gov.cshr.repository.TokenRepository;
 import uk.gov.cshr.service.InviteService;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -38,6 +42,12 @@ public class IdentityServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private TokenServices tokenServices;
+
+    @Mock
+    private TokenRepository tokenRepository;
 
     @Test
     public void shouldLoadIdentityByEmailAddress() {
@@ -127,5 +137,31 @@ public class IdentityServiceTest {
 
         inOrder.verify(identity).setLocked(true);
         inOrder.verify(identityRepository).save(identity);
+    }
+
+    @Test
+    public void shouldRevokeAccessTokensForUser() {
+        String uid = "_uid";
+        Identity identity = mock(Identity.class);
+        when(identity.getUid()).thenReturn(uid);
+
+        String accessToken1Value = "token1-value";
+        OAuth2AccessToken accessToken1 = mock(OAuth2AccessToken.class);
+        when(accessToken1.getValue()).thenReturn(accessToken1Value);
+        Token token1 = mock(Token.class);
+        when(token1.getToken()).thenReturn(accessToken1);
+
+        String accessToken2Value = "token2-value";
+        OAuth2AccessToken accessToken2 = mock(OAuth2AccessToken.class);
+        when(accessToken2.getValue()).thenReturn(accessToken2Value);
+        Token token2 = mock(Token.class);
+        when(token2.getToken()).thenReturn(accessToken2);
+
+        when(tokenRepository.findAllByUserName(uid)).thenReturn(Arrays.asList(token1, token2));
+
+        identityService.revokeAccessTokens(identity);
+
+        verify(tokenServices).revokeToken(accessToken1Value);
+        verify(tokenServices).revokeToken(accessToken2Value);
     }
 }
