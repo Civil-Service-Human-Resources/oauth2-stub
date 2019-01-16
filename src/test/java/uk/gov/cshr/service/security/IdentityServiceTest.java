@@ -1,5 +1,6 @@
 package uk.gov.cshr.service.security;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -17,21 +18,22 @@ import uk.gov.cshr.domain.Token;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.TokenRepository;
 import uk.gov.cshr.service.InviteService;
+import uk.gov.cshr.service.NotifyService;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
 import static java.util.Collections.emptySet;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class IdentityServiceTest {
 
-    @InjectMocks
+    private final String updatePasswordEmailTemplateId = "template-id";
+
     private IdentityService identityService;
 
     @Mock
@@ -48,6 +50,21 @@ public class IdentityServiceTest {
 
     @Mock
     private TokenRepository tokenRepository;
+
+    @Mock
+    private NotifyService notifyService;
+
+    @Before
+    public void setUp() throws Exception {
+        identityService = new IdentityService(
+                updatePasswordEmailTemplateId,
+                identityRepository,
+                passwordEncoder,
+                tokenServices,
+                tokenRepository,
+                notifyService
+        );
+    }
 
     @Test
     public void shouldLoadIdentityByEmailAddress() {
@@ -163,5 +180,44 @@ public class IdentityServiceTest {
 
         verify(tokenServices).revokeToken(accessToken1Value);
         verify(tokenServices).revokeToken(accessToken2Value);
+    }
+
+    @Test
+    public void shouldUpdatePasswordAndRevokeTokens() {
+        String password = "_password";
+        String encodedPassword = "encoded-password";
+        String email = "learner@domain.com";
+        String uid = "_uid";
+        Identity identity = mock(Identity.class);
+        when(identity.getUid()).thenReturn(uid);
+        when(identity.getEmail()).thenReturn(email);
+
+        when(passwordEncoder.encode(password)).thenReturn(encodedPassword);
+
+        String accessToken1Value = "token1-value";
+        OAuth2AccessToken accessToken1 = mock(OAuth2AccessToken.class);
+        when(accessToken1.getValue()).thenReturn(accessToken1Value);
+        Token token1 = mock(Token.class);
+        when(token1.getToken()).thenReturn(accessToken1);
+
+        String accessToken2Value = "token2-value";
+        OAuth2AccessToken accessToken2 = mock(OAuth2AccessToken.class);
+        when(accessToken2.getValue()).thenReturn(accessToken2Value);
+        Token token2 = mock(Token.class);
+        when(token2.getToken()).thenReturn(accessToken2);
+
+        when(tokenRepository.findAllByUserName(uid)).thenReturn(Arrays.asList(token1, token2));
+
+        identityService.updatePasswordAndRevokeTokens(identity, password);
+
+        InOrder inOrder = inOrder(identity, identityRepository);
+
+        inOrder.verify(identity).setPassword(encodedPassword);
+        inOrder.verify(identityRepository).save(identity);
+
+        verify(tokenServices).revokeToken(accessToken1Value);
+        verify(tokenServices).revokeToken(accessToken2Value);
+
+        verify(notifyService).notify(email, updatePasswordEmailTemplateId);
     }
 }
