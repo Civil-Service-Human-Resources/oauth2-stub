@@ -21,11 +21,6 @@ public class AccountController {
         this.identityService = identityService;
     }
 
-    @GetMapping
-    public String account() {
-        return "account/account";
-    }
-
     @GetMapping("/password")
     public String updatePasswordForm(Model model, @ModelAttribute UpdatePasswordForm form) {
         model.addAttribute("updatePasswordForm", form);
