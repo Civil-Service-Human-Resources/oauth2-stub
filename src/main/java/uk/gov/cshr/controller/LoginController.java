@@ -18,13 +18,7 @@ public class LoginController {
 
     @RequestMapping("/login")
     public String login( HttpServletRequest request, HttpServletResponse response) throws IOException {
-//        DefaultSavedRequest dsr = (DefaultSavedRequest) request.getSession().getAttribute("SPRING_SECURITY_SAVED_REQUEST");
-//        if (dsr != null && dsr.getQueryString() == null) {
-//            response.sendRedirect(lpgUiUrl);
-//        }
-
         return "login";
-
     }
 
     @RequestMapping("/management/login")
