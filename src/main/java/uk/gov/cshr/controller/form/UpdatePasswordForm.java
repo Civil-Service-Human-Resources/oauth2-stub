@@ -17,5 +17,7 @@ public class UpdatePasswordForm {
     @NotBlank(message = "{validation.updatePassword.newPassword.NotBlank}")
     @MatchesPolicy(message = "{validation.updatePassword.newPassword.MatchesPolicy}")
     private String newPassword;
+
+    @NotBlank(message = "{validation.updatePassword.confirm.NotBlank}")
     private String confirm;
 }
