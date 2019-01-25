@@ -20,7 +20,8 @@ INSERT INTO `role` (name) VALUES
 ('CSL_AUTHOR'),
 ('ORGANISATION_AUTHOR'),
 ('PROFESSION_AUTHOR'),
-('SUPPLIER_AUTHOR')
+('SUPPLIER_AUTHOR'),
+('SUPPLIER_REPORTER')
 ;
 
 INSERT INTO `identity` (active, locked, email, uid, password) VALUES
@@ -43,10 +44,9 @@ INSERT INTO `identity_role` (identity_id, role_id) VALUES
 ((SELECT id FROM identity WHERE email = 'learner@domain.com'), (SELECT id FROM role WHERE name = 'LEARNING_PUBLISH')),
 ((SELECT id FROM identity WHERE email = 'learner@domain.com'), (SELECT id FROM role WHERE name = 'LEARNING_EDIT')),
 ((SELECT id FROM identity WHERE email = 'learner@domain.com'), (SELECT id FROM role WHERE name = 'LEARNING_ARCHIVE')),
-((SELECT id FROM identity WHERE email = 'learner@domain.com'), (SELECT id FROM role WHERE name = 'CSL_AUTHOR')),
-((SELECT id FROM identity WHERE email = 'learner@domain.com'), (SELECT id FROM role WHERE name = 'ORGANISATION_AUTHOR')),
-((SELECT id FROM identity WHERE email = 'learner@domain.com'), (SELECT id FROM role WHERE name = 'PROFESSION_AUTHOR')),
-((SELECT id FROM identity WHERE email = 'learner@domain.com'), (SELECT id FROM role WHERE name = 'SUPPLIER_AUTHOR')),
+((SELECT id FROM identity WHERE email = 'learner@domain.com'), (SELECT id FROM role WHERE name = 'ORGANISATION_REPORTER')),
+((SELECT id FROM identity WHERE email = 'learner@domain.com'), (SELECT id FROM role WHERE name = 'PROFESSION_REPORTER')),
+((SELECT id FROM identity WHERE email = 'learner@domain.com'), (SELECT id FROM role WHERE name = 'SUPPLIER_REPORTER')),
 ((SELECT id FROM identity WHERE email = 'course-manager@domain.com'), (SELECT id FROM role WHERE name = 'LEARNING_MANAGER')),
 ((SELECT id FROM identity WHERE email = 'identity-manager@domain.com'), (SELECT id FROM role WHERE name = 'IDENTITY_MANAGER')),
 ((SELECT id FROM identity WHERE email = 'organisation-reporter@domain.com'), (SELECT id FROM role WHERE name = 'ORGANISATION_REPORTER')),
