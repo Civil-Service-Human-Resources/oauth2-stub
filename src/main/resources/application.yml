@@ -27,16 +27,16 @@ accessToken:
 govNotify:
   key: ${GOV_NOTIFY_API_KEY:key}
   template:
-    invite: ${GOV_NOTIFY_INVITE_TEMPLATE_ID:template}
-    reset: ${GOV_NOTIFY_RESET_TEMPLATE_ID:template}
-    resetSuccessful: ${GOV_NOTIFY_RESET_SUCCESSFUL_TEMPLATE_ID:template}
+    invite: ${GOV_NOTIFY_INVITE_TEMPLATE_ID:7ef048a3-5c82-40fd-be4c-a238ce328fea}
+    reset: ${GOV_NOTIFY_RESET_TEMPLATE_ID:d29b056c-349b-42fc-a453-920cfb58a906}
+    resetSuccessful: ${GOV_NOTIFY_RESET_SUCCESSFUL_TEMPLATE_ID:994fb6d4-a57a-49f2-baee-b0c6f6060b63}
     passwordUpdate: ${GOV_NOTIFY_PASSWORD_UPDATE_TEMPLATE_ID:13c2b9ac-4ad0-449f-b43b-57c04fc88b1d}
 
 invite:
   url: ${INVITE_SIGNUP_URL:http://localhost:8080/signup/%s}
   validityInSeconds: ${INVITE_VALIDITY:259200}
   whitelist:
-    domains: example.org, domain.org
+    domains: kainos.com, domain.org
 
 reset:
   url: ${RESET_URL:http://localhost:8080/reset/%s}
