@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import uk.gov.cshr.controller.InviteController;
 import uk.gov.cshr.domain.InviteStatus;
 import uk.gov.cshr.repository.InviteRepository;
+import uk.gov.cshr.service.AuthenticationDetails;
 import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.security.IdentityService;
 import uk.gov.service.notify.NotificationClientException;
@@ -33,6 +34,9 @@ public class SignupController {
     private final InviteRepository inviteRepository;
 
     private final SignupFormValidator signupFormValidator;
+
+    @Autowired
+    private AuthenticationDetails authenticationDetails;
 
     private final String lpgUiUrl;
 
@@ -62,7 +66,7 @@ public class SignupController {
             return "requestInvite";
         }
 
-        inviteService.sendSelfSignupInvite(form.getEmail());
+        inviteService.sendSelfSignupInvite(form.getEmail(), authenticationDetails.getCurrentIdentity());
 
         return "inviteSent";
     }
