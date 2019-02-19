@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import uk.gov.cshr.config.UserSecurityConfig;
 import uk.gov.cshr.repository.InviteRepository;
+import uk.gov.cshr.service.AuthenticationDetails;
 import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.security.IdentityService;
 
@@ -44,6 +45,9 @@ public class SignupControllerTest {
 
     @MockBean
     private SignupFormValidator signupFormValidator;
+
+    @MockBean
+    private AuthenticationDetails authenticationDetails;
 
     @Test
     public void shouldReturnCreateAccountForm() throws Exception {
