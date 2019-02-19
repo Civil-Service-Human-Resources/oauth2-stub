@@ -3,6 +3,7 @@ package uk.gov.cshr.service;
 import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.domain.InviteStatus;
 import uk.gov.cshr.domain.factory.InviteFactory;
@@ -75,13 +76,13 @@ public class InviteServiceTest {
     public void shouldSendAndSaveSelfSignupInvite() throws NotificationClientException {
         String email = "use@domain.org";
         String code = "invite-code";
-
+        Identity identity = new Identity();
         Invite invite = new Invite();
         invite.setForEmail(email);
         invite.setCode(code);
-        when(inviteFactory.createSelfSignUpInvite(email)).thenReturn(invite);
+        when(inviteFactory.createSelfSignUpInvite(email, identity)).thenReturn(invite);
 
-        inviteService.sendSelfSignupInvite(email);
+        inviteService.sendSelfSignupInvite(email, identity);
 
         verify(notifyService).notify(email, code, govNotifyTemplateId, signupUrlFormat);
         verify(inviteRepository).save(invite);
