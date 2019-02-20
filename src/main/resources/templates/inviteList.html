@@ -42,7 +42,7 @@
                 <td th:text="${invite.status}"></td>
                 <td th:text="${invite.invitedAt}"></td>
                 <td th:text="${invite.acceptedAt}"></td>
-                <div th:if="${invite.inviter.email}">
+                <div th:if="${invite.inviter}">
                     <td th:text="${invite.inviter.email}"></td>
                 </div>
             </tr>
