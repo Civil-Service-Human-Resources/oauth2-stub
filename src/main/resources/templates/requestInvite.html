@@ -6,6 +6,13 @@
             <div class="grid-row">
                 <div class="column-two-thirds">
                     <!-- -->
+                    <h3 th:text="${status}"></h3>
+                    <div th:if="${status}" class="error-summary" role="alert"  aria-labelledby="error-summary-heading-example-1" tabindex="-1">
+                        <h2 class="heading-medium error-summary-heading" id="error-summary-heading-example-2">
+                            There was a problem inviting this email address
+                        </h2>
+                        <td th:text="${status}">status ...</td>
+                    </div>
 
                         <div th:if="${#fields.hasErrors('${requestInviteForm.*}')}" class="error-summary" role="alert"
                              aria-labelledby="error-summary-heading-example-1" tabindex="-1">
@@ -25,8 +32,8 @@
                             </ul>
                         </div>
 
-                        <h2>Create an account</h2>
-                        <h1 class="heading-large">Enter your email address</h1>
+                        <h1 class="heading-large">Create an account</h1>
+                        <h2 class="heading-medium">Enter your email address</h1>
                         <p class="lede">You need to create an account before using the Learning Platform for Government. This will take 5 - 10 minutes.</p>
 
                         <form method="post" class="push-bottom" th:object="${requestInviteForm}">

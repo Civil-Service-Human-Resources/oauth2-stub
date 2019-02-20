@@ -46,8 +46,6 @@ public class SignupControllerTest {
     @MockBean
     private SignupFormValidator signupFormValidator;
 
-    @MockBean
-    private AuthenticationDetails authenticationDetails;
 
     @Test
     public void shouldReturnCreateAccountForm() throws Exception {
