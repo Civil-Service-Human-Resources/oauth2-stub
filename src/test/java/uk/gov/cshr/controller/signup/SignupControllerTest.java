@@ -69,7 +69,7 @@ public class SignupControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("We've sent you an email")))
                 .andExpect(content().string(containsString("What happens next")))
-                .andExpect(content().string(containsString("We have sent you an email with a link to continue creating your account.")));
+                .andExpect(content().string(containsString("We have sent you an email with a link to <strong>continue creating your account</strong>.")));
     }
 
     @Test
