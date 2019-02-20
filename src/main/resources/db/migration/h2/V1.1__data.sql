@@ -70,3 +70,5 @@ INSERT INTO `identity` (active, locked, email, uid, password) VALUES
 INSERT INTO `identity_role` (identity_id, role_id) VALUES
 ((SELECT id FROM identity WHERE email = 'manage-po@domain.com'), (SELECT id FROM role WHERE name = 'MANAGE_CALL_OFF_PO'))
 ;
+
+ALTER TABLE `invite` ALTER COLUMN `inviter_id` mediumint(8) NULL;

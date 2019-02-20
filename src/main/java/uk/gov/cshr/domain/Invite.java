@@ -22,7 +22,7 @@ public class Invite implements Serializable {
     @Enumerated(EnumType.STRING)
     private InviteStatus status;
 
-    @OneToOne(optional = true)
+    @OneToOne(optional = true, cascade = {CascadeType.ALL})
     private Identity inviter;
 
     @Column(nullable = false)

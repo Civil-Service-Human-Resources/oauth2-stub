@@ -73,8 +73,8 @@ public class InviteService {
         inviteRepository.save(invite);
     }
 
-    public void sendSelfSignupInvite(String email, Identity inviter) throws NotificationClientException {
-        Invite invite = inviteFactory.createSelfSignUpInvite(email, inviter);
+    public void sendSelfSignupInvite(String email) throws NotificationClientException {
+        Invite invite = inviteFactory.createSelfSignUpInvite(email);
 
         notifyService.notify(invite.getForEmail(), invite.getCode(), govNotifyInviteTemplateId, signupUrlFormat);
 

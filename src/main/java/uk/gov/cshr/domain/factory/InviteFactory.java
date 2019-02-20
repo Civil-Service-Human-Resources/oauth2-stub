@@ -34,14 +34,13 @@ public class InviteFactory {
         return invite;
     }
 
-    public Invite createSelfSignUpInvite(String email, Identity inviter) {
+    public Invite createSelfSignUpInvite(String email) {
         Role role = roleRepository.findFirstByNameEquals(LEARNER_ROLE_NAME);
 
         Invite invite = new Invite();
         invite.setForEmail(email);
         invite.setForRoles(new HashSet<>(Collections.singletonList(role)));
         invite.setInvitedAt(new Date());
-        invite.setInviter(inviter);
         invite.setStatus(InviteStatus.PENDING);
         invite.setCode(RandomStringUtils.random(40, true, true));
 
