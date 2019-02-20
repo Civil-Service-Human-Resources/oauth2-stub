@@ -80,9 +80,9 @@ public class InviteServiceTest {
         Invite invite = new Invite();
         invite.setForEmail(email);
         invite.setCode(code);
-        when(inviteFactory.createSelfSignUpInvite(email, identity)).thenReturn(invite);
+        when(inviteFactory.createSelfSignUpInvite(email)).thenReturn(invite);
 
-        inviteService.sendSelfSignupInvite(email, identity);
+        inviteService.sendSelfSignupInvite(email);
 
         verify(notifyService).notify(email, code, govNotifyTemplateId, signupUrlFormat);
         verify(inviteRepository).save(invite);

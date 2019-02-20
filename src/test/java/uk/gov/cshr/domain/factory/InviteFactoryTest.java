@@ -49,11 +49,10 @@ public class InviteFactoryTest {
     public void shouldReturnSelfSignUpInvite() {
         String email = "user@domain.org";
         Role role = new Role();
-        Identity identity = new Identity();
 
         when(roleRepository.findFirstByNameEquals("LEARNER")).thenReturn(role);
 
-        Invite invite = inviteFactory.createSelfSignUpInvite(email, identity);
+        Invite invite = inviteFactory.createSelfSignUpInvite(email);
 
         assertEquals(email, invite.getForEmail());
         assertEquals(new HashSet<>(Collections.singletonList(role)), invite.getForRoles());

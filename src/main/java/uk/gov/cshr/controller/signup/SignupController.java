@@ -66,7 +66,7 @@ public class SignupController {
             return "requestInvite";
         }
 
-        inviteService.sendSelfSignupInvite(form.getEmail(), authenticationDetails.getCurrentIdentity());
+        inviteService.sendSelfSignupInvite(form.getEmail());
 
         return "inviteSent";
     }
