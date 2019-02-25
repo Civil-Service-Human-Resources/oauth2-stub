@@ -1,14 +1,21 @@
 package uk.gov.cshr.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.approval.UserApprovalHandler;
+import org.springframework.security.oauth2.provider.error.DefaultWebResponseExceptionTranslator;
+import org.springframework.security.oauth2.provider.error.WebResponseExceptionTranslator;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import uk.gov.cshr.service.security.LocalClientDetailsService;
@@ -44,7 +51,8 @@ public class AuthorisationServerConfiguration extends AuthorizationServerConfigu
         endpoints.tokenStore(tokenStore)
                 .userApprovalHandler(userApprovalHandler)
                 .authenticationManager(authenticationManager)
-                .tokenServices(tokenServices);
+                .tokenServices(tokenServices)
+                .exceptionTranslator(webResponseExceptionTranslator());
     }
 
     @Override
@@ -52,5 +60,20 @@ public class AuthorisationServerConfiguration extends AuthorizationServerConfigu
         oauthServer.realm(REALM + "/client")
                 .checkTokenAccess("isAuthenticated()")
                 .allowFormAuthenticationForClients();
+    }
+
+    @Bean
+    public WebResponseExceptionTranslator webResponseExceptionTranslator() {
+        return new DefaultWebResponseExceptionTranslator() {
+
+            @Override
+            public ResponseEntity<OAuth2Exception> translate(Exception e) throws Exception {
+                ResponseEntity<OAuth2Exception> responseEntity = super.translate(e);
+                OAuth2Exception body = responseEntity.getBody();
+                HttpHeaders headers = new HttpHeaders();
+                headers.setAll(responseEntity.getHeaders().toSingleValueMap());
+                return new ResponseEntity<>(body, headers, responseEntity.getStatusCode());
+            }
+        };
     }
 }
