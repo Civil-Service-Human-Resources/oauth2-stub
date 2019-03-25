@@ -72,3 +72,7 @@ INSERT INTO `identity_role` (identity_id, role_id) VALUES
 ;
 
 ALTER TABLE `invite` ALTER COLUMN `inviter_id` mediumint(8) NULL;
+
+INSERT INTO `role` (name) VALUES
+('KORNFERRY_SUPPLIER_REPORTER')
+;
