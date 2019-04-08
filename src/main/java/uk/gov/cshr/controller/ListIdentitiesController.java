@@ -2,6 +2,7 @@ package uk.gov.cshr.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -10,7 +11,9 @@ import uk.gov.cshr.dto.IdentityDTO;
 import uk.gov.cshr.repository.IdentityRepository;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static java.util.stream.Collectors.toList;
@@ -31,6 +34,11 @@ public class ListIdentitiesController {
         return ResponseEntity.ok(StreamSupport.stream(identityRepository.findAll().spliterator(), false)
                 .map(IdentityDTO::new)
                 .collect(toList()));
+    }
+
+    @GetMapping("/api/identities/map")
+    public ResponseEntity<Map<String, IdentityDTO>> listIdentitiesAsMap() {
+        return ResponseEntity.ok(identityRepository.findAll().stream().collect(Collectors.toMap(o -> o.getUid(), IdentityDTO::new)));
     }
 
     @GetMapping(value = "/api/identities", params = "emailAddress")
