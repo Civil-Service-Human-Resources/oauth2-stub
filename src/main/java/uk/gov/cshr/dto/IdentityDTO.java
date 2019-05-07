@@ -23,6 +23,11 @@ public class IdentityDTO {
         roles.forEach(role -> this.roles.add(role.getName()));
     }
 
+    public IdentityDTO(String username, String uid) {
+        this.username = username;
+        this.uid = uid;
+    }
+
     public String getUsername() {
         return username;
     }

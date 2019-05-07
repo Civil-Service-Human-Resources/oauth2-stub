@@ -38,7 +38,7 @@ public class ListIdentitiesController {
 
     @GetMapping("/api/identities/map")
     public ResponseEntity<Map<String, IdentityDTO>> listIdentitiesAsMap() {
-        return ResponseEntity.ok(identityRepository.findAll().stream().collect(Collectors.toMap(o -> o.getUid(), IdentityDTO::new)));
+        return ResponseEntity.ok(identityRepository.findAllNormalised().stream().collect(Collectors.toMap(o -> o.getUid(), o -> o)));
     }
 
     @GetMapping(value = "/api/identities", params = "emailAddress")
