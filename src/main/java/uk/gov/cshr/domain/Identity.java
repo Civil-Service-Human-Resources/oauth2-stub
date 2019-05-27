@@ -3,6 +3,7 @@ package uk.gov.cshr.domain;
 import javax.persistence.*;
 import javax.validation.constraints.Email;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Set;
 
 @Entity
@@ -33,16 +34,22 @@ public class Identity implements Serializable {
     )
     private Set<Role> roles;
 
+    private Instant lastLoggedIn;
+
+    private boolean deletionNotificationSent;
+
     public Identity() {
     }
 
-    public Identity(String uid, String email, String password, boolean active, boolean locked, Set<Role> roles) {
+    public Identity(String uid, String email, String password, boolean active, boolean locked, Set<Role> roles, Instant lastLoggedIn, boolean deletionNotificationSent) {
         this.uid = uid;
         this.email = email;
         this.password = password;
         this.active = active;
         this.roles = roles;
         this.locked = locked;
+        this.lastLoggedIn = lastLoggedIn;
+        this.deletionNotificationSent = deletionNotificationSent;
     }
 
     public boolean isActive() {
@@ -93,16 +100,29 @@ public class Identity implements Serializable {
         this.locked = locked;
     }
 
+    public Instant getLastLoggedIn() {
+        return lastLoggedIn;
+    }
+
+    public void setLastLoggedIn(Instant lastLoggedIn) {
+        this.lastLoggedIn = lastLoggedIn;
+    }
+
+    public boolean isDeletionNotificationSent() {
+        return deletionNotificationSent;
+    }
+
+    public void setDeletionNotificationSent(boolean deletionNotificationSent) {
+        this.deletionNotificationSent = deletionNotificationSent;
+    }
+
     @Override
     public String toString() {
         return "Identity{" +
                 "id=" + id +
                 ", uid='" + uid + '\'' +
-                ", email='" + email + '\'' +
-                ", password='" + password + '\'' +
                 ", active=" + active +
                 ", locked=" + locked +
-                ", roles=" + roles +
                 '}';
     }
 }

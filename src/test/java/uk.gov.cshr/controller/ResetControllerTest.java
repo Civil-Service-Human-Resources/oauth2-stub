@@ -24,6 +24,7 @@ import uk.gov.cshr.service.NotifyService;
 import uk.gov.cshr.service.ResetService;
 
 import javax.transaction.Transactional;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
@@ -138,7 +139,7 @@ public class ResetControllerTest {
         when(resetService.isResetExpired(reset)).thenReturn(false);
         when(resetService.isResetPending(reset)).thenReturn(true);
 
-        Identity identity = new Identity(UID, EMAIL, PASSWORD, ACTIVE, LOCKED, ROLES);
+        Identity identity = new Identity(UID, EMAIL, PASSWORD, ACTIVE, LOCKED, ROLES, Instant.now(), false);
         when(identityRepository.findFirstByActiveTrueAndEmailEquals(EMAIL)).thenReturn(identity);
 
         this.mockMvc.perform(get("/reset/" + CODE))

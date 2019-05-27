@@ -19,6 +19,7 @@ import uk.gov.cshr.repository.TokenRepository;
 import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.NotifyService;
 
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -80,7 +81,7 @@ public class IdentityService implements UserDetailsService {
         Invite invite = inviteService.findByCode(code);
 
         Set<Role> newRoles = new HashSet<>(invite.getForRoles());
-        Identity identity = new Identity(UUID.randomUUID().toString(), invite.getForEmail(), passwordEncoder.encode(password), true, false, newRoles);
+        Identity identity = new Identity(UUID.randomUUID().toString(), invite.getForEmail(), passwordEncoder.encode(password), true, false, newRoles, Instant.now(), false);
         identityRepository.save(identity);
 
         LOGGER.info("New identity {} successfully created", identity.getEmail());
@@ -112,5 +113,10 @@ public class IdentityService implements UserDetailsService {
     public void revokeAccessTokens(Identity identity) {
         tokenRepository.findAllByUserName(identity.getUid())
                 .forEach(token -> tokenServices.revokeToken(token.getToken().getValue()));
+    }
+
+    public Identity setLastLoggedIn(Instant datetime, Identity identity) {
+        identity.setLastLoggedIn(datetime);
+        return identityRepository.save(identity);
     }
 }

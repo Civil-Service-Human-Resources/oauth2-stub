@@ -20,6 +20,7 @@ import uk.gov.cshr.repository.TokenRepository;
 import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.NotifyService;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -71,7 +72,7 @@ public class IdentityServiceTest {
 
         final String emailAddress = "test@example.org";
         final String uid = "uid";
-        final Identity identity = new Identity(uid, emailAddress, "password", true, false, emptySet());
+        final Identity identity = new Identity(uid, emailAddress, "password", true, false, emptySet(), Instant.now(), false);
 
         when(identityRepository.findFirstByActiveTrueAndEmailEquals(emailAddress))
                 .thenReturn(identity);
