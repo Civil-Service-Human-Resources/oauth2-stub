@@ -15,6 +15,8 @@ public interface IdentityRepository extends JpaRepository<Identity, Long> {
 
     Identity findFirstByActiveTrueAndEmailEquals(String email);
 
+    Identity findFirstByEmailEquals(String email);
+
     boolean existsByEmail(String email);
 
     Optional<Identity> findFirstByUid(String uid);

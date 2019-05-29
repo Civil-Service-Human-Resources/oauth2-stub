@@ -88,6 +88,8 @@ public class IdentityService implements UserDetailsService {
     }
 
     public void updatePassword(Identity identity, String password) {
+        identity.setActive(true);
+        identity.setDeletionNotificationSent(false);
         identity.setPassword(passwordEncoder.encode(password));
         identityRepository.save(identity);
     }
