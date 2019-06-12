@@ -78,3 +78,13 @@ ALTER TABLE `invite` ALTER COLUMN `inviter_id` mediumint(8) NULL;
 INSERT INTO `role` (name) VALUES
 ('KORNFERRY_SUPPLIER_REPORTER')
 ;
+
+CREATE TABLE `email_update` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `code` char(40) UNIQUE NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `identity_id` mediumint(8) unsigned NOT NULL,
+  `timestamp` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_email_update_identity_id` FOREIGN KEY (`identity_id`) REFERENCES `identity` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+);

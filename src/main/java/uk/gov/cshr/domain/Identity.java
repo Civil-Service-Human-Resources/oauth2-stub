@@ -116,6 +116,10 @@ public class Identity implements Serializable {
         this.deletionNotificationSent = deletionNotificationSent;
     }
 
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
     @Override
     public String toString() {
         return "Identity{" +
