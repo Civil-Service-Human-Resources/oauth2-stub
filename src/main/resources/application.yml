@@ -44,7 +44,7 @@ reset:
   validityInSeconds: ${RESET_VALIDITY:86400}
 
 emailUpdate:
-  urlFormat: ${EMAIL_UPDATE_URL_FORMAT:http://localhost:8080/account/email/verify/%s?redirect=true}
+  urlFormat: "${lpg.identity}/account/email/verify/%s?redirect=true"
 
 accountValidation:
   passwordPattern: ${PASSWORD_PATTERN:(?!([a-zA-Z]*|[a-z\d]*|[^A-Z\d]*|[A-Z\d]*|[^a-z\d]*|[^a-zA-Z]*)$).{8,}}
@@ -55,6 +55,7 @@ account:
 
 lpg:
   uiUrl: ${LPG_UI_URL:http://localhost:3001}
+  identity: ${OAUTH_SERVICE_URL:http://localhost:8080}
 
 ---
 
