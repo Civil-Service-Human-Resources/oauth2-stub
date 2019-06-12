@@ -11,6 +11,7 @@ import uk.gov.service.notify.SendEmailResponse;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @Transactional
@@ -44,6 +45,16 @@ public class NotifyService {
             SendEmailResponse response =
                     notificationClient.sendEmail(templateId, email, Collections.emptyMap(), null);
             LOGGER.info("Update password notification sent to: {}", response.getBody());
+        } catch (NotificationClientException e) {
+            throw new NotificationException(e);
+        }
+    }
+
+    public void notifyWithPersonalisation(String email, String templateId, Map<String, String> personalisation) {
+        try {
+            SendEmailResponse response =
+                    notificationClient.sendEmail(templateId, email, personalisation, null);
+            LOGGER.info("Update email notification sent to {}, {}", email, response.getBody());
         } catch (NotificationClientException e) {
             throw new NotificationException(e);
         }
