@@ -66,6 +66,12 @@ public class AccountController {
             return "account/updateEmail";
         }
 
+        if(identityService.checkEmailExists(form.getEmail())) {
+            LOGGER.error("Email already taken: {}", form.getEmail());
+            model.addAttribute("updateEmailForm", form);
+            return "redirect:/account/email?emailAlreadyTaken=true";
+        }
+
         emailUpdateService.saveEmailUpdateAndNotify(((IdentityDetails) authentication.getPrincipal()).getIdentity(), form.getEmail());
 
         return "account/emailVerificationSent";
