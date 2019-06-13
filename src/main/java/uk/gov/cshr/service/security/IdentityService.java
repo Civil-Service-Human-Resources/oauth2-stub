@@ -118,6 +118,11 @@ public class IdentityService implements UserDetailsService {
                 .forEach(token -> tokenServices.revokeToken(token.getToken().getValue()));
     }
 
+    public boolean checkEmailExists(String email) {
+        return identityRepository.existsByEmail(email);
+    }
+
+
     public Identity setLastLoggedIn(Instant datetime, Identity identity) {
         identity.setLastLoggedIn(datetime);
         return identityRepository.save(identity);
