@@ -45,7 +45,7 @@ public class EmailUpdateService {
         Map<String, String> personalisation = new HashMap<>();
         personalisation.put("activationUrl", activationUrl);
 
-        notifyService.notifyWithPersonalisation(identity.getEmail(), updateEmailTemplateId, personalisation);
+        notifyService.notifyWithPersonalisation(email, updateEmailTemplateId, personalisation);
 
         return emailUpdate.getCode();
     }
