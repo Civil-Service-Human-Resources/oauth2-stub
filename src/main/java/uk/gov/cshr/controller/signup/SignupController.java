@@ -1,6 +1,5 @@
 package uk.gov.cshr.controller.signup;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +11,7 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import uk.gov.cshr.controller.InviteController;
+import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.InviteStatus;
 import uk.gov.cshr.repository.InviteRepository;
 import uk.gov.cshr.service.AuthenticationDetails;
@@ -63,6 +63,10 @@ public class SignupController {
             model.addAttribute("requestInviteForm", form);
             return "requestInvite";
         }
+
+        // might need to stop validating whitelisted on form
+        // we need logic that says, if not whitelisted, but IS an agency tokem domain
+        // then send them a different type of invite
         if (inviteRepository.existsByForEmailAndStatus(form.getEmail(), InviteStatus.PENDING)) {
             LOGGER.info("{} has already been invited", form.getEmail());
             redirectAttributes.addFlashAttribute("status", form.getEmail() + " has already been invited");
@@ -80,6 +84,13 @@ public class SignupController {
         return "inviteSent";
     }
 
+    @GetMapping(path = "/enterToken")
+    public String enterToken(Model model) {
+        String[] organisations = {"Cabinet Office", "Department of Health & Social Care"};
+        model.addAttribute("organisations", organisations);
+        model.addAttribute("enterTokenForm", new EnterTokenForm());
+        return "enterToken";
+    }
 
     @GetMapping("/{code}")
     public String signup(Model model, @PathVariable(value = "code") String code) {
