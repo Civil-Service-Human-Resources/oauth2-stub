@@ -1906,7 +1906,7 @@ textarea {
 }
 @media (min-width: 641px) {
   .form-hint {
-    font-size: 19px;
+    font-size: 16px;
     line-height: 1.31579;
   }
 }
@@ -4250,6 +4250,36 @@ hr.clear {
 }
 .govuk-box-highlight.results div strong {
   font-weight: bold;
+}
+
+.govuk-body-m, .govuk-body {
+    color: #0b0c0c;
+    font-family: "nta",Arial,sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 1.25;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.govuk-label {
+    font-family: "nta",Arial,sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-weight: 700;
+    font-size: 19px;
+    line-height: 1.25;
+    color: #0b0c0c;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.govuk-!-font-size-24 {
+    font-size: 24px !important;
+    font-size: 1.5rem !important;
+    line-height: 1.25 !important;
 }
 
 .booking__col-heading {
