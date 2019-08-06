@@ -2,7 +2,6 @@ package uk.gov.cshr.controller.signup;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -10,13 +9,11 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import uk.gov.cshr.controller.InviteController;
-import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.InviteStatus;
 import uk.gov.cshr.repository.InviteRepository;
-import uk.gov.cshr.service.AuthenticationDetails;
 import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.security.IdentityService;
+import uk.gov.cshr.validation.validators.WhitelistedValidator;
 import uk.gov.service.notify.NotificationClientException;
 
 import javax.transaction.Transactional;
@@ -64,9 +61,6 @@ public class SignupController {
             return "requestInvite";
         }
 
-        // might need to stop validating whitelisted on form
-        // we need logic that says, if not whitelisted, but IS an agency tokem domain
-        // then send them a different type of invite
         if (inviteRepository.existsByForEmailAndStatus(form.getEmail(), InviteStatus.PENDING)) {
             LOGGER.info("{} has already been invited", form.getEmail());
             redirectAttributes.addFlashAttribute("status", form.getEmail() + " has already been invited");
@@ -78,18 +72,52 @@ public class SignupController {
             redirectAttributes.addFlashAttribute("status", "User already exists with email address " + form.getEmail());
             return "redirect:/signup/request";
         }
+        
+        boolean domainIsWhitelisted = true;
+
+        if (domainIsWhitelisted) {
+            inviteService.sendSelfSignupInvite(form.getEmail());
+            return "inviteSent";
+        } else {
+            final boolean domainIsAssociatedWithAnAgencyToken = true; // replace with call to CSRS endpoint
+            if (domainIsAssociatedWithAnAgencyToken) {
+                LOGGER.info("--- Not whitelisted");
+                // send self sign-up invite (email with link to Enter Token form)
+            } else {
+                LOGGER.info("--- Not whitelisted");
+                // error - organisation not signed up
+            }
+        }
 
         inviteService.sendSelfSignupInvite(form.getEmail());
-
         return "inviteSent";
     }
 
     @GetMapping(path = "/enterToken")
     public String enterToken(Model model) {
-        String[] organisations = {"Cabinet Office", "Department of Health & Social Care"};
+        String[] organisations = { "Cabinet Office", "Department of Health & Social Care" }; // replace with CSRS call
         model.addAttribute("organisations", organisations);
         model.addAttribute("enterTokenForm", new EnterTokenForm());
         return "enterToken";
+    }
+
+    @PostMapping(path = "/enterToken")
+    public String submitEnterToken(Model model, @ModelAttribute @Valid EnterTokenForm form, BindingResult bindingResult, RedirectAttributes redirectAttributes) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("enterTokenForm", form);
+            return "enterToken";
+        }
+
+        final boolean organisationAndTokenMatch = false; // replace with call to CSRS endpoint
+
+        if (!organisationAndTokenMatch) {
+            redirectAttributes.addFlashAttribute("status", "Incorrect token for this organisation");
+            return "redirect:/signup/enterToken";
+        }
+
+        LOGGER.info("Token POST-ed successfully. Organisation = {}, Token = {}", form.getOrganisation(), form.getToken());
+
+        return "redirect:/signup/requestInvite";
     }
 
     @GetMapping("/{code}")

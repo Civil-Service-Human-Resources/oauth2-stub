@@ -4282,6 +4282,10 @@ hr.clear {
     line-height: 1.25 !important;
 }
 
+.width-10 {
+    max-width: 23ex;
+}
+
 .booking__col-heading {
   padding: 10px 0;
   border-top: 5px solid #000;
