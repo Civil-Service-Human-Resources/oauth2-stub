@@ -13,6 +13,11 @@
                         <b th:text="${status}"></b>
                     </div>
 
+                    <div th:if="${emailAddress}" class="error-summary" role="alert"  aria-labelledby="error-summary-heading-example-1" tabindex="-1">
+                        <b>(Temporary, delete later) Email address is:</b>
+                        <b th:text="${emailAddress}"></b>
+                    </div>
+
                     <h1 class="heading-large">Create an account</h1>
                     <h2 class="heading-medium">Enter the token for your organisation</h2>
                     <p class="lede">Your organisation requires you to supply a token in order to create an account.</p>
