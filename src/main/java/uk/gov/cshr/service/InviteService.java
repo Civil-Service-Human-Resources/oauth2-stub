@@ -76,7 +76,11 @@ public class InviteService {
     public void sendSelfSignupInvite(String email) throws NotificationClientException {
         Invite invite = inviteFactory.createSelfSignUpInvite(email);
 
-        notifyService.notify(invite.getForEmail(), invite.getCode(), govNotifyInviteTemplateId, signupUrlFormat);
+        // temporary, delete later
+        System.out.println(" * * * invite code = " + invite.getCode());
+
+        // commented out temporarily as can't use gov notify from local env yet
+        //notifyService.notify(invite.getForEmail(), invite.getCode(), govNotifyInviteTemplateId, signupUrlFormat);
 
         inviteRepository.save(invite);
     }

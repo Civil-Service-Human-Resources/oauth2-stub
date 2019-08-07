@@ -13,11 +13,11 @@ import uk.gov.cshr.domain.InviteStatus;
 import uk.gov.cshr.repository.InviteRepository;
 import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.security.IdentityService;
-import uk.gov.cshr.validation.validators.WhitelistedValidator;
 import uk.gov.service.notify.NotificationClientException;
 
 import javax.transaction.Transactional;
 import javax.validation.Valid;
+import java.util.Arrays;
 
 @Controller
 @RequestMapping("/signup")
@@ -34,6 +34,9 @@ public class SignupController {
     private final SignupFormValidator signupFormValidator;
 
     private final String lpgUiUrl;
+
+    @Value("${invite.whitelist.domains}")
+    private String[] whitelistedDomains;
 
     public SignupController(InviteService inviteService,
                             IdentityService identityService,
@@ -72,52 +75,63 @@ public class SignupController {
             redirectAttributes.addFlashAttribute("status", "User already exists with email address " + form.getEmail());
             return "redirect:/signup/request";
         }
-        
-        boolean domainIsWhitelisted = true;
+
+        final String domain = form.getEmail().substring(form.getEmail().indexOf('@') + 1);
+        final boolean domainIsWhitelisted = Arrays.asList(whitelistedDomains).contains(domain);
 
         if (domainIsWhitelisted) {
             inviteService.sendSelfSignupInvite(form.getEmail());
             return "inviteSent";
         } else {
             final boolean domainIsAssociatedWithAnAgencyToken = true; // replace with call to CSRS endpoint
+
             if (domainIsAssociatedWithAnAgencyToken) {
-                LOGGER.info("--- Not whitelisted");
-                // send self sign-up invite (email with link to Enter Token form)
+                redirectAttributes.addFlashAttribute("emailAddress", form.getEmail());
+                return "redirect:/signup/enterToken";
             } else {
-                LOGGER.info("--- Not whitelisted");
-                // error - organisation not signed up
+                redirectAttributes.addFlashAttribute("status", "Your organisation is unable to use this service. Please contact your line manager.");
+                return "redirect:/signup/request";
             }
         }
-
-        inviteService.sendSelfSignupInvite(form.getEmail());
-        return "inviteSent";
     }
 
     @GetMapping(path = "/enterToken")
-    public String enterToken(Model model) {
+    public String enterToken(Model model, @ModelAttribute("emailAddress") String emailAddress) {
+        LOGGER.info("User accessing token-based sign up screen");
+
+        System.out.println("* * * Flash attributes = " + emailAddress);
+
+        final boolean domainIsAssociatedWithAnAgencyToken = true; // replace with call to CSRS endpoint
+        if (emailAddress.equals("") || !domainIsAssociatedWithAnAgencyToken) {
+            return "redirect:/signup/request";
+        }
+
         String[] organisations = { "Cabinet Office", "Department of Health & Social Care" }; // replace with CSRS call
         model.addAttribute("organisations", organisations);
         model.addAttribute("enterTokenForm", new EnterTokenForm());
+
         return "enterToken";
     }
 
     @PostMapping(path = "/enterToken")
-    public String submitEnterToken(Model model, @ModelAttribute @Valid EnterTokenForm form, BindingResult bindingResult, RedirectAttributes redirectAttributes) {
+    public String submitToken(Model model, @ModelAttribute @Valid EnterTokenForm form, BindingResult bindingResult, RedirectAttributes redirectAttributes) {
+        LOGGER.info("User attempting token-based sign up");
+
         if (bindingResult.hasErrors()) {
             model.addAttribute("enterTokenForm", form);
             return "enterToken";
         }
 
-        final boolean organisationAndTokenMatch = false; // replace with call to CSRS endpoint
+        final boolean organisationAndTokenMatch = true;   // replace with call to CSRS endpoint
+        final boolean emailDomainIsAssociatedWithToken = true; // replace with call to CSRS endpoint
 
-        if (!organisationAndTokenMatch) {
+        if (!(organisationAndTokenMatch && emailDomainIsAssociatedWithToken)) {
             redirectAttributes.addFlashAttribute("status", "Incorrect token for this organisation");
             return "redirect:/signup/enterToken";
         }
 
-        LOGGER.info("Token POST-ed successfully. Organisation = {}, Token = {}", form.getOrganisation(), form.getToken());
-
-        return "redirect:/signup/requestInvite";
+        //inviteService.sendSelfSignupInvite(form.getEmail);
+        return "inviteSent";
     }
 
     @GetMapping("/{code}")
