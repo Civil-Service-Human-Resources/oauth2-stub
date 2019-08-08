@@ -130,6 +130,8 @@ public class SignupController {
             return "redirect:/signup/enterToken";
         }
 
+        LOGGER.info("User submitted Enter Token form with org = {}, token = {}, email = {}", form.getOrganisation(), form.getToken(), form.getEmailAddress());
+
         //inviteService.sendSelfSignupInvite(form.getEmail);
         return "inviteSent";
     }
