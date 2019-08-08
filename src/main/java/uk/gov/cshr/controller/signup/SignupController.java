@@ -58,7 +58,11 @@ public class SignupController {
     }
 
     @PostMapping(path = "/request")
-    public String sendInvite(Model model, @ModelAttribute @Valid RequestInviteForm form, BindingResult bindingResult, RedirectAttributes redirectAttributes) throws NotificationClientException {
+    public String sendInvite(Model model,
+                             @ModelAttribute @Valid RequestInviteForm form,
+                             BindingResult bindingResult,
+                             RedirectAttributes redirectAttributes) throws NotificationClientException {
+
         if (bindingResult.hasErrors()) {
             model.addAttribute("requestInviteForm", form);
             return "requestInvite";
@@ -86,8 +90,8 @@ public class SignupController {
             final boolean domainIsAssociatedWithAnAgencyToken = true; // replace with call to CSRS endpoint
 
             if (domainIsAssociatedWithAnAgencyToken) {
-                redirectAttributes.addFlashAttribute("emailAddress", form.getEmail());
-                return "redirect:/signup/enterToken";
+                inviteService.sendSelfSignupInvite(form.getEmail()); // link in email must be for /signup/enterToken/{code} page
+                return "inviteSent";
             } else {
                 redirectAttributes.addFlashAttribute("status", "Your organisation is unable to use this service. Please contact your line manager.");
                 return "redirect:/signup/request";
@@ -95,15 +99,14 @@ public class SignupController {
         }
     }
 
-    @GetMapping(path = "/enterToken")
-    public String enterToken(Model model, @ModelAttribute("emailAddress") String emailAddress) {
+    @GetMapping(path = "/enterToken/{code}")
+    public String enterToken(Model model,
+                             @PathVariable(value = "code") String code) {
+
         LOGGER.info("User accessing token-based sign up screen");
 
-        System.out.println("* * * Flash attributes = " + emailAddress);
-
-        final boolean domainIsAssociatedWithAnAgencyToken = true; // replace with call to CSRS endpoint
-        if (emailAddress.equals("") || !domainIsAssociatedWithAnAgencyToken) {
-            return "redirect:/signup/request";
+        if (!inviteRepository.existsByCode(code) || inviteService.isCodeExpired(code)) {
+            return "login";
         }
 
         String[] organisations = { "Cabinet Office", "Department of Health & Social Care" }; // replace with CSRS call
@@ -113,8 +116,13 @@ public class SignupController {
         return "enterToken";
     }
 
-    @PostMapping(path = "/enterToken")
-    public String submitToken(Model model, @ModelAttribute @Valid EnterTokenForm form, BindingResult bindingResult, RedirectAttributes redirectAttributes) {
+    @PostMapping(path = "/enterToken/{code}")
+    public String submitToken(Model model,
+                              @PathVariable(value = "code") String code,
+                              @ModelAttribute @Valid EnterTokenForm form,
+                              BindingResult bindingResult,
+                              RedirectAttributes redirectAttributes) throws NotificationClientException {
+
         LOGGER.info("User attempting token-based sign up");
 
         if (bindingResult.hasErrors()) {
@@ -122,43 +130,74 @@ public class SignupController {
             return "enterToken";
         }
 
-        final boolean organisationAndTokenMatch = true;   // replace with call to CSRS endpoint
-        final boolean emailDomainIsAssociatedWithToken = true; // replace with call to CSRS endpoint
-
-        if (!(organisationAndTokenMatch && emailDomainIsAssociatedWithToken)) {
-            redirectAttributes.addFlashAttribute("status", "Incorrect token for this organisation");
-            return "redirect:/signup/enterToken";
+        if (!inviteRepository.existsByCode(code) || inviteService.isCodeExpired(code)) {
+            return "login";
         }
 
-        LOGGER.info("User submitted Enter Token form with org = {}, token = {}, email = {}", form.getOrganisation(), form.getToken(), form.getEmailAddress());
+        final String emailAddress = inviteRepository.findByCode(code).getForEmail();
 
-        //inviteService.sendSelfSignupInvite(form.getEmail);
-        return "inviteSent";
+        final boolean organisationAndTokenAndDomainMatch = true; // replace with call to CSRS endpoint
+        if (!organisationAndTokenAndDomainMatch) {
+            redirectAttributes.addFlashAttribute("status", "Incorrect token for this organisation");
+            return "redirect:/signup/enterToken/" + code;
+        }
+
+        LOGGER.info("User submitted Enter Token form with org = {}, token = {}, email = {}", form.getOrganisation(), form.getToken(), emailAddress);
+
+        model.addAttribute("invite", inviteRepository.findByCode(code));
+        redirectAttributes.addFlashAttribute("organisation", form.getOrganisation());
+        redirectAttributes.addFlashAttribute("token", form.getToken());
+        return "redirect:/signup/" + code;
     }
 
     @GetMapping("/{code}")
-    public String signup(Model model, @PathVariable(value = "code") String code) {
-        LOGGER.info("User accessing sign up screen with code {}", code);
+    public String signup(Model model,
+                         @PathVariable(value = "code") String code,
+                         @ModelAttribute("organisation") String organisation,
+                         @ModelAttribute("token") String token) {
 
-        if (inviteRepository.existsByCode(code)) {
-            if (!inviteService.isCodeExpired(code)) {
-                model.addAttribute("invite", inviteRepository.findByCode(code));
-                model.addAttribute("signupForm", new SignupForm());
-                return "signup";
-            }
+        LOGGER.info("User accessing sign up screen with code {}", code);
+        LOGGER.info("User accessing sign up screen with org = {}, token = {}", organisation, token);
+
+        if (!inviteRepository.existsByCode(code) || inviteService.isCodeExpired(code)) {
+            return "login";
         }
-        return "login";
+
+        model.addAttribute("invite", inviteRepository.findByCode(code));
+        model.addAttribute("signupForm", new SignupForm());
+        return "signup";
     }
 
     @PostMapping("/{code}")
     @Transactional
-    public String signup(@PathVariable(value = "code") String code, @ModelAttribute @Valid SignupForm form,
-                         BindingResult bindingResult, Model model) {
+    public String signup(@PathVariable(value = "code") String code,
+                         @ModelAttribute @Valid SignupForm form,
+                         BindingResult bindingResult,
+                         Model model) {
+
         LOGGER.info("User attempting sign up with code {}", code);
+        LOGGER.info("User attempting sign up with org = {}, token = {}", form.getOrganisation(), form.getToken());
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("invite", inviteRepository.findByCode(code));
+            model.addAttribute("organisation", form.getOrganisation());
+            model.addAttribute("token", form.getToken());
+            model.addAttribute("signupForm", new SignupForm());
             return "signup";
+        }
+
+        if (!inviteRepository.existsByCode(code) || inviteService.isCodeExpired(code)) {
+            return "login";
+        }
+
+        final String emailAddress = inviteRepository.findByCode(code).getForEmail();
+        final boolean domainIsAssociatedWithAnAgencyToken = true; // replace with call to CSRS endpoint
+
+        if (domainIsAssociatedWithAnAgencyToken) {
+            final boolean organisationAndTokenAndDomainMatch = true; // replace with call to CSRS endpoint
+            if (!organisationAndTokenAndDomainMatch) {
+                return "redirect:/signup/enterToken/" + code;
+            }
         }
 
         identityService.createIdentityFromInviteCode(code, form.getPassword());
