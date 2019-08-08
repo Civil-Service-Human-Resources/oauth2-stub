@@ -1,4 +1,4 @@
-<page th:replace="fragments/user-layout :: page(~{::title},~{::content})">
+<page th:replace="fragments/user-layout :: page(~{::title},~{::content})" xmlns:th="http://www.w3.org/1999/xhtml">
     <title>Create a Password - Learning Platform for Government</title>
 
     <content>
@@ -54,6 +54,9 @@
                             <input class="form-control form-control-2-3" id="passwordConfirm"
                                    th:field="*{confirmPassword}" type="password"/>
                         </div>
+
+                        <input type="hidden" th:name="organisation" th:value="${organisation}"/>
+                        <input type="hidden" th:name="token" th:value="${token}"/>
 
                         <input type="submit" class="button" value="Continue">
                         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
