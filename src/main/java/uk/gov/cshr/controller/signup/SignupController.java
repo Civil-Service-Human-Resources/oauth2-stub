@@ -10,13 +10,16 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import uk.gov.cshr.domain.InviteStatus;
+import uk.gov.cshr.domain.OrganisationalUnitDto;
 import uk.gov.cshr.repository.InviteRepository;
+import uk.gov.cshr.service.CsrsService;
 import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.security.IdentityService;
 import uk.gov.service.notify.NotificationClientException;
 
 import javax.transaction.Transactional;
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 @Controller
@@ -29,6 +32,8 @@ public class SignupController {
 
     private final IdentityService identityService;
 
+    private final CsrsService csrsService;
+
     private final InviteRepository inviteRepository;
 
     private final SignupFormValidator signupFormValidator;
@@ -40,12 +45,14 @@ public class SignupController {
 
     public SignupController(InviteService inviteService,
                             IdentityService identityService,
+                            CsrsService csrsService,
                             InviteRepository inviteRepository,
                             SignupFormValidator signupFormValidator,
                             @Value("${lpg.uiUrl}") String lpgUiUrl) {
 
         this.inviteService = inviteService;
         this.identityService = identityService;
+        this.csrsService = csrsService;
         this.inviteRepository = inviteRepository;
         this.signupFormValidator = signupFormValidator;
         this.lpgUiUrl = lpgUiUrl;
@@ -109,7 +116,8 @@ public class SignupController {
             return "login";
         }
 
-        String[] organisations = { "Cabinet Office", "Department of Health & Social Care" }; // replace with CSRS call
+        OrganisationalUnitDto[] organisations = csrsService.getOrganisationalUnitsFormatted();
+
         model.addAttribute("organisations", organisations);
         model.addAttribute("enterTokenForm", new EnterTokenForm());
 
