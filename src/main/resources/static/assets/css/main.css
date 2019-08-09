@@ -5040,6 +5040,7 @@ hr.clear {
 .autocomplete__option {
   line-height: 1.25;
   font-size: 16px;
+  padding: 4px;
 }
 @media (min-width: 641px) {
   .autocomplete__hint,

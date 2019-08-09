@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import uk.gov.cshr.config.UserSecurityConfig;
 import uk.gov.cshr.repository.InviteRepository;
 import uk.gov.cshr.service.AuthenticationDetails;
+import uk.gov.cshr.service.CsrsService;
 import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.security.IdentityService;
 
@@ -39,6 +40,9 @@ public class SignupControllerTest {
 
     @MockBean
     private IdentityService identityService;
+
+    @MockBean
+    private CsrsService csrsService;
 
     @MockBean
     private InviteRepository inviteRepository;
