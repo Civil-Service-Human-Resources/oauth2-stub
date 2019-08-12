@@ -13,15 +13,27 @@ import java.util.Optional;
 public class CsrsService {
     private RestTemplate restTemplate;
     private String agencyTokensFormat;
+    private String agencyTokensByDomainFormat;
     private String organisationalUnitsFlatUrl;
 
     public CsrsService(RestTemplate restTemplate,
                        @Value("${registry.agencyTokensFormat}") String agencyTokensFormat,
+                       @Value("${registry.agencyTokensByDomainFormat}") String agencyTokensByDomainFormat,
                        @Value("${registry.organisationalUnitsFlatUrl}") String organisationalUnitsFlatUrl) {
         this.restTemplate = restTemplate;
         this.agencyTokensFormat = agencyTokensFormat;
+        this.agencyTokensByDomainFormat = agencyTokensByDomainFormat;
         this.organisationalUnitsFlatUrl = organisationalUnitsFlatUrl;
     }
+
+//    public Iterable<AgencyToken> getAgencyTokenForDomain(String domain) {
+//        try {
+//            return restTemplate.getForObject(String.format(agencyTokensByDomainFormat, domain), AgencyToken.class));
+//        } catch (HttpClientErrorException e) {
+//            System.out.println(e);
+//            return Optional.empty();
+//        }
+//    }
 
     public Optional<AgencyToken> getAgencyTokenForDomainTokenOrganisation(String domain, String token, String organisation) {
         try {
