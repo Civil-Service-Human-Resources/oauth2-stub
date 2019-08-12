@@ -26,14 +26,14 @@ public class CsrsService {
         this.organisationalUnitsFlatUrl = organisationalUnitsFlatUrl;
     }
 
-//    public Iterable<AgencyToken> getAgencyTokenForDomain(String domain) {
-//        try {
-//            return restTemplate.getForObject(String.format(agencyTokensByDomainFormat, domain), AgencyToken.class));
-//        } catch (HttpClientErrorException e) {
-//            System.out.println(e);
-//            return Optional.empty();
-//        }
-//    }
+    public AgencyToken[] getAgencyTokensForDomain(String domain) {
+        try {
+            return restTemplate.getForObject(String.format(agencyTokensByDomainFormat, domain), AgencyToken[].class);
+        } catch (HttpClientErrorException e) {
+            System.out.println(e);
+            return new AgencyToken[]{};
+        }
+    }
 
     public Optional<AgencyToken> getAgencyTokenForDomainTokenOrganisation(String domain, String token, String organisation) {
         try {
