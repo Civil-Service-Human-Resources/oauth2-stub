@@ -9,6 +9,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import uk.gov.cshr.domain.AgencyToken;
 import uk.gov.cshr.domain.InviteStatus;
 import uk.gov.cshr.domain.OrganisationalUnitDto;
 import uk.gov.cshr.repository.InviteRepository;
@@ -21,6 +22,7 @@ import javax.transaction.Transactional;
 import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/signup")
@@ -94,7 +96,10 @@ public class SignupController {
             inviteService.sendSelfSignupInvite(form.getEmail());
             return "inviteSent";
         } else {
-            final boolean domainIsAssociatedWithAnAgencyToken = true; // replace with call to CSRS endpoint
+            final boolean domainIsAssociatedWithAnAgencyToken = true;
+//            csrsService.getAgencyTokenForDomain(domain);
+//            System.out.println("agencyTokenForDomain = " + csrsService.getAgencyTokenForDomain(domain));
+//            System.out.println("* domain: " + domain + " associated with an agency token = " + agencyTokenForDomain);
 
             if (domainIsAssociatedWithAnAgencyToken) {
                 inviteService.sendSelfSignupInvite(form.getEmail()); // link in email must be for /signup/enterToken/{code} page
@@ -143,8 +148,9 @@ public class SignupController {
         }
 
         final String emailAddress = inviteRepository.findByCode(code).getForEmail();
+        final String domain = emailAddress.substring(emailAddress.indexOf('@') + 1);
 
-        final boolean organisationAndTokenAndDomainMatch = true; // replace with call to CSRS endpoint
+        final boolean organisationAndTokenAndDomainMatch = csrsService.getAgencyTokenForDomainTokenOrganisation(domain, form.getToken(), form.getOrganisation()).isPresent();
         if (!organisationAndTokenAndDomainMatch) {
             redirectAttributes.addFlashAttribute("status", "Incorrect token for this organisation");
             return "redirect:/signup/enterToken/" + code;
