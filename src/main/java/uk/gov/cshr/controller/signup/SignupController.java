@@ -31,15 +31,10 @@ public class SignupController {
     private static final Logger LOGGER = LoggerFactory.getLogger(SignupController.class);
 
     private final InviteService inviteService;
-
     private final IdentityService identityService;
-
     private final CsrsService csrsService;
-
     private final InviteRepository inviteRepository;
-
     private final SignupFormValidator signupFormValidator;
-
     private final String lpgUiUrl;
 
     @Value("${invite.whitelist.domains}")
@@ -96,13 +91,10 @@ public class SignupController {
             inviteService.sendSelfSignupInvite(form.getEmail());
             return "inviteSent";
         } else {
-            final boolean domainIsAssociatedWithAnAgencyToken = true;
-//            csrsService.getAgencyTokenForDomain(domain);
-//            System.out.println("agencyTokenForDomain = " + csrsService.getAgencyTokenForDomain(domain));
-//            System.out.println("* domain: " + domain + " associated with an agency token = " + agencyTokenForDomain);
+            final boolean domainIsAssociatedWithAnAgencyToken = (csrsService.getAgencyTokensForDomain(domain).length > 0);
 
             if (domainIsAssociatedWithAnAgencyToken) {
-                inviteService.sendSelfSignupInvite(form.getEmail()); // link in email must be for /signup/enterToken/{code} page
+                inviteService.sendSelfSignupInvite(form.getEmail());
                 return "inviteSent";
             } else {
                 redirectAttributes.addFlashAttribute("status", "Your organisation is unable to use this service. Please contact your line manager.");
