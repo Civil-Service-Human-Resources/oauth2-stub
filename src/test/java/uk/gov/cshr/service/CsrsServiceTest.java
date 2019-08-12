@@ -10,6 +10,7 @@ import uk.gov.cshr.domain.AgencyToken;
 
 import java.util.Optional;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
@@ -18,6 +19,7 @@ public class CsrsServiceTest {
 
     @Mock
     private RestTemplate restTemplate;
+
     private String agencyTokensFormat;
     private String agencyTokensByDomainFormat;
     private String organisationalUnitsFlatUrl;
@@ -26,6 +28,9 @@ public class CsrsServiceTest {
     @Before
     public void setUp() {
         agencyTokensFormat = "http://locahost:9002/agencyTokens?domain=%s&token=%s&code=%s";
+        agencyTokensByDomainFormat = "http://locahost:9002/agencyTokens?domain=%s";
+        organisationalUnitsFlatUrl = "http://locahost:9002/organisationalUnits/flat";
+
         csrsService = new CsrsService(restTemplate, agencyTokensFormat, agencyTokensByDomainFormat, organisationalUnitsFlatUrl);
     }
 
@@ -40,5 +45,17 @@ public class CsrsServiceTest {
         when(restTemplate.getForObject(String.format(agencyTokensFormat, domain, token, code), AgencyToken.class)).thenReturn(agencyToken);
 
         assertEquals(optionalAgencyToken, csrsService.getAgencyTokenForDomainTokenOrganisation(domain, token, code));
+    }
+
+    @Test
+    public void shouldReturnListOfAgencyTokensForDomain() {
+        AgencyToken agencyToken1 = new AgencyToken();
+        AgencyToken agencyToken2 = new AgencyToken();
+        AgencyToken[] agencyTokenArray = new AgencyToken[] { agencyToken1, agencyToken2 };
+        String domain = "example.com";
+
+        when(restTemplate.getForObject(String.format(agencyTokensByDomainFormat, domain), AgencyToken[].class)).thenReturn(agencyTokenArray);
+
+        assertArrayEquals(agencyTokenArray, csrsService.getAgencyTokensForDomain(domain));
     }
 }
