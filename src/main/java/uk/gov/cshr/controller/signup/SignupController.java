@@ -147,20 +147,21 @@ public class SignupController {
             return "login";
         }
 
+        // if invite is already "authorised", redirect to the "/{code}" screen
+
         final String emailAddress = inviteRepository.findByCode(code).getForEmail();
         final String domain = emailAddress.substring(emailAddress.indexOf('@') + 1);
 
         final boolean organisationAndTokenAndDomainMatch = csrsService.getAgencyTokenForDomainTokenOrganisation(domain, form.getToken(), form.getOrganisation()).isPresent();
         if (!organisationAndTokenAndDomainMatch) {
-            redirectAttributes.addFlashAttribute("status", "Incorrect token for this organisation");
+            redirectAttributes.addFlashAttribute("status", "Invalid sign-up details");
             return "redirect:/signup/enterToken/" + code;
         }
 
         LOGGER.info("User submitted Enter Token form with org = {}, token = {}, email = {}", form.getOrganisation(), form.getToken(), emailAddress);
 
+        // set invite status to now be "authorised"
         model.addAttribute("invite", inviteRepository.findByCode(code));
-        redirectAttributes.addFlashAttribute("organisation", form.getOrganisation());
-        redirectAttributes.addFlashAttribute("token", form.getToken());
         return "redirect:/signup/" + code;
     }
 
@@ -176,6 +177,8 @@ public class SignupController {
         if (!inviteRepository.existsByCode(code) || inviteService.isCodeExpired(code)) {
             return "login";
         }
+
+        // if invite is not yet "authorised", redirect to the "/enterToken/{code}" screen
 
         model.addAttribute("invite", inviteRepository.findByCode(code));
         model.addAttribute("signupForm", new SignupForm());
@@ -204,15 +207,7 @@ public class SignupController {
             return "login";
         }
 
-        final String emailAddress = inviteRepository.findByCode(code).getForEmail();
-        final boolean domainIsAssociatedWithAnAgencyToken = true; // replace with call to CSRS endpoint
-
-        if (domainIsAssociatedWithAnAgencyToken) {
-            final boolean organisationAndTokenAndDomainMatch = true; // replace with call to CSRS endpoint
-            if (!organisationAndTokenAndDomainMatch) {
-                return "redirect:/signup/enterToken/" + code;
-            }
-        }
+        // if invite is not "authorised", reject request
 
         identityService.createIdentityFromInviteCode(code, form.getPassword());
         inviteService.updateInviteByCode(code, InviteStatus.ACCEPTED);
