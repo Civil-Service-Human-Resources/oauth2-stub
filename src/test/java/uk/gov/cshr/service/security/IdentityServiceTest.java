@@ -5,7 +5,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -26,7 +25,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static java.util.Collections.emptySet;
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -34,6 +34,7 @@ import static org.mockito.Mockito.*;
 public class IdentityServiceTest {
 
     private final String updatePasswordEmailTemplateId = "template-id";
+    private final String[] whitelistedDomains = new String[]{""};
 
     private IdentityService identityService;
 
@@ -63,7 +64,8 @@ public class IdentityServiceTest {
                 passwordEncoder,
                 tokenServices,
                 tokenRepository,
-                notifyService
+                notifyService,
+                whitelistedDomains
         );
     }
 

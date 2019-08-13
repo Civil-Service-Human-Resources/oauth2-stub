@@ -10,6 +10,7 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import uk.gov.cshr.domain.AgencyToken;
+import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.domain.InviteStatus;
 import uk.gov.cshr.domain.OrganisationalUnitDto;
 import uk.gov.cshr.repository.InviteRepository;
@@ -20,25 +21,25 @@ import uk.gov.service.notify.NotificationClientException;
 
 import javax.transaction.Transactional;
 import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Optional;
 
 @Controller
 @RequestMapping("/signup")
 public class SignupController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SignupController.class);
+    private static final String STATUS_ATTRIBUTE = "status";
 
     private final InviteService inviteService;
-    private final IdentityService identityService;
-    private final CsrsService csrsService;
-    private final InviteRepository inviteRepository;
-    private final SignupFormValidator signupFormValidator;
-    private final String lpgUiUrl;
 
-    @Value("${invite.whitelist.domains}")
-    private String[] whitelistedDomains;
+    private final IdentityService identityService;
+
+    private final CsrsService csrsService;
+
+    private final InviteRepository inviteRepository;
+
+    private final SignupFormValidator signupFormValidator;
+
+    private final String lpgUiUrl;
 
     public SignupController(InviteService inviteService,
                             IdentityService identityService,
@@ -72,109 +73,57 @@ public class SignupController {
             return "requestInvite";
         }
 
-        if (inviteRepository.existsByForEmailAndStatus(form.getEmail(), InviteStatus.PENDING)) {
-            LOGGER.info("{} has already been invited", form.getEmail());
-            redirectAttributes.addFlashAttribute("status", form.getEmail() + " has already been invited");
+        final String email = form.getEmail();
+
+        if (inviteRepository.existsByForEmailAndStatus(email, InviteStatus.PENDING)) {
+            LOGGER.info("{} has already been invited", email);
+            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, email + " has already been invited");
             return "redirect:/signup/request";
         }
 
-        if (identityService.existsByEmail(form.getEmail())) {
-            LOGGER.info("{} is already a user", form.getEmail());
-            redirectAttributes.addFlashAttribute("status", "User already exists with email address " + form.getEmail());
+        if (identityService.existsByEmail(email)) {
+            LOGGER.info("{} is already a user", email);
+            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "User already exists with email address " + email);
             return "redirect:/signup/request";
         }
 
-        final String domain = form.getEmail().substring(form.getEmail().indexOf('@') + 1);
-        final boolean domainIsWhitelisted = Arrays.asList(whitelistedDomains).contains(domain);
+        final String domain = identityService.getDomainFromEmailAddress(email);
 
-        if (domainIsWhitelisted) {
-            inviteService.sendSelfSignupInvite(form.getEmail());
+        if (identityService.isWhitelistedDomain(domain)) {
+            inviteService.sendSelfSignupInvite(email, true);
             return "inviteSent";
         } else {
-            final boolean domainIsAssociatedWithAnAgencyToken = (csrsService.getAgencyTokensForDomain(domain).length > 0);
+            AgencyToken[] agencyTokensForDomain = csrsService.getAgencyTokensForDomain(domain);
 
-            if (domainIsAssociatedWithAnAgencyToken) {
-                inviteService.sendSelfSignupInvite(form.getEmail());
+            if (agencyTokensForDomain.length > 0) {
+                inviteService.sendSelfSignupInvite(email, false);
                 return "inviteSent";
             } else {
-                redirectAttributes.addFlashAttribute("status", "Your organisation is unable to use this service. Please contact your line manager.");
+                redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Your organisation is unable to use this service. Please contact your line manager.");
                 return "redirect:/signup/request";
             }
         }
     }
 
-    @GetMapping(path = "/enterToken/{code}")
-    public String enterToken(Model model,
-                             @PathVariable(value = "code") String code) {
-
-        LOGGER.info("User accessing token-based sign up screen");
-
-        if (!inviteRepository.existsByCode(code) || inviteService.isCodeExpired(code)) {
-            return "login";
-        }
-
-        OrganisationalUnitDto[] organisations = csrsService.getOrganisationalUnitsFormatted();
-
-        model.addAttribute("organisations", organisations);
-        model.addAttribute("enterTokenForm", new EnterTokenForm());
-
-        return "enterToken";
-    }
-
-    @PostMapping(path = "/enterToken/{code}")
-    public String submitToken(Model model,
-                              @PathVariable(value = "code") String code,
-                              @ModelAttribute @Valid EnterTokenForm form,
-                              BindingResult bindingResult,
-                              RedirectAttributes redirectAttributes) throws NotificationClientException {
-
-        LOGGER.info("User attempting token-based sign up");
-
-        if (bindingResult.hasErrors()) {
-            model.addAttribute("enterTokenForm", form);
-            return "enterToken";
-        }
-
-        if (!inviteRepository.existsByCode(code) || inviteService.isCodeExpired(code)) {
-            return "login";
-        }
-
-        // if invite is already "authorised", redirect to the "/{code}" screen
-
-        final String emailAddress = inviteRepository.findByCode(code).getForEmail();
-        final String domain = emailAddress.substring(emailAddress.indexOf('@') + 1);
-
-        final boolean organisationAndTokenAndDomainMatch = csrsService.getAgencyTokenForDomainTokenOrganisation(domain, form.getToken(), form.getOrganisation()).isPresent();
-        if (!organisationAndTokenAndDomainMatch) {
-            redirectAttributes.addFlashAttribute("status", "Invalid sign-up details");
-            return "redirect:/signup/enterToken/" + code;
-        }
-
-        LOGGER.info("User submitted Enter Token form with org = {}, token = {}, email = {}", form.getOrganisation(), form.getToken(), emailAddress);
-
-        // set invite status to now be "authorised"
-        model.addAttribute("invite", inviteRepository.findByCode(code));
-        return "redirect:/signup/" + code;
-    }
-
     @GetMapping("/{code}")
     public String signup(Model model,
-                         @PathVariable(value = "code") String code,
-                         @ModelAttribute("organisation") String organisation,
-                         @ModelAttribute("token") String token) {
+                         @PathVariable(value = "code") String code) {
 
         LOGGER.info("User accessing sign up screen with code {}", code);
-        LOGGER.info("User accessing sign up screen with org = {}, token = {}", organisation, token);
 
-        if (!inviteRepository.existsByCode(code) || inviteService.isCodeExpired(code)) {
-            return "login";
+        if (inviteService.isInviteValid(code)) {
+            Invite invite = inviteRepository.findByCode(code);
+            if (!invite.isAuthorisedInvite()) {
+                return "redirect:/signup/enterToken/" + code;
+            }
+
+            model.addAttribute("invite", invite);
+            model.addAttribute("signupForm", new SignupForm());
+
+            return "signup";
+        } else {
+            return "redirect:/login";
         }
-
-        // if invite is not yet "authorised", redirect to the "/enterToken/{code}" screen
-
-        model.addAttribute("invite", inviteRepository.findByCode(code));
-        model.addAttribute("signupForm", new SignupForm());
-        return "signup";
     }
 
     @PostMapping("/{code}")
@@ -185,28 +134,88 @@ public class SignupController {
                          Model model) {
 
         LOGGER.info("User attempting sign up with code {}", code);
-        LOGGER.info("User attempting sign up with org = {}, token = {}", form.getOrganisation(), form.getToken());
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("invite", inviteRepository.findByCode(code));
-            model.addAttribute("organisation", form.getOrganisation());
-            model.addAttribute("token", form.getToken());
-            model.addAttribute("signupForm", new SignupForm());
             return "signup";
         }
 
-        if (!inviteRepository.existsByCode(code) || inviteService.isCodeExpired(code)) {
-            return "login";
+        if (inviteService.isInviteValid(code)) {
+            Invite invite = inviteRepository.findByCode(code);
+            if (!invite.isAuthorisedInvite()) {
+                return "redirect:/signup/enterToken/" + code;
+            }
+
+            identityService.createIdentityFromInviteCode(code, form.getPassword());
+            inviteService.updateInviteByCode(code, InviteStatus.ACCEPTED);
+
+            model.addAttribute("lpgUiUrl", lpgUiUrl);
+
+            return "signupSuccess";
+        } else {
+            return "redirect:/login";
+        }
+    }
+
+    @GetMapping(path = "/enterToken/{code}")
+    public String enterToken(Model model,
+                             @PathVariable(value = "code") String code) {
+
+        LOGGER.info("User accessing token-based sign up screen");
+
+        if (inviteService.isInviteValid(code)) {
+
+            OrganisationalUnitDto[] organisations = csrsService.getOrganisationalUnitsFormatted();
+
+            model.addAttribute("organisations", organisations);
+            model.addAttribute("enterTokenForm", new EnterTokenForm());
+
+            return "enterToken";
+        } else {
+            return "redirect:/login";
+        }
+    }
+
+    @PostMapping(path = "/enterToken/{code}")
+    public String submitToken(Model model,
+                              @PathVariable(value = "code") String code,
+                              @ModelAttribute @Valid EnterTokenForm form,
+                              BindingResult bindingResult,
+                              RedirectAttributes redirectAttributes) {
+
+        LOGGER.info("User attempting token-based sign up");
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("enterTokenForm", form);
+            return "enterToken";
         }
 
-        // if invite is not "authorised", reject request
+        if (inviteService.isInviteValid(code)) {
+            Invite invite = inviteRepository.findByCode(code);
 
-        identityService.createIdentityFromInviteCode(code, form.getPassword());
-        inviteService.updateInviteByCode(code, InviteStatus.ACCEPTED);
+            final String emailAddress = invite.getForEmail();
+            final String domain = identityService.getDomainFromEmailAddress(emailAddress);
 
-        model.addAttribute("lpgUiUrl", lpgUiUrl);
+            return csrsService.getAgencyTokenForDomainTokenOrganisation(domain, form.getToken(), form.getOrganisation())
+                    .map(agencyToken -> {
+                        LOGGER.info("User submitted Enter Token form with org = {}, token = {}, email = {}", form.getOrganisation(), form.getToken(), emailAddress);
 
-        return "signupSuccess";
+                        invite.setAuthorisedInvite(true);
+                        inviteRepository.save(invite);
+
+                        model.addAttribute("invite", invite);
+
+                        redirectAttributes.addFlashAttribute("organisation", form.getOrganisation());
+                        redirectAttributes.addFlashAttribute("token", form.getToken());
+
+                        return "redirect:/signup/" + code;
+                    }).orElseGet(() -> {
+                        redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Incorrect token for this organisation");
+                        return "redirect:/signup/enterToken/" + code;
+                    });
+        } else {
+            return "redirect:/login";
+        }
     }
 
     @InitBinder
