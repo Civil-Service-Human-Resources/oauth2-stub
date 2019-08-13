@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import uk.gov.cshr.domain.AgencyToken;
 import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.domain.InviteStatus;
+import uk.gov.cshr.domain.OrganisationalUnitDto;
 import uk.gov.cshr.repository.InviteRepository;
 import uk.gov.cshr.service.CsrsService;
 import uk.gov.cshr.service.InviteService;
@@ -204,8 +205,8 @@ public class SignupControllerTest {
         mockMvc.perform(
                 get("/signup/" + code)
                         .with(CsrfRequestPostProcessor.csrf()))
-                .andExpect(status().isOk())
-                .andExpect(view().name("login"));
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
     }
 
     @Test
@@ -336,8 +337,18 @@ public class SignupControllerTest {
     @Test
     public void shouldReturnEnterToken() throws Exception {
         String code = "abc123";
+        String email = "test@example.com";
+
+        OrganisationalUnitDto[] organisationalUnits = new OrganisationalUnitDto[]{new OrganisationalUnitDto()};
+
+        Invite invite = new Invite();
+        invite.setForEmail(email);
+        invite.setAuthorisedInvite(false);
 
         when(inviteService.isInviteValid(code)).thenReturn(true);
+        when(inviteRepository.findByCode(code)).thenReturn(invite);
+
+        when(csrsService.getOrganisationalUnitsFormatted()).thenReturn(organisationalUnits);
 
         mockMvc.perform(
                 get("/signup/enterToken/" + code)
@@ -345,6 +356,30 @@ public class SignupControllerTest {
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(view().name("enterToken"));
     }
+
+    @Test
+    public void shouldRedirectOnEnterTokenIfTokenAuth() throws Exception {
+        String code = "abc123";
+        String email = "test@example.com";
+
+        Invite invite = new Invite();
+        invite.setForEmail(email);
+        invite.setAuthorisedInvite(true);
+
+        OrganisationalUnitDto[] organisationalUnits = new OrganisationalUnitDto[]{new OrganisationalUnitDto()};
+
+        when(inviteService.isInviteValid(code)).thenReturn(true);
+        when(inviteRepository.findByCode(code)).thenReturn(invite);
+
+        when(csrsService.getOrganisationalUnitsFormatted()).thenReturn(organisationalUnits);
+
+        mockMvc.perform(
+                get("/signup/enterToken/" + code)
+                        .with(CsrfRequestPostProcessor.csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/signup/" + code));
+    }
+
 
     @Test
     public void shouldRedirectToLoginIfTokenInviteInvalid() throws Exception {
@@ -393,6 +428,7 @@ public class SignupControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/signup/" + code));
     }
+
 
     @Test
     public void shouldRedirectToEnterTokenIfInviteValid() throws Exception {
