@@ -1,4 +1,4 @@
-<page th:replace="fragments/user-layout :: page(~{::title},~{::content})" xmlns:th="http://www.w3.org/1999/xhtml">
+<page xmlns:th="http://www.w3.org/1999/xhtml" th:replace="fragments/user-layout :: page(~{::title},~{::content})">
 
     <title>Enter token</title>
 
@@ -9,7 +9,8 @@
                 <div class="column-two-thirds">
 
                     <div th:if="${status}" class="error-summary" role="alert"  aria-labelledby="error-summary-heading-example-1" tabindex="-1">
-                        <h2 class="heading-medium error-summary-heading" id="error-summary-heading-example-2">There was a problem...</h2>
+                        <h2 class="heading-medium error-summary-heading" id="error-summary-heading-example-2">There was
+                            a problem</h2>
                         <b th:text="${status}"></b>
                     </div>
 

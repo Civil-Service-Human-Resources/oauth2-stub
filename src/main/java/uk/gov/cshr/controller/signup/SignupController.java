@@ -164,6 +164,10 @@ public class SignupController {
         LOGGER.info("User accessing token-based sign up screen");
 
         if (inviteService.isInviteValid(code)) {
+            Invite invite = inviteRepository.findByCode(code);
+            if (invite.isAuthorisedInvite()) {
+                return "redirect:/signup/" + code;
+            }
 
             OrganisationalUnitDto[] organisations = csrsService.getOrganisationalUnitsFormatted();
 
