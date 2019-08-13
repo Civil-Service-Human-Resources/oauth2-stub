@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.cshr.domain.AgencyToken;
+import uk.gov.cshr.domain.OrganisationalUnitDto;
 
 import java.util.Optional;
 
@@ -57,5 +58,16 @@ public class CsrsServiceTest {
         when(restTemplate.getForObject(String.format(agencyTokensByDomainFormat, domain), AgencyToken[].class)).thenReturn(agencyTokenArray);
 
         assertArrayEquals(agencyTokenArray, csrsService.getAgencyTokensForDomain(domain));
+    }
+
+    @Test
+    public void shouldReturnListOfOrganisations() {
+        OrganisationalUnitDto organisationalUnitDto1 = new OrganisationalUnitDto();
+        OrganisationalUnitDto organisationalUnitDto2 = new OrganisationalUnitDto();
+        OrganisationalUnitDto[] organisationalUnitDtoArray = new OrganisationalUnitDto[] { organisationalUnitDto1, organisationalUnitDto2 };
+
+        when(restTemplate.getForObject(organisationalUnitsFlatUrl, OrganisationalUnitDto[].class)).thenReturn(organisationalUnitDtoArray);
+
+        assertArrayEquals(organisationalUnitDtoArray, csrsService.getOrganisationalUnitsFormatted());
     }
 }
