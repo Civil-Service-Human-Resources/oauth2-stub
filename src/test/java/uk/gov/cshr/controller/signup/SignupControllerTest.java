@@ -1,6 +1,5 @@
 package uk.gov.cshr.controller.signup;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -21,12 +20,10 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import uk.gov.cshr.domain.AgencyToken;
 import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.domain.InviteStatus;
-import uk.gov.cshr.domain.OrganisationalUnitDto;
 import uk.gov.cshr.repository.InviteRepository;
 import uk.gov.cshr.service.CsrsService;
 import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.security.IdentityService;
-import uk.gov.cshr.utils.MockMVCFilterOverrider;
 
 import java.util.Optional;
 
@@ -56,16 +53,11 @@ public class SignupControllerTest {
     @MockBean
     private CsrsService csrsService;
 
-    @MockBean(name = "inviteRepository")
+    @MockBean
     private InviteRepository inviteRepository;
 
     @MockBean
     private SignupFormValidator signupFormValidator;
-
-    @Before
-    public void overridePatternMappingFilterProxyFilter() throws IllegalAccessException {
-        MockMVCFilterOverrider.overrideFilterOf(mockMvc, "PatternMappingFilterProxy" );
-    }
 
     @Test
     public void shouldReturnCreateAccountForm() throws Exception {
@@ -212,8 +204,8 @@ public class SignupControllerTest {
         mockMvc.perform(
                 get("/signup/" + code)
                         .with(CsrfRequestPostProcessor.csrf()))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/login"));
+                .andExpect(status().isOk())
+                .andExpect(view().name("login"));
     }
 
     @Test
@@ -344,18 +336,8 @@ public class SignupControllerTest {
     @Test
     public void shouldReturnEnterToken() throws Exception {
         String code = "abc123";
-        String email = "test@example.com";
-
-        OrganisationalUnitDto[] organisationalUnits = new OrganisationalUnitDto[]{new OrganisationalUnitDto()};
-
-        Invite invite = new Invite();
-        invite.setForEmail(email);
-        invite.setAuthorisedInvite(false);
 
         when(inviteService.isInviteValid(code)).thenReturn(true);
-        when(inviteRepository.findByCode(code)).thenReturn(invite);
-
-        when(csrsService.getOrganisationalUnitsFormatted()).thenReturn(organisationalUnits);
 
         mockMvc.perform(
                 get("/signup/enterToken/" + code)
@@ -363,30 +345,6 @@ public class SignupControllerTest {
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(view().name("enterToken"));
     }
-
-    @Test
-    public void shouldRedirectOnEnterTokenIfTokenAuth() throws Exception {
-        String code = "abc123";
-        String email = "test@example.com";
-
-        Invite invite = new Invite();
-        invite.setForEmail(email);
-        invite.setAuthorisedInvite(true);
-
-        OrganisationalUnitDto[] organisationalUnits = new OrganisationalUnitDto[]{new OrganisationalUnitDto()};
-
-        when(inviteService.isInviteValid(code)).thenReturn(true);
-        when(inviteRepository.findByCode(code)).thenReturn(invite);
-
-        when(csrsService.getOrganisationalUnitsFormatted()).thenReturn(organisationalUnits);
-
-        mockMvc.perform(
-                get("/signup/enterToken/" + code)
-                        .with(CsrfRequestPostProcessor.csrf()))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/signup/" + code));
-    }
-
 
     @Test
     public void shouldRedirectToLoginIfTokenInviteInvalid() throws Exception {
@@ -436,7 +394,6 @@ public class SignupControllerTest {
                 .andExpect(redirectedUrl("/signup/" + code));
     }
 
-
     @Test
     public void shouldRedirectToEnterTokenIfInviteValid() throws Exception {
         String code = "abc123";
@@ -445,24 +402,23 @@ public class SignupControllerTest {
         String email = "test@example.com";
         String domain = "example.com";
 
-        String password = "Strongpassword123";
-        String confirmPassword = "Strongpassword123";
-
         Invite invite = new Invite();
         invite.setForEmail(email);
-        invite.setAuthorisedInvite(false);
+        invite.setAuthorisedInvite(true);
+
+        Optional<AgencyToken> emptyOptional = Optional.empty();
 
         when(inviteService.isInviteValid(code)).thenReturn(true);
         when(inviteRepository.findByCode(code)).thenReturn(invite);
         when(identityService.getDomainFromEmailAddress(email)).thenReturn(domain);
-        when(signupFormValidator.supports(any())).thenReturn(true);
-
+        when(csrsService.getAgencyTokenForDomainTokenOrganisation(domain, token, organisation)).thenReturn(emptyOptional);
 
         mockMvc.perform(
-                post("/signup/" + code)
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("password", password)
-                        .param("confirmPassword", confirmPassword))
+                post("/signup/enterToken/" + code)
+                        .with(CsrfRequestPostProcessor.csrf())
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("organisation", organisation)
+                        .param("token", token))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/signup/enterToken/" + code));
     }

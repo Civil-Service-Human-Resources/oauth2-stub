@@ -13,10 +13,6 @@ import uk.gov.cshr.domain.AgencyToken;
 import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.domain.InviteStatus;
 import uk.gov.cshr.domain.OrganisationalUnitDto;
-import uk.gov.cshr.exception.BadRequestException;
-import uk.gov.cshr.exception.NotEnoughSpaceAvailableException;
-import uk.gov.cshr.exception.ResourceNotFoundException;
-import uk.gov.cshr.exception.UnableToAllocateAgencyTokenException;
 import uk.gov.cshr.repository.InviteRepository;
 import uk.gov.cshr.service.CsrsService;
 import uk.gov.cshr.service.InviteService;
@@ -25,7 +21,6 @@ import uk.gov.service.notify.NotificationClientException;
 
 import javax.transaction.Transactional;
 import javax.validation.Valid;
-import java.util.Optional;
 
 @Controller
 @RequestMapping("/signup")
@@ -169,10 +164,6 @@ public class SignupController {
         LOGGER.info("User accessing token-based sign up screen");
 
         if (inviteService.isInviteValid(code)) {
-            Invite invite = inviteRepository.findByCode(code);
-            if (invite.isAuthorisedInvite()) {
-                return "redirect:/signup/" + code;
-            }
 
             OrganisationalUnitDto[] organisations = csrsService.getOrganisationalUnitsFormatted();
 
@@ -194,8 +185,6 @@ public class SignupController {
 
         LOGGER.info("User attempting token-based sign up");
 
-        System.out.println(form);
-
         if (bindingResult.hasErrors()) {
             model.addAttribute("enterTokenForm", form);
             return "enterToken";
@@ -207,61 +196,27 @@ public class SignupController {
             final String emailAddress = invite.getForEmail();
             final String domain = identityService.getDomainFromEmailAddress(emailAddress);
 
-            try {
-                csrsService.updateSpacesAvailable(domain, form.getToken(), form.getOrganisation(), form.isRemoveUser());
-                LOGGER.info("User submitted Enter Token form with org = {}, token = {}, email = {}", form.getOrganisation(), form.getToken(), emailAddress);
+            return csrsService.getAgencyTokenForDomainTokenOrganisation(domain, form.getToken(), form.getOrganisation())
+                    .map(agencyToken -> {
+                        LOGGER.info("User submitted Enter Token form with org = {}, token = {}, email = {}", form.getOrganisation(), form.getToken(), emailAddress);
 
-                invite.setAuthorisedInvite(true);
-                inviteRepository.save(invite);
+                        invite.setAuthorisedInvite(true);
+                        inviteRepository.save(invite);
 
-                model.addAttribute("invite", invite);
+                        model.addAttribute("invite", invite);
 
-                redirectAttributes.addFlashAttribute("organisation", form.getOrganisation());
-                redirectAttributes.addFlashAttribute("token", form.getToken());
+                        redirectAttributes.addFlashAttribute("organisation", form.getOrganisation());
+                        redirectAttributes.addFlashAttribute("token", form.getToken());
 
-                return "redirect:/signup/" + code;
-
-            } catch (ResourceNotFoundException e) {
-                redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Incorrect token for this organisation");
-                return "redirect:/signup/enterToken/" + code;
-            } catch (NotEnoughSpaceAvailableException e) {
-                redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Not enough spaces available on this token");
-                return "redirect:/signup/enterToken/" + code;
-            } catch (BadRequestException e) {
-                return "redirect:/login";
-            } catch (UnableToAllocateAgencyTokenException e) {
-                return "redirect:/login";
-            }
+                        return "redirect:/signup/" + code;
+                    }).orElseGet(() -> {
+                        redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Incorrect token for this organisation");
+                        return "redirect:/signup/enterToken/" + code;
+                    });
+        } else {
+            return "redirect:/login";
         }
-
-        return "redirect:/login";
     }
-
-    @PutMapping(path = "/updateToken/{code}")
-    public String updateToken(Model model,
-                              @PathVariable(value = "code") String code,
-                              @ModelAttribute @Valid UpdateTokenForm form,
-                              BindingResult bindingResult,
-                              RedirectAttributes redirectAttributes) {
-        LOGGER.info("User attempting to update agency token");
-
-        if (bindingResult.hasErrors()) {
-            model.addAttribute("updateTokenForm", form);
-            return "updateToken";
-        }
-
-        // TODO - CALL NEW METHOD
-        // domain token org boolean
-        try {
-            csrsService.updateSpacesAvailable(code, form.getToken(), form.getOrganisation(), form.isRemoveUser());
-        } catch (Exception e) {
-
-        }
-
-        // TODO - CHECK WHERE THIS SHOULD GO TO
-        return "TODO";
-    }
-
 
     @InitBinder
     public void setupValidation(WebDataBinder binder) {
