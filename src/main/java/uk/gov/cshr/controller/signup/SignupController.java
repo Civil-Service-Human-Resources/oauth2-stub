@@ -222,6 +222,32 @@ public class SignupController {
         }
     }
 
+    @PutMapping(path = "/updateToken/{code}")
+    public String updateToken(Model model,
+                              @PathVariable(value = "code") String code,
+                              @ModelAttribute @Valid UpdateTokenForm form,
+                              BindingResult bindingResult,
+                              RedirectAttributes redirectAttributes) {
+        LOGGER.info("User attempting to update agency token");
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("updateTokenForm", form);
+            return "updateToken";
+        }
+
+        // TODO - CALL NEW METHOD
+        // domain token org boolean
+        try {
+            csrsService.updateSpacesAvailable(code, form.getToken(), form.getOrganisation(), form.isRemoveUser());
+        } catch (Exception e) {
+
+        }
+
+        // TODO - CHECK WHERE THIS SHOULD GO TO
+        return "TODO";
+    }
+
+
     @InitBinder
     public void setupValidation(WebDataBinder binder) {
         if (binder.getTarget() instanceof SignupForm) {
