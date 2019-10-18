@@ -24,6 +24,7 @@ public class CsrsServiceTest {
     private String agencyTokensFormat;
     private String agencyTokensByDomainFormat;
     private String organisationalUnitsFlatUrl;
+    private String updateSpacesAvailableUrl;
     private CsrsService csrsService;
 
     @Before
@@ -31,8 +32,9 @@ public class CsrsServiceTest {
         agencyTokensFormat = "http://locahost:9002/agencyTokens?domain=%s&token=%s&code=%s";
         agencyTokensByDomainFormat = "http://locahost:9002/agencyTokens?domain=%s";
         organisationalUnitsFlatUrl = "http://locahost:9002/organisationalUnits/flat";
+        updateSpacesAvailableUrl = "http://locahost:9002/agencyTokens";
 
-        csrsService = new CsrsService(restTemplate, agencyTokensFormat, agencyTokensByDomainFormat, organisationalUnitsFlatUrl);
+        csrsService = new CsrsService(restTemplate, agencyTokensFormat, agencyTokensByDomainFormat, organisationalUnitsFlatUrl, updateSpacesAvailableUrl);
     }
 
     @Test
