@@ -4,6 +4,7 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,7 +38,7 @@ public class ResetService {
     private NotifyService notifyService;
 
     @Autowired
-    public ResetService(ResetRepository resetRepository, NotifyService notifyService) {
+    public ResetService(ResetRepository resetRepository, @Qualifier("notifyServiceImpl") NotifyService notifyService) {
         this.resetRepository = resetRepository;
         this.notifyService = notifyService;
     }
