@@ -38,7 +38,7 @@ public class ResetService {
     private NotifyService notifyService;
 
     @Autowired
-    public ResetService(ResetRepository resetRepository, NotifyService notifyService) {
+    public ResetService(ResetRepository resetRepository, @Qualifier("notifyServiceImpl") NotifyService notifyService) {
         this.resetRepository = resetRepository;
         this.notifyService = notifyService;
     }

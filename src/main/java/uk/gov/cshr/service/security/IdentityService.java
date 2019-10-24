@@ -52,6 +52,8 @@ public class IdentityService implements UserDetailsService {
                            TokenServices tokenServices,
                            @Qualifier("tokenRepository") TokenRepository tokenRepository,
                            NotifyService notifyService,
+                           TokenRepository tokenRepository,
+                           @Qualifier("notifyServiceImpl") NotifyService notifyService,
                            @Value("${invite.whitelist.domains}") String[] whitelistedDomains) {
         this.updatePasswordEmailTemplateId = updatePasswordEmailTemplateId;
         this.identityRepository = identityRepository;

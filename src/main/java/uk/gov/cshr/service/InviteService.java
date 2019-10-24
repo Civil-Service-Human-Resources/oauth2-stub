@@ -30,8 +30,8 @@ public class InviteService {
             @Value("${govNotify.template.invite}") String govNotifyInviteTemplateId,
             @Value("${invite.validityInSeconds}") int validityInSeconds,
             @Value("${invite.url}") String signupUrlFormat,
-            NotifyService notifyService,
-            InviteRepository inviteRepository,
+            @Qualifier("notifyServiceImpl") NotifyService notifyService,
+            @Qualifier("inviteRepository") InviteRepository inviteRepository,
             InviteFactory inviteFactory) {
         this.govNotifyInviteTemplateId = govNotifyInviteTemplateId;
         this.validityInSeconds = validityInSeconds;

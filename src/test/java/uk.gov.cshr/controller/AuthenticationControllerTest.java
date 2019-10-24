@@ -15,7 +15,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import uk.gov.cshr.Application;
-import uk.gov.cshr.utils.MockMVCFilterOverrider;
 import uk.gov.cshr.service.NotifyService;
 
 import static org.hamcrest.CoreMatchers.is;
