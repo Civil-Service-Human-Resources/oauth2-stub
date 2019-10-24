@@ -1,5 +1,6 @@
 package uk.gov.cshr.service;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +26,7 @@ public class EmailUpdateService {
 
     public EmailUpdateService(EmailUpdateRepository emailUpdateRepository,
                               EmailUpdateFactory emailUpdateFactory,
-                              NotifyService notifyService,
+                              @Qualifier("notifyServiceImpl") NotifyService notifyService,
                               IdentityService identityService,
                               @Value("${govNotify.template.emailUpdate}") String updateEmailTemplateId,
                               @Value("${emailUpdate.urlFormat}") String inviteUrlFormat) {

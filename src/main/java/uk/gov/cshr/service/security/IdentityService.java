@@ -3,6 +3,7 @@ package uk.gov.cshr.service.security;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -47,7 +48,7 @@ public class IdentityService implements UserDetailsService {
                            PasswordEncoder passwordEncoder,
                            TokenServices tokenServices,
                            TokenRepository tokenRepository,
-                           NotifyService notifyService,
+                           @Qualifier("notifyServiceImpl") NotifyService notifyService,
                            @Value("${invite.whitelist.domains}") String[] whitelistedDomains) {
         this.updatePasswordEmailTemplateId = updatePasswordEmailTemplateId;
         this.identityRepository = identityRepository;

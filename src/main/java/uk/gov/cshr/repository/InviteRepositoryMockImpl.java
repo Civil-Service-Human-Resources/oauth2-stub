@@ -1,5 +1,6 @@
 package uk.gov.cshr.repository;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.domain.InviteStatus;
@@ -11,7 +12,8 @@ import java.util.Optional;
     This removes the need to have a valid invite which is only achieved by signing up with a specific email,
     then copying the the url in the email from gov notify which has a random code in it.
  */
-@Repository
+@Profile({"mockInviteAndNotify"})
+@Repository("mockInviteRepository")
 public class InviteRepositoryMockImpl implements InviteRepository {
 
     private Invite mockInvite;
