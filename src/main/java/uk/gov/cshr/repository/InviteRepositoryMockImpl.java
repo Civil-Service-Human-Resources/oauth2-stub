@@ -6,47 +6,59 @@ import uk.gov.cshr.domain.InviteStatus;
 
 import java.util.Optional;
 
+/*
+    Class to allow for testing on various sign up flows, such as Agency Self Sign Up.
+    This removes the need to have a valid invite which is only achieved by signing up with a specific email,
+    then copying the the url in the email from gov notify which has a random code in it.
+ */
 @Repository
 public class InviteRepositoryMockImpl implements InviteRepository {
 
+    private Invite mockInvite;
+
+    public InviteRepositoryMockImpl() {
+        // save a pending invite
+        mockInvite = buildMockInvite();
+    }
+
     @Override
     public Invite findByForEmail(String forEmail) {
-        return null;
+        return mockInvite;
     }
 
     @Override
     public Invite findByCode(String code) {
-        return null;
+        return mockInvite;
     }
 
     @Override
     public boolean existsByCode(String code) {
-        return false;
+        return true;
     }
 
     @Override
     public boolean existsByForEmailAndStatus(String email, InviteStatus status) {
-        return false;
+        return true;
     }
 
     @Override
     public <S extends Invite> S save(S entity) {
-        return null;
+        return entity;
     }
 
     @Override
     public <S extends Invite> Iterable<S> saveAll(Iterable<S> entities) {
-        return null;
+        return entities;
     }
 
     @Override
     public Optional<Invite> findById(Long aLong) {
-        return Optional.empty();
+        return Optional.of(mockInvite);
     }
 
     @Override
     public boolean existsById(Long aLong) {
-        return false;
+        return true;
     }
 
     @Override
@@ -61,26 +73,32 @@ public class InviteRepositoryMockImpl implements InviteRepository {
 
     @Override
     public long count() {
-        return 0;
+        return 1;
     }
 
     @Override
     public void deleteById(Long aLong) {
-
     }
 
     @Override
     public void delete(Invite entity) {
-
     }
 
     @Override
     public void deleteAll(Iterable<? extends Invite> entities) {
-
     }
 
     @Override
     public void deleteAll() {
+    }
 
+    private Invite buildMockInvite() {
+        Invite mockInvite = new Invite();
+        mockInvite.setAuthorisedInvite(false);
+        mockInvite.setCode("mockCode");
+        mockInvite.setId(123);
+        mockInvite.setForEmail("b.hodgson@kainos.com");
+        mockInvite.setStatus(InviteStatus.PENDING);
+        return mockInvite;
     }
 }
