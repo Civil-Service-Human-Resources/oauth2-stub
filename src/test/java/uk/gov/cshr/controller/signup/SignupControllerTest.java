@@ -54,7 +54,7 @@ public class SignupControllerTest {
     @MockBean
     private CsrsService csrsService;
 
-    @MockBean
+    @MockBean(name = "inviteRepository")
     private InviteRepository inviteRepository;
 
     @MockBean

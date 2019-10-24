@@ -5,7 +5,7 @@ import org.springframework.stereotype.Repository;
 import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.domain.InviteStatus;
 
-@Repository
+@Repository("inviteRepository")
 public interface InviteRepository extends CrudRepository<Invite, Long> {
 
     Invite findByForEmail(String forEmail);
