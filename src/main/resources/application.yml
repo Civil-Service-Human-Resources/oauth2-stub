@@ -1,5 +1,7 @@
 
 spring:
+  session:
+    store-type: redis
   thymeleaf:
     cache: false
   messages:
@@ -9,6 +11,10 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
+  redis:
+    host: ${REDIS_SESSION_HOST:localhost}
+    port: ${REDIS_SESSION_PORT:6379}
+    password: ${REDIS_SESSION_PASSWORD:default_pass}
 
 server:
   port: 8080
