@@ -9,6 +9,7 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.E
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.approval.UserApprovalHandler;
+import org.springframework.security.oauth2.provider.code.AuthorizationCodeServices;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import uk.gov.cshr.service.security.LocalClientDetailsService;
@@ -34,6 +35,10 @@ public class AuthorisationServerConfiguration extends AuthorizationServerConfigu
     @Autowired
     private AuthorizationServerTokenServices tokenServices;
 
+    @Autowired
+    private AuthorizationCodeServices authorizationCodeServices;
+
+
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
         clients.withClientDetails(clientDetailsService);
@@ -44,7 +49,8 @@ public class AuthorisationServerConfiguration extends AuthorizationServerConfigu
         endpoints.tokenStore(tokenStore)
                 .userApprovalHandler(userApprovalHandler)
                 .authenticationManager(authenticationManager)
-                .tokenServices(tokenServices);
+                .tokenServices(tokenServices)
+                .authorizationCodeServices(authorizationCodeServices);
     }
 
     @Override
