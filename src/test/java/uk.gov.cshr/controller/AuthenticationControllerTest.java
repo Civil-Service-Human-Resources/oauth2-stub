@@ -35,6 +35,7 @@ public class AuthenticationControllerTest {
     public void overridePatternMappingFilterProxyFilter() throws IllegalAccessException {
         MockMVCFilterOverrider.overrideFilterOf(mockMvc, "PatternMappingFilterProxy" );
     }
+
     @Qualifier("mockNotify")
     @MockBean
     private NotifyService notifyService;
