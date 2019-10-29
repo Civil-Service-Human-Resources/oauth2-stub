@@ -1,5 +1,14 @@
 
 spring:
+  redis:
+    host: ${REDIS_HOST:localhost}
+    password: ${REDIS_HOST:redispassword}
+    port: ${REDIS_PORT:6379}
+  session:
+    redis:
+      namespace: spring:session
+      flush-mode: on-save
+    store-type: redis
   thymeleaf:
     cache: false
   messages:
@@ -10,7 +19,11 @@ spring:
     hibernate:
       ddl-auto: none
 
+
 server:
+  servlet:
+    session:
+      timeout: ${SESSION_TIMEOUT:3600}
   port: 8080
   managementPort: 8085
 
