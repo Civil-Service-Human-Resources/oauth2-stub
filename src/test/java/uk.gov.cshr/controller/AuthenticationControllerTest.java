@@ -29,7 +29,7 @@ public class AuthenticationControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Qualifier("mockNotify")
+    @Qualifier("notifyServiceImpl")
     @MockBean
     private NotifyService notifyService;
 
