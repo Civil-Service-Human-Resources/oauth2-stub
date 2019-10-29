@@ -15,7 +15,7 @@ import java.util.Map;
 
 @Slf4j
 @Profile("default")
-@Service("notifyServiceImpl")
+@Service
 @Transactional
 public class NotifyServiceImpl implements NotifyService {
 

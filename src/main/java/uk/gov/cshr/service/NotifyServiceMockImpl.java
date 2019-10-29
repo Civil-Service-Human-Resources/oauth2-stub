@@ -8,8 +8,8 @@ import uk.gov.service.notify.NotificationClientException;
 import java.util.Map;
 
 @Slf4j
-@Profile({"mockInviteAndNotify"})
-@Service("mockNotify")
+@Profile("runMocks")
+@Service
 public class NotifyServiceMockImpl implements NotifyService {
 
     @Override

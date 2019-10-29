@@ -26,7 +26,7 @@ public class EmailUpdateService {
 
     public EmailUpdateService(EmailUpdateRepository emailUpdateRepository,
                               EmailUpdateFactory emailUpdateFactory,
-                              @Qualifier("notifyServiceImpl") NotifyService notifyService,
+                              NotifyService notifyService,
                               IdentityService identityService,
                               @Value("${govNotify.template.emailUpdate}") String updateEmailTemplateId,
                               @Value("${emailUpdate.urlFormat}") String inviteUrlFormat) {

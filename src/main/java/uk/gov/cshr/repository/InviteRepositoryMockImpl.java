@@ -12,8 +12,8 @@ import java.util.Optional;
     This removes the need to have a valid invite which is only achieved by signing up with a specific email,
     then copying the the url in the email from gov notify which has a random code in it.
  */
-@Profile({"mockInviteAndNotify"})
-@Repository("mockInviteRepository")
+@Profile({"runMocks"})
+@Repository
 public class InviteRepositoryMockImpl implements InviteRepository {
 
     private Invite mockInvite;
