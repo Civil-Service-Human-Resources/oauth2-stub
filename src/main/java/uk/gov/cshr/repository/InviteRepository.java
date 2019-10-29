@@ -7,7 +7,7 @@ import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.domain.InviteStatus;
 
 @Profile({"default"})
-@Repository("inviteRepository")
+@Repository
 public interface InviteRepository extends CrudRepository<Invite, Long> {
 
     Invite findByForEmail(String forEmail);
