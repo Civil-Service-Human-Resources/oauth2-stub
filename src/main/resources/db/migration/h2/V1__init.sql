@@ -17,6 +17,7 @@ CREATE TABLE `identity` (
   `last_logged_in` datetime NOT NULL,
   `email` varchar(150) NOT NULL UNIQUE,
   `password` varchar(100) NOT NULL,
+  `failed_login_attempts` int unsigned NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`)
 );
 

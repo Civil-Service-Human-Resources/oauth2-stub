@@ -23,6 +23,9 @@ public class Identity implements Serializable {
     @Column(length = 100)
     private String password;
 
+    @Column(name = "failed_login_attempts")
+    private Long failedLoginAttempts;
+
     private boolean active;
 
     private boolean locked;
@@ -41,7 +44,7 @@ public class Identity implements Serializable {
     public Identity() {
     }
 
-    public Identity(String uid, String email, String password, boolean active, boolean locked, Set<Role> roles, Instant lastLoggedIn, boolean deletionNotificationSent) {
+    public Identity(String uid, String email, String password, boolean active, boolean locked, Set<Role> roles, Instant lastLoggedIn, boolean deletionNotificationSent, Long failedLoginAttempts) {
         this.uid = uid;
         this.email = email;
         this.password = password;
@@ -50,6 +53,7 @@ public class Identity implements Serializable {
         this.locked = locked;
         this.lastLoggedIn = lastLoggedIn;
         this.deletionNotificationSent = deletionNotificationSent;
+        this.failedLoginAttempts = failedLoginAttempts;
     }
 
     public boolean isActive() {
@@ -118,6 +122,15 @@ public class Identity implements Serializable {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public Long getFailedLoginAttempts() {
+        return failedLoginAttempts;
+    }
+
+    public Identity setFailedLoginAttempts(Long failedLoginAttempts) {
+        this.failedLoginAttempts = failedLoginAttempts;
+        return this;
     }
 
     @Override

@@ -82,7 +82,16 @@ public class IdentityService implements UserDetailsService {
         Invite invite = inviteService.findByCode(code);
 
         Set<Role> newRoles = new HashSet<>(invite.getForRoles());
-        Identity identity = new Identity(UUID.randomUUID().toString(), invite.getForEmail(), passwordEncoder.encode(password), true, false, newRoles, Instant.now(), false);
+        Identity identity = new Identity(
+                UUID.randomUUID().toString(),
+                invite.getForEmail(),
+                passwordEncoder.encode(password),
+                true,
+                false,
+                newRoles,
+                Instant.now(),
+                false,
+                0L);
         identityRepository.save(identity);
 
         LOGGER.info("New identity {} successfully created", identity.getEmail());
@@ -137,4 +146,16 @@ public class IdentityService implements UserDetailsService {
         identityRepository.save(savedIdentity);
     }
 
+    public void resetFailedLoginAttempts(String email) {
+        identityRepository.findFirstByEmailEquals(email).setFailedLoginAttempts(0L);
+    }
+
+    public void increaseFailedLoginAttempts(String email) {
+        Identity identity = identityRepository.findFirstByEmailEquals(email);
+        identity.setFailedLoginAttempts(identity.getFailedLoginAttempts() + 1);
+    }
+
+    public Long getFailedLoginAttempts(String email) {
+        return identityRepository.findFirstByEmailEquals(email).getFailedLoginAttempts();
+    }
 }

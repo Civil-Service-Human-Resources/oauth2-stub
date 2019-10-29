@@ -5,23 +5,22 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.Map;
 
 @Service
 public class LoginAttemptService {
 
-    private Map<String, Integer> loginAttemptCache;
     private final int maxAttempt;
     private final IdentityService identityService;
 
-    public LoginAttemptService(@Value("${account.lockout.maxAttempt}") int maxAttempt, IdentityService identityService, @Qualifier("loginAttemptCache") Map<String, Integer> loginAttemptCache) {
+    public LoginAttemptService(@Value("${account.lockout.maxAttempt}") int maxAttempt, IdentityService identityService) {
         this.maxAttempt = maxAttempt;
         this.identityService = identityService;
-        this.loginAttemptCache = loginAttemptCache;
     }
 
     public void loginSucceeded(String email) {
-        loginAttemptCache.replace(email, 0);
+        identityService.resetFailedLoginAttempts(email);
     }
 
     public void loginFailed(String email) {
@@ -40,11 +39,11 @@ public class LoginAttemptService {
     }
 
     private void incrementAttempts(String email) {
-        loginAttemptCache.merge(email, 1, Integer::sum);
+        identityService.increaseFailedLoginAttempts(email);
     }
 
     private boolean areAttemptsMoreThanAllowedLimit(String email) {
-        return loginAttemptCache.get(email) >= maxAttempt;
+        return identityService.getFailedLoginAttempts(email) >= maxAttempt;
     }
 
     private boolean identityExists(String email) {

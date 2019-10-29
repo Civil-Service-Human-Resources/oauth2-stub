@@ -25,11 +25,6 @@ public class Application {
         return bean;
     }
 
-    @Bean(name = "loginAttemptCache")
-    public Map<String, Integer> loginAttemptCache() {
-        return new HashMap<>();
-    }
-
     @Bean
     public NotificationClient notificationClient(@Value("${govNotify.key}") String key) {
         return new NotificationClient(key);

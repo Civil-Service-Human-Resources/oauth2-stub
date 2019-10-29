@@ -1,71 +1,74 @@
 package uk.gov.cshr.service.security;
 
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.AuthenticationException;
-
-import java.util.HashMap;
-import java.util.Map;
+import org.springframework.test.context.junit4.SpringRunner;
+import uk.gov.cshr.domain.Identity;
+import uk.gov.cshr.repository.IdentityRepository;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.*;
 
+@RunWith(SpringRunner.class)
+@SpringBootTest
 public class LoginAttemptServiceTest {
-    private Map<String, Integer> loginAttemptCache = new HashMap<>();
     private int maxLoginAttempts = 3;
 
-    private IdentityService identityService = mock(IdentityService.class);
+    private IdentityService identityService;
 
-    private LoginAttemptService loginAttemptService =
-            new LoginAttemptService(maxLoginAttempts, identityService, loginAttemptCache);
+    @Mock
+    private IdentityRepository identityRepository;
+
+    private LoginAttemptService loginAttemptService;
+
+    @Before
+    public void setUp(){
+        identityService = new IdentityService("", identityRepository, null, null, null, null);
+        loginAttemptService = new LoginAttemptService(maxLoginAttempts, identityService);
+    }
 
     @Test
     public void loginSucceedSetAttemptsToZero() {
         String email = "test@domain.com";
+        Identity identity = new Identity();
+        identity.setFailedLoginAttempts(3L);
 
-        loginAttemptCache.put(email, 3);
+        when(identityRepository.findFirstByEmailEquals(email)).thenReturn(identity);
 
         loginAttemptService.loginSucceeded(email);
 
-        assertEquals(new Integer(0), loginAttemptCache.get(email));
+
+        assertEquals(new Long(0), identityService.getFailedLoginAttempts(email));
     }
 
-    @Test
+   @Test
     public void loginFailedIncrementsFailedAttempts() {
-        String email = "test@domain.com";
+       String email = "test2@domain.com";
+       Identity identity = new Identity();
+       identity.setFailedLoginAttempts(0L);
 
-        loginAttemptCache.clear();
+       when(identityRepository.findFirstByEmailEquals(email)).thenReturn(identity);
+       when(identityRepository.existsByEmail(email)).thenReturn(true);
 
-        when(identityService.existsByEmail(email)).thenReturn(true);
+       loginAttemptService.loginFailed(email);
 
-        loginAttemptService.loginFailed(email);
-
-        assertEquals(new Integer(1), loginAttemptCache.get(email));
-
-        verify(identityService, times(0)).lockIdentity(email);
-    }
-
-    @Test
-    public void loginFailedDoesNotIncrementCacheIfIdentityDoesNotExist() {
-        String email = "test@domain.com";
-
-        loginAttemptCache.clear();
-
-        when(identityService.existsByEmail(email)).thenReturn(false);
-
-        loginAttemptService.loginFailed(email);
-
-        assertNull(loginAttemptCache.get(email));
+       assertEquals(new Long(1), identityService.getFailedLoginAttempts(email));
     }
 
 
     @Test
     public void loginFailedLocksIdentityWhenMaxAttemptsIsExceeded() {
         String email = "test@domain.com";
+        Identity identity = new Identity();
+        identity.setFailedLoginAttempts(3L);
 
-        loginAttemptCache.put(email, 3);
-
-        when(identityService.existsByEmail(email)).thenReturn(true);
+        when(identityRepository.findFirstByActiveTrueAndEmailEquals(email)).thenReturn(identity);
+        when(identityRepository.findFirstByEmailEquals(email)).thenReturn(identity);
+        when(identityRepository.existsByEmail(email)).thenReturn(true);
 
         try {
             loginAttemptService.loginFailed(email);
@@ -73,7 +76,7 @@ public class LoginAttemptServiceTest {
             assertEquals("User account is locked", e.getMessage());
         }
 
-        verify(identityService).lockIdentity(email);
+        assertEquals(true, identity.isLocked());
     }
 
 }

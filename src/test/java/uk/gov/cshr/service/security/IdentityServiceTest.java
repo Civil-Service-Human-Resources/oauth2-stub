@@ -72,7 +72,7 @@ public class IdentityServiceTest {
 
         final String emailAddress = "test@example.org";
         final String uid = "uid";
-        final Identity identity = new Identity(uid, emailAddress, "password", true, false, emptySet(), Instant.now(), false);
+        final Identity identity = new Identity(uid, emailAddress, "password", true, false, emptySet(), Instant.now(), false, 0L);
 
         when(identityRepository.findFirstByActiveTrueAndEmailEquals(emailAddress))
                 .thenReturn(identity);
