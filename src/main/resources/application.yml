@@ -21,8 +21,8 @@ server:
   servlet:
     session:
       timeout: ${SESSION_TIMEOUT:3600}
-  port: ${PORT:8081}
-  managementPort: ${MGMT_PORT:8085}
+  port: 8080
+  managementPort: 8085
 
 logging:
   pattern:
