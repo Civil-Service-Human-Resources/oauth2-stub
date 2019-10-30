@@ -32,6 +32,7 @@ dependencies {
     compile group: 'com.microsoft.azure', name: 'applicationinsights-logging-logback', version: '2.5.0'
     compile group: 'com.microsoft.azure', name: 'applicationinsights-spring-boot-starter', version: '2.5.0'
 
+    compile group: 'org.springframework.session', name: 'spring-session-data-redis'
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-data-redis'
     
     // https://mvnrepository.com/artifact/org.springframework.data/spring-data-jpa
