@@ -6,7 +6,7 @@ spring:
         enabled: false
   redis:
     host: ${REDIS_HOST:localhost}
-    password: ${REDIS_HOST:redispassword}
+    password: ${REDIS_PASSWORD:redispassword}
     port: ${REDIS_PORT:6379}
   session:
     redis:
