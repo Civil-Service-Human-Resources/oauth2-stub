@@ -4,15 +4,8 @@ spring:
     redis:
       repositories:
         enabled: false
-  redis:
-    host: ${REDIS_HOST:localhost}
-    password: ${REDIS_PASSWORD:redispassword}
-    port: ${REDIS_PORT:6379}
   session:
-    redis:
-      namespace: spring:session
-      flush-mode: on-save
-    store-type: redis
+    store-type: none
   thymeleaf:
     cache: false
   messages:
@@ -28,7 +21,7 @@ server:
   servlet:
     session:
       timeout: ${SESSION_TIMEOUT:3600}
-  port: ${PORT:8080}
+  port: ${PORT:8081}
   managementPort: ${MGMT_PORT:8085}
 
 logging:
@@ -89,3 +82,16 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQL5InnoDBDialect
         enable_lazy_load_no_trans: true
+  data:
+    redis:
+      repositories:
+        enabled: false
+  redis:
+    host: ${REDIS_HOST:localhost}
+    password: ${REDIS_PASSWORD:redispassword}
+    port: ${REDIS_PORT:6379}
+  session:
+    redis:
+      namespace: spring:session
+      flush-mode: on-save
+    store-type: redis
