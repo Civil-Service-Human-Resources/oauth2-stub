@@ -1,0 +1,65 @@
+
+spring:
+  data:
+    redis:
+      repositories:
+        enabled: false
+  session:
+    store-type: none
+  thymeleaf:
+    cache: false
+  messages:
+    basename: i18n/messages
+  flyway:
+    locations: classpath:db/migration/{vendor}
+  jpa:
+    hibernate:
+      ddl-auto: none
+
+
+server:
+  port: ${PORT:8081}
+  managementPort: ${MGMT_PORT:8085}
+
+logging:
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  level:
+    root: ${ROOT_LOGGING_LEVEL:INFO}
+    org.apache.http: WARN
+
+accessToken:
+  validityInSeconds: ${ACCESS_TOKEN_VALIDITY:86400}
+
+govNotify:
+  key: ${GOV_NOTIFY_API_KEY:key}
+  template:
+    invite: ${GOV_NOTIFY_INVITE_TEMPLATE_ID:7ef048a3-5c82-40fd-be4c-a238ce328fea}
+    reset: ${GOV_NOTIFY_RESET_TEMPLATE_ID:d29b056c-349b-42fc-a453-920cfb58a906}
+    resetSuccessful: ${GOV_NOTIFY_RESET_SUCCESSFUL_TEMPLATE_ID:994fb6d4-a57a-49f2-baee-b0c6f6060b63}
+    passwordUpdate: ${GOV_NOTIFY_PASSWORD_UPDATE_TEMPLATE_ID:13c2b9ac-4ad0-449f-b43b-57c04fc88b1d}
+    emailUpdate: ${GOV_NOTIFY_EMAIL_UPDATE_TEMPLATE_ID:f4c2ece1-5159-4736-92cb-4fe0df719308}
+
+invite:
+  url: ${INVITE_SIGNUP_URL:http://localhost:8080/signup/%s}
+  validityInSeconds: ${INVITE_VALIDITY:259200}
+  whitelist:
+    domains: ${WHITELISTED_DOMAINS:kainos.com, domain.com}
+
+reset:
+  url: ${RESET_URL:http://localhost:8080/reset/%s}
+  validityInSeconds: ${RESET_VALIDITY:86400}
+
+emailUpdate:
+  urlFormat: "${lpg.identity}/account/email/verify/%s?redirect=true"
+
+accountValidation:
+  passwordPattern: ${PASSWORD_PATTERN:(?!([a-zA-Z]*|[a-z\d]*|[^A-Z\d]*|[A-Z\d]*|[^a-z\d]*|[^a-zA-Z]*)$).{8,}}
+
+account:
+  lockout:
+    maxAttempt: 5
+
+lpg:
+  uiUrl: ${LPG_UI_URL:http://localhost:3001}
+  identity: ${OAUTH_SERVICE_URL:http://localhost:8080}
