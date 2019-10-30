@@ -11,6 +11,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.provider.code.AuthorizationCodeServices;
 import org.springframework.security.oauth2.provider.code.JdbcAuthorizationCodeServices;
+import org.springframework.session.data.redis.config.ConfigureRedisAction;
 
 import javax.sql.DataSource;
 
@@ -41,6 +42,11 @@ public class ServerConfig {
             tomcat.addAdditionalTomcatConnectors(additionalConnectors);
         }
         return tomcat;
+    }
+
+    @Bean
+    public static ConfigureRedisAction configureRedisAction() {
+        return ConfigureRedisAction.NO_OP;
     }
 
     private Connector[] additionalConnector() {

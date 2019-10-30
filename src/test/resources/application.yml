@@ -18,11 +18,8 @@ spring:
 
 
 server:
-  servlet:
-    session:
-      timeout: ${SESSION_TIMEOUT:3600}
-  port: 8080
-  managementPort: 8085
+  port: ${PORT:8081}
+  managementPort: ${MGMT_PORT:8085}
 
 logging:
   pattern:
@@ -66,32 +63,3 @@ account:
 lpg:
   uiUrl: ${LPG_UI_URL:http://localhost:3001}
   identity: ${OAUTH_SERVICE_URL:http://localhost:8080}
-
----
-
-spring:
-  profiles: production
-  thymeleaf:
-    cache: true
-  datasource:
-    url: ${DATASOURCE:jdbc:mysql://localhost:3306/oauth2?user=root&password=password&useSSL=false}
-    platform: mysql
-    driver-class-name: com.mysql.cj.jdbc.Driver
-  jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQL5InnoDBDialect
-        enable_lazy_load_no_trans: true
-  data:
-    redis:
-      repositories:
-        enabled: false
-  redis:
-    host: ${REDIS_HOST:localhost}
-    password: ${REDIS_PASSWORD:redispassword}
-    port: ${REDIS_PORT:6379}
-  session:
-    redis:
-      namespace: spring:session
-      flush-mode: on-save
-    store-type: redis
