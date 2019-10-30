@@ -4,8 +4,11 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.domain.InviteStatus;
+import uk.gov.cshr.domain.Role;
 
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 /*
     Class to allow for testing on various sign up flows, such as Agency Self Sign Up.
@@ -30,6 +33,15 @@ public class InviteRepositoryMockImpl implements InviteRepository {
 
     @Override
     public Invite findByCode(String code) {
+        // ensure an invite with the right domain and email address is returned for the mocks.
+        // hack to get this to work is to use a certain code in the url, which is then passed to this method.
+        String emailAddress = workOutEmailAddressFromCode(code);
+        // update the invite, so next bit of code works
+        mockInvite.setCode(code);
+        mockInvite.setForEmail(emailAddress);
+        Set<Role> roles = new HashSet<Role>();
+        roles.add(new Role());
+        mockInvite.setForRoles(roles);
         return mockInvite;
     }
 
@@ -40,7 +52,7 @@ public class InviteRepositoryMockImpl implements InviteRepository {
 
     @Override
     public boolean existsByForEmailAndStatus(String email, InviteStatus status) {
-        return true;
+        return false;
     }
 
     @Override
@@ -103,4 +115,25 @@ public class InviteRepositoryMockImpl implements InviteRepository {
         mockInvite.setStatus(InviteStatus.PENDING);
         return mockInvite;
     }
+
+    private String workOutEmailAddressFromCode(String code) {
+        String result;
+        // note code must be 16 in length
+        switch (code) {
+            case "bridgetatpeopl16":
+                result = "bridget@peoplemakeglasgow.scot";
+                break;
+            case "bridgetatnhsgl16":
+                result = "bridget@nhsglasgow.gov.uk";
+                break;
+            case "bridgetatglasg16":
+                result = "bridget@glasgownhs.gov.uk";
+                break;
+            default:
+                result = null;//"unknown";
+                break;
+        }
+        return result;
+    }
+
 }
