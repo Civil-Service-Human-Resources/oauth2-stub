@@ -142,4 +142,71 @@ public class Identity implements Serializable {
                 ", locked=" + locked +
                 '}';
     }
+
+    public static class Builder {
+        private Long id;
+        private String uid;
+        private String email;
+        private String password;
+        private Long failedLoginAttempts;
+        private boolean active;
+        private boolean locked;
+        private Set<Role> roles;
+        private Instant lastLoggedIn;
+        private boolean deletionNotificationSent;
+
+        public Builder setId(Long id) {
+            this.id = id;
+            return this;
+        }
+
+        public Builder setUid(String uid) {
+            this.uid = uid;
+            return this;
+        }
+
+        public Builder setEmail(String email) {
+            this.email = email;
+            return this;
+        }
+
+        public Builder setPassword(String password) {
+            this.password = password;
+            return this;
+        }
+
+        public Builder setFailedLoginAttempts(Long failedLoginAttempts) {
+            this.failedLoginAttempts = failedLoginAttempts;
+            return this;
+        }
+
+        public Builder setActive(boolean active) {
+            this.active = active;
+            return this;
+        }
+
+        public Builder setLocked(boolean locked) {
+            this.locked = locked;
+            return this;
+        }
+
+        public Builder setRoles(Set<Role> roles) {
+            this.roles = roles;
+            return this;
+        }
+
+        public Builder setLastLoggedIn(Instant lastLoggedIn) {
+            this.lastLoggedIn = lastLoggedIn;
+            return this;
+        }
+
+        public Builder setDeletionNotificationSent(boolean deletionNotificationSent) {
+            this.deletionNotificationSent = deletionNotificationSent;
+            return this;
+        }
+
+        public Identity build() {
+            return new Identity(uid, email, password, active, locked, roles, lastLoggedIn, deletionNotificationSent, failedLoginAttempts);
+        }
+    }
 }

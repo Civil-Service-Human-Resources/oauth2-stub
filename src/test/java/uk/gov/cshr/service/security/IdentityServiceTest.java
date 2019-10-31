@@ -8,9 +8,11 @@ import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import uk.gov.cshr.data.provider.IdentityMother;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.domain.Role;
@@ -55,6 +57,8 @@ public class IdentityServiceTest {
     @Mock
     private NotifyService notifyService;
 
+    IdentityMother identityMother = new IdentityMother();
+
     @Before
     public void setUp() throws Exception {
         identityService = new IdentityService(
@@ -72,7 +76,7 @@ public class IdentityServiceTest {
 
         final String emailAddress = "test@example.org";
         final String uid = "uid";
-        final Identity identity = new Identity(uid, emailAddress, "password", true, false, emptySet(), Instant.now(), false, 0L);
+        final Identity identity = identityMother.provideIdentity(uid, emailAddress);
 
         when(identityRepository.findFirstByActiveTrueAndEmailEquals(emailAddress))
                 .thenReturn(identity);

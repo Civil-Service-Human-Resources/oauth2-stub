@@ -11,6 +11,7 @@ import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.repository.IdentityRepository;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
@@ -72,6 +73,7 @@ public class LoginAttemptServiceTest {
 
         try {
             loginAttemptService.loginFailed(email);
+            fail("AuthenticationException was not thrown");
         } catch (AuthenticationException e) {
             assertEquals("User account is locked", e.getMessage());
         }

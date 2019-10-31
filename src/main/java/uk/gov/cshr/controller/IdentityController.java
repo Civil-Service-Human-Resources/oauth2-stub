@@ -108,7 +108,7 @@ public class IdentityController {
             } else {
                 identity.setLocked(false);
             }
-            
+
             if (!identity.isLocked()) {
                 identity.setFailedLoginAttempts(0L);
             }

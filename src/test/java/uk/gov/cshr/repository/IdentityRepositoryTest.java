@@ -37,7 +37,17 @@ public class IdentityRepositoryTest {
     }
 
     private Identity createIdentity() {
-        Identity identity = new Identity(UID, EMAIL, PASSWORD, true, false, null, Instant.now(), false, 0L);
+        Identity identity = new Identity.Builder()
+            .setUid(UID)
+            .setEmail(EMAIL)
+            .setPassword(PASSWORD)
+            .setActive(true)
+            .setLocked(false)
+            .setRoles(null)
+            .setLastLoggedIn(Instant.now())
+            .setDeletionNotificationSent(false)
+            .setFailedLoginAttempts(0L)
+            .build();
         return identity;
     }
 }

@@ -14,6 +14,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import uk.gov.cshr.controller.reset.ResetController;
+import uk.gov.cshr.data.provider.IdentityMother;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Reset;
 import uk.gov.cshr.domain.ResetStatus;
@@ -54,6 +55,9 @@ public class ResetControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private IdentityMother identityMother;
 
     @InjectMocks
     private ResetController resetController;
@@ -139,7 +143,7 @@ public class ResetControllerTest {
         when(resetService.isResetExpired(reset)).thenReturn(false);
         when(resetService.isResetPending(reset)).thenReturn(true);
 
-        Identity identity = new Identity(UID, EMAIL, PASSWORD, ACTIVE, LOCKED, ROLES, Instant.now(), false, 0L);
+        Identity identity = identityMother.provideIdentity(UID, EMAIL, PASSWORD);
         when(identityRepository.findFirstByActiveTrueAndEmailEquals(EMAIL)).thenReturn(identity);
 
         this.mockMvc.perform(get("/reset/" + CODE))

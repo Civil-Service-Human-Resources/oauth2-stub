@@ -13,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import uk.gov.cshr.data.provider.IdentityMother;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.repository.IdentityRepository;
@@ -45,12 +46,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class IdentityControllerTest {
 
     private final Boolean ACTIVE = true;
-    private final Boolean LOCKED = false;
     private final String DESCRIPTION = "User";
     private final String EMAIL = "email";
     private final String NAME = "User";
     private final String PASSWORD = "password";
-    private final Set<Role> ROLES = new HashSet();
     private final String UID = "uid";
     private final String USERNAME = "test";
     private final String[] roleID = {"1"};
@@ -59,6 +58,9 @@ public class IdentityControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    IdentityMother identityMother;
 
     @Mock
     private RoleRepository roleRepository;
@@ -85,7 +87,7 @@ public class IdentityControllerTest {
 
         ArrayList<Identity> identities = new ArrayList<>();
 
-        identities.add(new Identity(UID, EMAIL, PASSWORD, ACTIVE, LOCKED, ROLES, Instant.now(), false, 0L));
+        identities.add(identityMother.provideIdentity(UID, EMAIL, PASSWORD));
         ArrayList<Role> roles = new ArrayList<>();
 
         roles.add(new Role(NAME, DESCRIPTION));
@@ -113,7 +115,7 @@ public class IdentityControllerTest {
     @Test
     public void shouldLoadIdentityToEdit() throws Exception {
 
-        Identity identity = new Identity(UID, EMAIL, PASSWORD, ACTIVE, LOCKED, ROLES, Instant.now(), false, 0L);
+        Identity identity = identityMother.provideIdentity(UID, EMAIL, PASSWORD);
         when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
         this.mockMvc.perform(get("/management/identities/update/uid"))
                 .andExpect(model().attribute("identity", hasProperty("uid", is(UID))));
@@ -122,7 +124,7 @@ public class IdentityControllerTest {
     @Test
     public void shouldSaveEditedIdentity() throws Exception {
 
-        Identity identity = new Identity(UID, EMAIL, PASSWORD, ACTIVE, LOCKED, ROLES, Instant.now(), false, 0L);
+        Identity identity = identityMother.provideIdentity(UID, EMAIL, PASSWORD);
         when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
 
 
@@ -146,7 +148,7 @@ public class IdentityControllerTest {
     @Test
     public void shouldInsertRolesByIDForEditedIdentity() throws Exception {
 
-        Identity identity = new Identity(UID, EMAIL, PASSWORD, ACTIVE, LOCKED, ROLES, Instant.now(), false, 0L);
+        Identity identity = identityMother.provideIdentity(UID, EMAIL, PASSWORD);
         when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
 
 
