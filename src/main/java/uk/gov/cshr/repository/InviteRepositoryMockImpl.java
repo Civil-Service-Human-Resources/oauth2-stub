@@ -6,9 +6,7 @@ import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.domain.InviteStatus;
 import uk.gov.cshr.domain.Role;
 
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /*
     Class to allow for testing on various sign up flows, such as Agency Self Sign Up.
@@ -21,9 +19,21 @@ public class InviteRepositoryMockImpl implements InviteRepository {
 
     private Invite mockInvite;
 
+    private Map<String, String> mockedUsers;
+
     public InviteRepositoryMockImpl() {
+        // build mocked user map
+        mockedUsers = new HashMap<String, String>();
+        populateMockedUsers();
         // save a pending invite
         mockInvite = buildMockInvite();
+    }
+
+    private void populateMockedUsers() {
+        // note code must be 16 in length, email can be anything
+        mockedUsers.put("joebloggsatpeo16", "joebloggs@peoplemakeglasgow.scot");
+        mockedUsers.put("joebloggsatnhs16", "joebloggs@nhsglasgow.gov.uk");
+        mockedUsers.put("joebloggsatgla16", "joebloggs@glasgownhs.gov.uk");
     }
 
     @Override
@@ -117,23 +127,7 @@ public class InviteRepositoryMockImpl implements InviteRepository {
     }
 
     private String workOutEmailAddressFromCode(String code) {
-        String result;
-        // note code must be 16 in length
-        switch (code) {
-            case "bridgetatpeopl16":
-                result = "bridget@peoplemakeglasgow.scot";
-                break;
-            case "bridgetatnhsgl16":
-                result = "bridget@nhsglasgow.gov.uk";
-                break;
-            case "bridgetatglasg16":
-                result = "bridget@glasgownhs.gov.uk";
-                break;
-            default:
-                result = null;//"unknown";
-                break;
-        }
-        return result;
+        return mockedUsers.get(code);
     }
 
 }
