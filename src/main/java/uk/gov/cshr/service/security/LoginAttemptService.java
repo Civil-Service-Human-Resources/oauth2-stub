@@ -1,12 +1,8 @@
 package uk.gov.cshr.service.security;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
-
-import javax.transaction.Transactional;
-import java.util.Map;
 
 @Service
 public class LoginAttemptService {

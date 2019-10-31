@@ -48,10 +48,7 @@ public class ResetControllerTest {
     private static final String EMAIL = "test@example.com";
     private static final String CODE = "abc123";
     private static final String UID = "uid123";
-    private static final Boolean ACTIVE = true;
-    private static final Boolean LOCKED = false;
     private static final String PASSWORD = "password";
-    private static final Set<Role> ROLES = new HashSet();
 
     @Autowired
     private MockMvc mockMvc;
@@ -70,12 +67,6 @@ public class ResetControllerTest {
 
     @Mock
     private ResetService resetService;
-
-    @Mock
-    private PasswordEncoder passwordEncoder;
-
-    @Mock
-    private NotifyService notifyService;
 
     @Before
     public void setup() {

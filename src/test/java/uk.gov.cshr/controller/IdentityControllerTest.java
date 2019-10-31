@@ -22,11 +22,8 @@ import uk.gov.cshr.service.AuthenticationDetails;
 import uk.gov.cshr.service.security.IdentityService;
 
 import javax.transaction.Transactional;
-import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
 
 import static org.junit.Assert.assertTrue;
 import static org.hamcrest.CoreMatchers.equalTo;
