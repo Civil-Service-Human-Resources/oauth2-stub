@@ -13,6 +13,10 @@ import uk.gov.cshr.domain.AgencyToken;
 import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.domain.InviteStatus;
 import uk.gov.cshr.domain.OrganisationalUnitDto;
+import uk.gov.cshr.exception.BadRequestException;
+import uk.gov.cshr.exception.NotEnoughSpaceAvailableException;
+import uk.gov.cshr.exception.ResourceNotFoundException;
+import uk.gov.cshr.exception.UnableToAllocateAgencyTokenException;
 import uk.gov.cshr.repository.InviteRepository;
 import uk.gov.cshr.service.CsrsService;
 import uk.gov.cshr.service.InviteService;
@@ -21,6 +25,7 @@ import uk.gov.service.notify.NotificationClientException;
 
 import javax.transaction.Transactional;
 import javax.validation.Valid;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/signup")
@@ -200,26 +205,34 @@ public class SignupController {
             final String emailAddress = invite.getForEmail();
             final String domain = identityService.getDomainFromEmailAddress(emailAddress);
 
-            return csrsService.getAgencyTokenForDomainTokenOrganisation(domain, form.getToken(), form.getOrganisation())
-                    .map(agencyToken -> {
-                        LOGGER.info("User submitted Enter Token form with org = {}, token = {}, email = {}", form.getOrganisation(), form.getToken(), emailAddress);
+            try {
+                csrsService.updateSpacesAvailable(domain, form.getToken(), code, false);
+                LOGGER.info("User submitted Enter Token form with org = {}, token = {}, email = {}", form.getOrganisation(), form.getToken(), emailAddress);
 
-                        invite.setAuthorisedInvite(true);
-                        inviteRepository.save(invite);
+                invite.setAuthorisedInvite(true);
+                inviteRepository.save(invite);
 
-                        model.addAttribute("invite", invite);
+                model.addAttribute("invite", invite);
 
-                        redirectAttributes.addFlashAttribute("organisation", form.getOrganisation());
-                        redirectAttributes.addFlashAttribute("token", form.getToken());
+                redirectAttributes.addFlashAttribute("organisation", form.getOrganisation());
+                redirectAttributes.addFlashAttribute("token", form.getToken());
 
-                        return "redirect:/signup/" + code;
-                    }).orElseGet(() -> {
-                        redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Incorrect token for this organisation");
-                        return "redirect:/signup/enterToken/" + code;
-                    });
-        } else {
-            return "redirect:/login";
+                return "redirect:/signup/" + code;
+
+            } catch (ResourceNotFoundException e) {
+                redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Incorrect token for this organisation");
+                return "redirect:/signup/enterToken/" + code;
+            } catch (NotEnoughSpaceAvailableException e) {
+                redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Not enough spaces available on this token");
+                return "redirect:/signup/enterToken/" + code;
+            } catch (BadRequestException e) {
+                return "redirect:/login";
+            } catch (UnableToAllocateAgencyTokenException e) {
+                return "redirect:/login";
+            }
         }
+
+        return "redirect:/login";
     }
 
     @PutMapping(path = "/updateToken/{code}")
