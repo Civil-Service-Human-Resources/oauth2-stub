@@ -2,7 +2,9 @@ package uk.gov.cshr.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -56,6 +58,27 @@ public class CsrsService {
         }
     }
 
+    public void updateSpacesAvailable(String domain, String token, String organisation, boolean removeUser) {
+        try {
+             updateCsrs(domain, token, organisation, removeUser);
+        } catch (HttpClientErrorException e) {
+            log.warn("*****httpClientException");
+            if (HttpStatus.NOT_FOUND.equals(e.getStatusCode())) {
+                throw new ResourceNotFoundException();
+            } else if (HttpStatus.CONFLICT.equals(e.getStatusCode())) {
+                throw new NotEnoughSpaceAvailableException("Not enough spaces available for AgencyToken " + token);
+            } else {
+                throw new BadRequestException();
+            }
+        } catch (HttpServerErrorException e) {
+            log.warn("*****httpServerException");
+            throw new UnableToAllocateAgencyTokenException(String.format("Error: Unable to update AgencyToken %s ", token));
+        } catch (Exception e) {
+            log.warn("*****Exception");
+            throw new UnableToAllocateAgencyTokenException(String.format("Unexpected Error: Unable to update AgencyToken %s ", token));
+        }
+    }
+
     public OrganisationalUnitDto[] getOrganisationalUnitsFormatted() {
         OrganisationalUnitDto[] organisationalUnitDtos;
         try {
@@ -66,31 +89,9 @@ public class CsrsService {
         return organisationalUnitDtos;
     }
 
-    public void updateSpacesAvailable(String domain, String token, String organisation, boolean removeUser) {
-        // TODO - WIRE IN THIS
-        String agencyToken = "TODO";
-        try {
-            AgencyTokenDTO requestDTO = buildAgencyTokenDTO(domain, token, organisation, removeUser);
-            restTemplate.put(updateSpacesAvailableUrl, requestDTO);
-        } catch (HttpClientErrorException e) {
-            log.warn("*****httpClientException");
-            if (HttpStatus.NOT_FOUND.equals(e.getStatusCode())) {
-                throw new ResourceNotFoundException();
-            } else if (HttpStatus.CONFLICT.equals(e.getStatusCode())) {
-                throw new NotEnoughSpaceAvailableException("Not enough spaces available for AgencyToken " + agencyToken);
-            } else {
-                throw new BadRequestException();
-            }
-        } catch (HttpServerErrorException e) {
-            log.warn("*****httpServerException");
-            throw new UnableToAllocateAgencyTokenException(String.format("Error: Unable to update AgencyToken %s ", agencyToken));
-        } catch (Exception e) {
-            log.warn("*****Exception");
-            throw new UnableToAllocateAgencyTokenException(String.format("Unexpected Error: Unable to update AgencyToken %s ", agencyToken));
-        }
-
-        // NO CONTENT or 2**
-        log.info("all good");
+    private void updateCsrs(String domain, String token, String organisation, boolean removeUser) {
+        AgencyTokenDTO requestDTO = buildAgencyTokenDTO(domain, token, organisation, removeUser);
+        restTemplate.put(updateSpacesAvailableUrl, requestDTO);
     }
 
     private AgencyTokenDTO buildAgencyTokenDTO(String domain, String token, String organisation, boolean removeUser) {

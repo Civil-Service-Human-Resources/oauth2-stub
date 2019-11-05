@@ -438,23 +438,24 @@ public class SignupControllerTest {
         String email = "test@example.com";
         String domain = "example.com";
 
+        String password = "Strongpassword123";
+        String confirmPassword = "Strongpassword123";
+
         Invite invite = new Invite();
         invite.setForEmail(email);
-        invite.setAuthorisedInvite(true);
-
-        Optional<AgencyToken> emptyOptional = Optional.empty();
+        invite.setAuthorisedInvite(false);
 
         when(inviteService.isInviteValid(code)).thenReturn(true);
         when(inviteRepository.findByCode(code)).thenReturn(invite);
         when(identityService.getDomainFromEmailAddress(email)).thenReturn(domain);
-        when(csrsService.getAgencyTokenForDomainTokenOrganisation(domain, token, organisation)).thenReturn(emptyOptional);
+        when(signupFormValidator.supports(any())).thenReturn(true);
+
 
         mockMvc.perform(
-                post("/signup/enterToken/" + code)
-                        .with(CsrfRequestPostProcessor.csrf())
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-                        .param("organisation", organisation)
-                        .param("token", token))
+                post("/signup/" + code)
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("password", password)
+                        .param("confirmPassword", confirmPassword))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/signup/enterToken/" + code));
     }
