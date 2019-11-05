@@ -6,4 +6,5 @@ import lombok.Data;
 public class EnterTokenForm {
     private String organisation;
     private String token;
+    private boolean removeUser;
 }
