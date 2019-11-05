@@ -19,6 +19,8 @@
                     <p class="lede">Your organisation requires you to supply a token in order to create an account.</p>
 
                     <form method="post" class="push-bottom" th:object="${enterTokenForm}">
+                        <input type="hidden" id="removeUser" name="removeUser" value="false">
+
                         <div class="form-group" th:classappend="${#fields.hasErrors('organisation')} ? form-group-error : ''">
                             <label th:for="organisation" class="govuk-label">Organisation</label>
                             <span id="organisation-hint" class="form-hint">Start typing to find your organisation name</span>

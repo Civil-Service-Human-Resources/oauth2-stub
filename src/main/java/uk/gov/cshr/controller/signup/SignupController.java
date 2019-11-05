@@ -194,6 +194,8 @@ public class SignupController {
 
         LOGGER.info("User attempting token-based sign up");
 
+        System.out.println(form);
+
         if (bindingResult.hasErrors()) {
             model.addAttribute("enterTokenForm", form);
             return "enterToken";
@@ -206,7 +208,7 @@ public class SignupController {
             final String domain = identityService.getDomainFromEmailAddress(emailAddress);
 
             try {
-                csrsService.updateSpacesAvailable(domain, form.getToken(), code, false);
+                csrsService.updateSpacesAvailable(domain, form.getToken(), form.getOrganisation(), form.isRemoveUser());
                 LOGGER.info("User submitted Enter Token form with org = {}, token = {}, email = {}", form.getOrganisation(), form.getToken(), emailAddress);
 
                 invite.setAuthorisedInvite(true);
