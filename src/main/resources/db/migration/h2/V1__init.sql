@@ -17,6 +17,7 @@ CREATE TABLE `identity` (
   `last_logged_in` datetime NOT NULL,
   `email` varchar(150) NOT NULL UNIQUE,
   `password` varchar(100) NOT NULL,
+  `email_recently_updated` bit(1) DEFAULT FALSE,
   PRIMARY KEY (`id`)
 );
 

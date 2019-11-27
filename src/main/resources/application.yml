@@ -69,6 +69,7 @@ account:
 
 lpg:
   uiUrl: ${LPG_UI_URL:http://localhost:3001}
+  changeOrgUrl: "${lpg.uiUrl}/profile/org/update"
   identity: ${OAUTH_SERVICE_URL:http://localhost:8080}
 
 registry:

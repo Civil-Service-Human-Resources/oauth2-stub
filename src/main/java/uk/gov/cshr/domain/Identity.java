@@ -38,7 +38,6 @@ public class Identity implements Serializable {
 
     private boolean deletionNotificationSent;
 
-    @Column
     private Boolean emailRecentlyUpdated;
 
     public Identity() {

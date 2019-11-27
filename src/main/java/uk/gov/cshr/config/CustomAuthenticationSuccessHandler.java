@@ -3,13 +3,12 @@ package uk.gov.cshr.config;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import uk.gov.cshr.domain.Identity;
+import uk.gov.cshr.service.security.IdentityDetails;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -22,6 +21,9 @@ public class CustomAuthenticationSuccessHandler
 
     @Value("${lpg.uiUrl}")
     private String lpgUiUrl;
+
+    @Value("${lpg.changeOrgUrl}")
+    private String lpgChangeOrgUrl;
 
     private RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
 
@@ -50,41 +52,15 @@ public class CustomAuthenticationSuccessHandler
     }
 
     protected String determineTargetUrl(Authentication authentication) {
-
         String targetURL = lpgUiUrl;
-
-        boolean isEmailRecentlyUpdatedFlow = false;
-
-      //  UserDetails userDetails = (UserDetails) authentication.getDetails();
-
-        Identity identity = (Identity) authentication.getDetails();
-
-        return targetURL;
-       // userDetails.
-    /*    boolean isUser = false;
-        boolean isAdmin = false;
-        Collection<? extends GrantedAuthority> authorities
-                = authentication.getAuthorities();
-        for (GrantedAuthority grantedAuthority : authorities) {
-            if (grantedAuthority.getAuthority().equals("ROLE_USER")) {
-                isUser = true;
-                break;
-            } else if (grantedAuthority.getAuthority().equals("ROLE_ADMIN")) {
-                isAdmin = true;
-                break;
-            }
+        IdentityDetails identityDetails = (IdentityDetails) authentication.getPrincipal();
+        Identity identity = identityDetails.getIdentity();
+        if(identity.isEmailRecentlyUpdated()) {
+            log.debug("redirecting to the update org page");
+            targetURL = lpgChangeOrgUrl;
         }
 
-        if (isUser) {
-            return "/homepage.html";
-        } else if (isAdmin) {
-            return "/console.html";
-        } else {
-            throw new IllegalStateException();
-        }*/
-       // return "login";
-        //redirectStrategy.sendRedirect(request, response, targetUrl);
-        //return targetURL;
+        return targetURL;
     }
 
     protected void clearAuthenticationAttributes(HttpServletRequest request) {
