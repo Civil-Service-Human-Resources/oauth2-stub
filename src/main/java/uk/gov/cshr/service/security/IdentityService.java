@@ -87,7 +87,7 @@ public class IdentityService implements UserDetailsService {
         Invite invite = inviteService.findByCode(code);
 
         Set<Role> newRoles = new HashSet<>(invite.getForRoles());
-        Identity identity = new Identity(UUID.randomUUID().toString(), invite.getForEmail(), passwordEncoder.encode(password), true, false, newRoles, Instant.now(), false);
+        Identity identity = new Identity(UUID.randomUUID().toString(), invite.getForEmail(), passwordEncoder.encode(password), true, false, newRoles, Instant.now(), false, false);
         identityRepository.save(identity);
 
         LOGGER.info("New identity {} successfully created", identity.getEmail());
@@ -138,6 +138,7 @@ public class IdentityService implements UserDetailsService {
                 .orElseThrow(() -> new IdentityNotFoundException("No such identity: " + identity.getId()));
 
         savedIdentity.setEmail(email);
+        savedIdentity.setEmailRecentlyUpdated(true);
 
         identityRepository.save(savedIdentity);
     }
