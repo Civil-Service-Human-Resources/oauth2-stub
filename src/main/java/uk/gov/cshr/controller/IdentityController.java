@@ -3,6 +3,8 @@ package uk.gov.cshr.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -71,7 +73,7 @@ public class IdentityController {
     }
 
     @PostMapping("/identities/update")
-    public String identityUpdate(@RequestParam(value = "locked", required = false) Boolean locked, @RequestParam(value = "active", required = false) Boolean active, @RequestParam(value = "roleId", required = false) ArrayList<String> roleId, @RequestParam("uid") String uid) {
+    public String identityUpdate(@RequestParam(value = "emailRecentlyUpdated", required = false) Boolean emailRecentlyUpdated, @RequestParam(value = "locked", required = false) Boolean locked, @RequestParam(value = "active", required = false) Boolean active, @RequestParam(value = "roleId", required = false) ArrayList<String> roleId, @RequestParam("uid") String uid) {
 
         // get identity to edit
         Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
@@ -109,6 +111,12 @@ public class IdentityController {
                 identity.setLocked(false);
             }
 
+            if(emailRecentlyUpdated != null) {
+                identity.setEmailRecentlyUpdated(emailRecentlyUpdated);
+            } else {
+                identity.setEmailRecentlyUpdated(false);
+            }
+
             identityRepository.save(identity);
 
             LOGGER.info("{} updated new role {}", authenticationDetails.getCurrentUsername(), identity);
@@ -118,6 +126,31 @@ public class IdentityController {
         }
 
         return "redirect:/management/identities";
+    }
+
+    @PostMapping("/identities/update/{uid}/emailSuccessfullyUpdated")
+    public ResponseEntity identityUpdate(@PathVariable("uid") String uid) {
+
+        try {
+
+            LOGGER.info("{} resetting email recently updated field to be false for identity with uid {}", authenticationDetails.getCurrentUsername(), uid);
+
+            Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
+
+            if (optionalIdentity.isPresent()) {
+                Identity existingIdentity = optionalIdentity.get();
+                existingIdentity.setEmailRecentlyUpdated(false);
+                identityRepository.save(existingIdentity);
+                return ResponseEntity.noContent().build();
+            } else {
+                LOGGER.info("No identity found for uid {}", uid);
+                return ResponseEntity.notFound().build();
+            }
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
     }
 
 }

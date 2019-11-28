@@ -56,7 +56,7 @@ public class CustomAuthenticationSuccessHandler
         IdentityDetails identityDetails = (IdentityDetails) authentication.getPrincipal();
         Identity identity = identityDetails.getIdentity();
         if(identity.isEmailRecentlyUpdated()) {
-            log.debug("redirecting to the update org page");
+            log.debug("users email has recently been updated, target url will be the update org page");
             targetURL = lpgChangeOrgUrl;
         }
 
