@@ -12,6 +12,8 @@ import org.springframework.security.oauth2.provider.approval.TokenApprovalStore;
 import org.springframework.security.oauth2.provider.approval.TokenStoreUserApprovalHandler;
 import org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.web.DefaultRedirectStrategy;
+import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import uk.gov.cshr.service.security.IdentityService;
 import uk.gov.cshr.service.security.LocalClientDetailsService;
@@ -56,5 +58,10 @@ public class SecurityConfig {
     @Bean
     public GrantedAuthorityDefaults grantedAuthorityDefaults() {
         return new GrantedAuthorityDefaults("");
+    }
+
+    @Bean
+    public RedirectStrategy redirectStrategy(){
+        return new DefaultRedirectStrategy();
     }
 }
