@@ -9,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.dto.IdentityDTO;
@@ -27,6 +28,8 @@ import java.util.Set;
 public class IdentityController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IdentityController.class);
+
+    private static final String STATUS_ATTRIBUTE = "status";
 
     @Autowired
     private IdentityRepository identityRepository;
@@ -151,6 +154,13 @@ public class IdentityController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
+    }
+
+    @GetMapping("/identities/{domain}/notValid")
+    public String notAValidEmailDomain(@PathVariable("domain") String domain, RedirectAttributes redirectAttributes) {
+        LOGGER.info("{} is an invalid domain", domain);
+        redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Your organisation is unable to use this service. Please contact your line manager.");
+        return "redirect:/signup/request";
     }
 
 }

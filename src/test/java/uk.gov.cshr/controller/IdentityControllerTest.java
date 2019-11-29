@@ -239,4 +239,13 @@ public class IdentityControllerTest {
                 .andExpect(status().isInternalServerError());
     }
 
+    @Test
+    public void givenAnInvalidEmailDomain_whenNotAValidEmailDomain_thenShouldRedirectToSignInPage() throws Exception {
+
+        this.mockMvc.perform(get("/management/identities/someone@notanalloweddomain.com/notValid"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/signup/request"))
+                .andExpect(flash().attribute("status","Your organisation is unable to use this service. Please contact your line manager."));
+    }
+
 }

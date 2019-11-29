@@ -17,6 +17,7 @@ import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.test.context.junit4.SpringRunner;
+import uk.gov.cshr.service.AgencyTokenService;
 import uk.gov.cshr.service.security.IdentityDetails;
 
 import javax.servlet.ServletException;
@@ -24,10 +25,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {SpringSecurityTestConfig.class})
@@ -39,18 +38,27 @@ public class CustomAuthenticationSuccessHandlerTest {
     @Value("${lpg.changeOrgUrl}")
     private String lpgChangeOrgUrl;
 
+    @Value("${lpg.enterTokenUrl}")
+    private String lpgEnterTokenUrl;
+
+    @Value("${emailUpdate.invalidDomainUrl}")
+    private String invalidDomainUrl;
+
     @Autowired
     private AuthenticationSuccessHandler classUnderTest;
-
-    private MockHttpServletRequest request;
-
-    private MockHttpServletResponse response;
 
     @Autowired
     private UserDetailsService userDetailsService;
 
     @MockBean
     private RedirectStrategy redirectStrategy;
+
+    @MockBean
+    private AgencyTokenService agencyTokenService;
+
+    private MockHttpServletRequest request;
+
+    private MockHttpServletResponse response;
 
     @Before
     public void setUp() {
@@ -63,8 +71,13 @@ public class CustomAuthenticationSuccessHandlerTest {
             value = "uid",
             userDetailsServiceBeanName = "userDetailsService")
     public void givenNormalUser_whenOnAuthenticationSuccess_thenRedirectsToLPGUIHomePage() throws IOException, ServletException {
+        // given
         prepareSecurityContext("uid");
+
+        // when
         classUnderTest.onAuthenticationSuccess(request, response, SecurityContextHolder.getContext().getAuthentication());
+
+        // then
         verify(redirectStrategy, times(1)).sendRedirect(any(HttpServletRequest.class), any(HttpServletResponse.class), eq(lpgUiUrl));
     }
 
@@ -72,10 +85,51 @@ public class CustomAuthenticationSuccessHandlerTest {
     @WithUserDetails(
             value = "specialuid",
             userDetailsServiceBeanName = "userDetailsService")
-    public void givenSpecialUserThatHasRecentlyChangedTheirEmail_whenOnAuthenticationSuccess_thenRedirectsToLPGUIUpdateOrgPage() throws IOException, ServletException {
+    public void givenSpecialUserThatHasRecentlyChangedTheirEmailAndIsWhitelisted_whenOnAuthenticationSuccess_thenRedirectsToLPGUIUpdateOrgPage() throws IOException, ServletException {
+        // given
         prepareSecurityContext("specialuid");
+        when(agencyTokenService.isDomainWhiteListed(anyString())).thenReturn(true);
+
+        // when
         classUnderTest.onAuthenticationSuccess(request, response, SecurityContextHolder.getContext().getAuthentication());
+
+        // then
         verify(redirectStrategy, times(1)).sendRedirect(any(HttpServletRequest.class), any(HttpServletResponse.class), eq(lpgChangeOrgUrl));
+    }
+
+    @Test
+    @WithUserDetails(
+            value = "specialuid",
+            userDetailsServiceBeanName = "userDetailsService")
+    public void givenSpecialUserThatHasRecentlyChangedTheirEmailAndIsAnAgencyTokenPerson_whenOnAuthenticationSuccess_thenRedirectsToLPGUIEnterTokenPage() throws IOException, ServletException {
+        // given
+        prepareSecurityContext("specialuid");
+        when(agencyTokenService.isDomainWhiteListed(anyString())).thenReturn(false);
+        when(agencyTokenService.isDomainAnAgencyTokenDomain(anyString())).thenReturn(true);
+
+        // when
+        classUnderTest.onAuthenticationSuccess(request, response, SecurityContextHolder.getContext().getAuthentication());
+
+        // then
+        verify(redirectStrategy, times(1)).sendRedirect(any(HttpServletRequest.class), any(HttpServletResponse.class), eq(lpgEnterTokenUrl));
+    }
+
+    @Test
+    @WithUserDetails(
+            value = "specialuid",
+            userDetailsServiceBeanName = "userDetailsService")
+    public void givenSpecialUserThatHasRecentlyChangedTheirEmailAndIsAnInvalidDomain_whenOnAuthenticationSuccess_thenRedirectsToSignOnPageWithErrorInvalidOrgMessage() throws IOException, ServletException {
+        // given
+        prepareSecurityContext("specialuid");
+        when(agencyTokenService.isDomainWhiteListed(anyString())).thenReturn(false);
+        when(agencyTokenService.isDomainAnAgencyTokenDomain(anyString())).thenReturn(false);
+
+        // when
+        classUnderTest.onAuthenticationSuccess(request, response, SecurityContextHolder.getContext().getAuthentication());
+
+        // then
+        String expectedInvalidOrgUrl = String.format(invalidDomainUrl, "specialemailaddress");
+        verify(redirectStrategy, times(1)).sendRedirect(any(HttpServletRequest.class), any(HttpServletResponse.class), eq(expectedInvalidOrgUrl));
     }
 
     private void prepareSecurityContext(String userNameToAuthenticateWith) {
