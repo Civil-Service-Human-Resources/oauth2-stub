@@ -72,14 +72,14 @@ public class CustomAuthenticationSuccessHandlerTest {
     @WithUserDetails(
             value = "specialuid",
             userDetailsServiceBeanName = "userDetailsService")
-    public void givenSpecialUser_whenOnAuthenticationSuccess_thenRedirectsToLPGUIUpdateOrgPage() throws IOException, ServletException {
+    public void givenSpecialUserThatHasRecentlyChangedTheirEmail_whenOnAuthenticationSuccess_thenRedirectsToLPGUIUpdateOrgPage() throws IOException, ServletException {
         prepareSecurityContext("specialuid");
         classUnderTest.onAuthenticationSuccess(request, response, SecurityContextHolder.getContext().getAuthentication());
         verify(redirectStrategy, times(1)).sendRedirect(any(HttpServletRequest.class), any(HttpServletResponse.class), eq(lpgChangeOrgUrl));
     }
 
     private void prepareSecurityContext(String userNameToAuthenticateWith) {
-        IdentityDetails identityDetails = (IdentityDetails) userDetailsService.loadUserByUsername (userNameToAuthenticateWith);
+        IdentityDetails identityDetails = (IdentityDetails) userDetailsService.loadUserByUsername(userNameToAuthenticateWith);
         Authentication authToken = new UsernamePasswordAuthenticationToken (identityDetails, identityDetails.getPassword(), identityDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authToken);
     }
