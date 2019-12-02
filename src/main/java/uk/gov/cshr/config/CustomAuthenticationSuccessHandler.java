@@ -83,7 +83,7 @@ public class CustomAuthenticationSuccessHandler
             if(agencyTokenService.isDomainAnAgencyTokenDomain(domain)) {
                 return lpgEnterTokenUrl;
             } else {
-                return String.format(invalidDomainUrl, domain);
+                return invalidDomainUrl;
             }
         }
     }

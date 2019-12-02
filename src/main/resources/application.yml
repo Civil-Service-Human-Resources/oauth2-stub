@@ -59,7 +59,7 @@ reset:
 
 emailUpdate:
   urlFormat: "${lpg.identity}/account/email/verify/%s?redirect=true"
-  invalidDomainUrl: "${lpg.identity}/identities/%s/notValid"
+  invalidDomainUrl: "${lpg.identity}/invalid"
 
 accountValidation:
   passwordPattern: ${PASSWORD_PATTERN:(?!([a-zA-Z]*|[a-z\d]*|[^A-Z\d]*|[A-Z\d]*|[^a-z\d]*|[^a-zA-Z]*)$).{8,}}
