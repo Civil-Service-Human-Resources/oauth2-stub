@@ -18,10 +18,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
-public class InvalidControllerTest {
+public class RedirectControllerTest {
 
     @InjectMocks
-    private InvalidController invalidController;
+    private RedirectController redirectController;
 
     @Autowired
     private MockMvc mockMvc;
@@ -33,7 +33,7 @@ public class InvalidControllerTest {
         // and for the mock service to be injected into the controller under
         // test.
         MockitoAnnotations.initMocks(this);
-        this.mockMvc = MockMvcBuilders.standaloneSetup(invalidController).build();
+        this.mockMvc = MockMvcBuilders.standaloneSetup(redirectController).build();
     }
 
     @Test

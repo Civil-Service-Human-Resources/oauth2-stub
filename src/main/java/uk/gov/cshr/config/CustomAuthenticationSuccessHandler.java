@@ -27,9 +27,6 @@ public class CustomAuthenticationSuccessHandler
     @Value("${lpg.changeOrgUrl}")
     private String lpgChangeOrgUrl;
 
-    @Value("${lpg.enterTokenUrl}")
-    private String lpgEnterTokenUrl;
-
     @Value("${emailUpdate.invalidDomainUrl}")
     private String invalidDomainUrl;
 
@@ -85,7 +82,7 @@ public class CustomAuthenticationSuccessHandler
             return lpgChangeOrgUrl;
         } else {
             if(agencyTokenService.isDomainAnAgencyTokenDomain(domain)) {
-                return lpgEnterTokenUrl;
+                return "/emailUpdated/enterToken/" + domain;
             } else {
                 return invalidDomainUrl;
             }

@@ -39,9 +39,6 @@ public class CustomAuthenticationSuccessHandlerTest {
     @Value("${lpg.changeOrgUrl}")
     private String lpgChangeOrgUrl;
 
-    @Value("${lpg.enterTokenUrl}")
-    private String lpgEnterTokenUrl;
-
     @Value("${emailUpdate.invalidDomainUrl}")
     private String invalidDomainUrl;
 
@@ -117,7 +114,8 @@ public class CustomAuthenticationSuccessHandlerTest {
         classUnderTest.onAuthenticationSuccess(request, response, SecurityContextHolder.getContext().getAuthentication());
 
         // then
-        verify(redirectStrategy, times(1)).sendRedirect(any(HttpServletRequest.class), any(HttpServletResponse.class), eq(lpgEnterTokenUrl));
+        String expectedEnterTokenUrl = "/emailUpdated/enterToken/domain.com";
+        verify(redirectStrategy, times(1)).sendRedirect(any(HttpServletRequest.class), any(HttpServletResponse.class), eq(expectedEnterTokenUrl));
     }
 
     @Test
