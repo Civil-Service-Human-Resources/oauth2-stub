@@ -31,14 +31,18 @@ public class EmailUpdateController {
 
     private final String lpgUiUrl;
 
+    private final String lpgChangeOrgUrl;
+
     public EmailUpdateController(
                             IdentityService identityService,
                             CsrsService csrsService,
-                            @Value("${lpg.uiUrl}") String lpgUiUrl) {
+                            @Value("${lpg.uiUrl}") String lpgUiUrl,
+                            @Value("${lpg.changeOrgUrl}") String lpgChangeOrgUrl) {
 
         this.identityService = identityService;
         this.csrsService = csrsService;
         this.lpgUiUrl = lpgUiUrl;
+        this.lpgChangeOrgUrl = lpgChangeOrgUrl;
     }
 
     @GetMapping(path = "/enterToken/{domain}")
@@ -72,7 +76,7 @@ public class EmailUpdateController {
         try {
             csrsService.updateSpacesAvailable(domain, form.getToken(), form.getOrganisation(), false);
             log.info("User submitted Enter Token form with domain = {}, token = {}, org = {}", domain, form.getToken(), form.getOrganisation());
-            return "redirect:" + lpgUiUrl + "/profile/organisation";
+            return "redirect:"+lpgChangeOrgUrl;
         } catch (ResourceNotFoundException e) {
             redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Incorrect token for this organisation");
             return "redirect:/emailUpdated/enterToken/" + domain;
