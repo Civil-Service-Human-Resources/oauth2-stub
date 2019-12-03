@@ -10,6 +10,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.service.AgencyTokenService;
 import uk.gov.cshr.service.security.IdentityDetails;
+import uk.gov.cshr.service.security.IdentityService;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -37,6 +38,9 @@ public class CustomAuthenticationSuccessHandler
 
     @Autowired
     private AgencyTokenService agencyTokenService;
+
+    @Autowired
+    private IdentityService identityService;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
@@ -76,7 +80,7 @@ public class CustomAuthenticationSuccessHandler
     }
 
     private String workoutIfUserShouldUseAnAgencyToken(Identity identity) {
-        String domain = identity.getEmail();
+        String domain = identityService.getDomainFromEmailAddress(identity.getEmail());
         if (agencyTokenService.isDomainWhiteListed(domain)) {
             return lpgChangeOrgUrl;
         } else {

@@ -19,6 +19,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.cshr.service.AgencyTokenService;
 import uk.gov.cshr.service.security.IdentityDetails;
+import uk.gov.cshr.service.security.IdentityService;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -56,6 +57,9 @@ public class CustomAuthenticationSuccessHandlerTest {
     @MockBean
     private AgencyTokenService agencyTokenService;
 
+    @MockBean
+    private IdentityService identityService;
+
     private MockHttpServletRequest request;
 
     private MockHttpServletResponse response;
@@ -64,6 +68,8 @@ public class CustomAuthenticationSuccessHandlerTest {
     public void setUp() {
         request = new MockHttpServletRequest();
         response = new MockHttpServletResponse();
+        when(identityService.getDomainFromEmailAddress(eq("basic@domain.com"))).thenReturn("domain.com");
+        when(identityService.getDomainFromEmailAddress(eq("special@domain.com"))).thenReturn("domain.com");
     }
 
     @Test
@@ -128,7 +134,7 @@ public class CustomAuthenticationSuccessHandlerTest {
         classUnderTest.onAuthenticationSuccess(request, response, SecurityContextHolder.getContext().getAuthentication());
 
         // then
-        String expectedInvalidOrgUrl = String.format(invalidDomainUrl, "specialemailaddress");
+        String expectedInvalidOrgUrl = invalidDomainUrl;
         verify(redirectStrategy, times(1)).sendRedirect(any(HttpServletRequest.class), any(HttpServletResponse.class), eq(expectedInvalidOrgUrl));
     }
 

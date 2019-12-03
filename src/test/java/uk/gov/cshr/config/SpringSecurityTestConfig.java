@@ -20,10 +20,10 @@ public class SpringSecurityTestConfig {
     @Bean(name ="userDetailsService")
     @Primary
     public UserDetailsService fakeUserDetailsService() {
-        Identity basicIdentity = new Identity("uid", "emailaddress", "password", true, false, emptySet(), Instant.now(), false, false);
+        Identity basicIdentity = new Identity("uid", "basic@domain.com", "password", true, false, emptySet(), Instant.now(), false, false);
         IdentityDetails basicActiveUser = new IdentityDetails(basicIdentity);
 
-        Identity recentlyUpdatedTheirEmailIdentity = new Identity("specialuid", "specialemailaddress", "password", true, false, emptySet(), Instant.now(), false, true);
+        Identity recentlyUpdatedTheirEmailIdentity = new Identity("specialuid", "special@domain.com", "password", true, false, emptySet(), Instant.now(), false, true);
         IdentityDetails recentlyUpdatedTheirEmailActiveUser = new IdentityDetails(recentlyUpdatedTheirEmailIdentity);
 
         return new UserDetailsManager() {
