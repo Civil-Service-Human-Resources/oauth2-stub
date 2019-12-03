@@ -554,7 +554,7 @@ a:visited {
 }
 
 a:hover {
-  color: #2b8cc4;
+  color: #003078;
 }
 
 a:active {
@@ -566,16 +566,25 @@ a {
 }
 
 a:focus {
-  background-color: #ffbf47;
-  outline: 3px solid #ffbf47;
+  background-color: #fd0;
+  outline: 3px solid transparent;
+  box-shadow: 0 -2px #fd0, 0 4px #0b0c0c;
+  text-decoration: none;
 }
 
 input:focus,
 textarea:focus,
 select:focus,
 button:focus {
-  outline: 3px solid #ffbf47;
-  outline-offset: 0;
+  outline: 3px solid #fd0 !important;
+  outline-offset: 0 !important;
+  box-shadow: inset 0 0 0 2px;
+}
+
+input[type="text"]:focus {
+  border: 2px solid #862d59;
+  outline: 3px solid #fd0 !important;
+  outline-offset: 0 !important;
 }
 
 main {
@@ -1737,7 +1746,7 @@ details summary:hover {
   color: #2b8cc4;
 }
 details summary:focus {
-  outline: 3px solid #ffbf47;
+  outline: 3px solid #fd0;
 }
 details .summary {
   text-decoration: underline;
@@ -1930,6 +1939,7 @@ textarea {
   padding: 5px 4px 4px;
   border: 2px solid #0b0c0c;
 }
+
 @media (min-width: 641px) {
   .form-control {
     font-size: 19px;
@@ -2332,7 +2342,6 @@ input[type="number"] {
   display: -moz-inline-stack;
   display: inline-block;
   margin: 0 8px 0 0;
-  padding: 2px 5px 0;
   font-family: "nta", Arial, sans-serif;
   font-weight: 700;
   text-transform: none;
@@ -2342,7 +2351,9 @@ input[type="number"] {
   letter-spacing: 1px;
   text-decoration: none;
   color: #fff;
-  background-color: #005ea5;
+  background-color: #1d70b8 !important;
+  padding: 4px 8px 1px 8px !important;
+  margin-right: 10px !important;
 }
 @media (min-width: 641px) {
   .phase-banner .phase-tag {
@@ -3650,7 +3661,7 @@ hr.clear {
   overflow: visible;
   color: #fff;
   font-weight: bold;
-  font-size: 27px;
+  font-size: 30px;
   line-height: 1;
   text-decoration: none;
   text-rendering: optimizeLegibility;
@@ -3659,6 +3670,7 @@ hr.clear {
   background-size: 36px 32px;
   background-position: 0 0;
 }
+
 #global-header #logo img {
   width: 36px;
   height: 32px;
@@ -3666,11 +3678,20 @@ hr.clear {
   vertical-align: bottom;
   visibility: hidden;
 }
-#global-header #logo:hover,
-#global-header #logo:focus {
+#global-header #logo:hover {
   text-decoration: none;
   border-bottom-color: #fff;
 }
+
+#global-header #logo:focus {
+  background-color: #fd0 !important;
+  outline: 3px solid #fd0;
+  color:black;
+  background: url("/assets/img/gov.uk_logotype_crown_invert_trans.png") no-repeat;
+  background-size: 36px 32px;
+  background-position: 0 0;
+}
+
 #global-header .header-proposition {
   padding-top: 10px;
 }
@@ -4195,7 +4216,8 @@ hr.clear {
   width: 90%;
 }
 .feedback input:focus {
-  outline: 3px solid #ffbf47;
+  outline: 3px solid #fd0;
+  outline-offset: 0;
 }
 .feedback p {
   font-size: 19px;

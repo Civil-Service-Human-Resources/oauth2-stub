@@ -24,7 +24,8 @@ INSERT INTO `role` (name) VALUES
 ('KPMG_SUPPLIER_AUTHOR'),
 ('KORNFERRY_SUPPLIER_AUTHOR'),
 ('KNOWLEDGEPOOL_SUPPLIER_AUTHOR'),
-('IDENTITY_DELETE')
+('IDENTITY_DELETE'),
+('DOWNLOAD_BOOKING_FEED')
 ;
 
 INSERT INTO `identity` (active, locked, email, uid, password, last_logged_in, deletion_notification_sent) VALUES
@@ -43,6 +44,8 @@ INSERT INTO `identity_role` (identity_id, role_id) VALUES
 ((SELECT id FROM identity WHERE email = 'learner@domain.com'), (SELECT id FROM role WHERE name = 'ORGANISATION_MANAGER')),
 ((SELECT id FROM identity WHERE email = 'learner@domain.com'), (SELECT id FROM role WHERE name = 'PROFESSION_MANAGER')),
 ((SELECT id FROM identity WHERE email = 'learner@domain.com'), (SELECT id FROM role WHERE name = 'IDENTITY_MANAGER')),
+((SELECT id FROM identity WHERE email = 'learner@domain.com'), (SELECT id FROM role WHERE name = 'CSHR_REPORTER')),
+((SELECT id FROM identity WHERE email = 'learner@domain.com'), (SELECT id FROM role WHERE name = 'DOWNLOAD_BOOKING_FEED')),
 ((SELECT id FROM identity WHERE email = 'course-manager@domain.com'), (SELECT id FROM role WHERE name = 'LEARNING_MANAGER')),
 ((SELECT id FROM identity WHERE email = 'identity-manager@domain.com'), (SELECT id FROM role WHERE name = 'IDENTITY_MANAGER')),
 ((SELECT id FROM identity WHERE email = 'organisation-reporter@domain.com'), (SELECT id FROM role WHERE name = 'ORGANISATION_REPORTER')),
@@ -53,7 +56,7 @@ INSERT INTO `identity_role` (identity_id, role_id) VALUES
 INSERT INTO `client` (active, uid, password, redirect_uri)
 VALUES (true, 'a5881544-6159-4d2f-9b51-8c47ce97454d', '$2a$10$AbxhLGtIx7yv8jhF0BePiOxnb1mlHHq/Ge4R3PxCL2wIsoEov1VaS', 'http://lpg.local.cshr.digital:3005/authenticate');
 
-INSERT INTO `role` (name) VALUES ('DOWNLOAD_BOOKING_FEED');
+INSERT INTO `role` (name) VALUES ('§');
 
 INSERT INTO `identity` (active, locked, email, uid, password, last_logged_in) VALUES
 (true, false, 'booking-feed@domain.com', 'a4cb1208-eca7-46a6-b496-0f6f354c6eac', '$2a$10$sGfnyPnJ8a0b9R.vqIphKu5vjetS3.Bvi6ISv39bOphq5On0U2m36', '2019-02-01')
