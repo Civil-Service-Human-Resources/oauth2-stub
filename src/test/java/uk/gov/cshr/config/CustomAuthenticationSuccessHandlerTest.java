@@ -81,7 +81,7 @@ public class CustomAuthenticationSuccessHandlerTest {
         classUnderTest.onAuthenticationSuccess(request, response, SecurityContextHolder.getContext().getAuthentication());
 
         // then
-        verify(redirectStrategy, times(1)).sendRedirect(any(HttpServletRequest.class), any(HttpServletResponse.class), eq(lpgUiUrl));
+        verify(redirectStrategy, times(1)).sendRedirect(any(HttpServletRequest.class), any(HttpServletResponse.class), eq("redirect:/redirectToUIHomePage"));
     }
 
     @Test
@@ -97,7 +97,7 @@ public class CustomAuthenticationSuccessHandlerTest {
         classUnderTest.onAuthenticationSuccess(request, response, SecurityContextHolder.getContext().getAuthentication());
 
         // then
-        verify(redirectStrategy, times(1)).sendRedirect(any(HttpServletRequest.class), any(HttpServletResponse.class), eq(lpgChangeOrgUrl));
+        verify(redirectStrategy, times(1)).sendRedirect(any(HttpServletRequest.class), any(HttpServletResponse.class), eq("redirect:/redirectToUIChangeOrgPage"));
     }
 
     @Test
@@ -114,8 +114,8 @@ public class CustomAuthenticationSuccessHandlerTest {
         classUnderTest.onAuthenticationSuccess(request, response, SecurityContextHolder.getContext().getAuthentication());
 
         // then
-        String expectedEnterTokenUrl = "/emailUpdated/enterToken/domain.com";
-        verify(redirectStrategy, times(1)).sendRedirect(any(HttpServletRequest.class), any(HttpServletResponse.class), eq(expectedEnterTokenUrl));
+        String expectedEnterTokenUrl = "/emailUpdated/enterToken/domain.com/specialuid";
+        verify(redirectStrategy, times(1)).sendRedirect(any(HttpServletRequest.class), any(HttpServletResponse.class), contains(expectedEnterTokenUrl));
     }
 
     @Test
@@ -132,7 +132,7 @@ public class CustomAuthenticationSuccessHandlerTest {
         classUnderTest.onAuthenticationSuccess(request, response, SecurityContextHolder.getContext().getAuthentication());
 
         // then
-        String expectedInvalidOrgUrl = invalidDomainUrl;
+        String expectedInvalidOrgUrl = String.format(invalidDomainUrl, "domain.com", "specialuid");
         verify(redirectStrategy, times(1)).sendRedirect(any(HttpServletRequest.class), any(HttpServletResponse.class), eq(expectedInvalidOrgUrl));
     }
 

@@ -143,6 +143,15 @@ public class IdentityService implements UserDetailsService {
         identityRepository.save(savedIdentity);
     }
 
+    public void updateRecentlyUpdatedEmailFlag(Identity identity) {
+        Identity savedIdentity = identityRepository.findById(identity.getId())
+                .orElseThrow(() -> new IdentityNotFoundException("No such identity: " + identity.getId()));
+
+        savedIdentity.setEmailRecentlyUpdated(false);
+
+        identityRepository.save(savedIdentity);
+    }
+
     public boolean isWhitelistedDomain(String domain) {
         return Arrays.asList(whitelistedDomains).contains(domain);
     }
@@ -150,4 +159,5 @@ public class IdentityService implements UserDetailsService {
     public String getDomainFromEmailAddress(String emailAddress) {
         return emailAddress.substring(emailAddress.indexOf('@') + 1);
     }
+
 }

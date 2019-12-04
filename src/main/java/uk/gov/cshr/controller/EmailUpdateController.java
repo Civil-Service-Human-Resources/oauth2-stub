@@ -1,22 +1,24 @@
 package uk.gov.cshr.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import uk.gov.cshr.controller.signup.EnterTokenForm;
+import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.OrganisationalUnitDto;
 import uk.gov.cshr.exception.BadRequestException;
 import uk.gov.cshr.exception.NotEnoughSpaceAvailableException;
 import uk.gov.cshr.exception.ResourceNotFoundException;
 import uk.gov.cshr.exception.UnableToAllocateAgencyTokenException;
+import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.service.CsrsService;
 import uk.gov.cshr.service.security.IdentityService;
 
 import javax.validation.Valid;
+import java.util.Optional;
 
 @Slf4j
 @Controller
@@ -29,24 +31,21 @@ public class EmailUpdateController {
 
     private final CsrsService csrsService;
 
-    private final String lpgUiUrl;
-
-    private final String lpgChangeOrgUrl;
+    private final IdentityRepository identityRepository;
 
     public EmailUpdateController(
                             IdentityService identityService,
                             CsrsService csrsService,
-                            @Value("${lpg.uiUrl}") String lpgUiUrl,
-                            @Value("${lpg.changeOrgUrl}") String lpgChangeOrgUrl) {
-
+                            IdentityRepository identityRepository) {
         this.identityService = identityService;
         this.csrsService = csrsService;
-        this.lpgUiUrl = lpgUiUrl;
-        this.lpgChangeOrgUrl = lpgChangeOrgUrl;
+        this.identityRepository = identityRepository;
     }
 
-    @GetMapping(path = "/enterToken/{domain}")
-    public String enterToken(Model model, @PathVariable("domain") String domain) {
+    @GetMapping(path = "/enterToken/{domain}/{uid}")
+    public String enterToken(Model model,
+                             @PathVariable("domain") String domain,
+                             @PathVariable("uid") String uid) {
 
         log.info("User accessing token-based email updated screen");
 
@@ -59,9 +58,10 @@ public class EmailUpdateController {
         return "enterTokenSinceEmailUpdate";
     }
 
-    @PostMapping(path = "/enterToken/{domain}")
+    @PostMapping(path = "/enterToken/{domain}/{uid}")
     public String submitToken(Model model,
                               @PathVariable("domain") String domain,
+                              @PathVariable("uid") String uid,
                               @ModelAttribute @Valid EnterTokenForm form,
                               BindingResult bindingResult,
                               RedirectAttributes redirectAttributes) {
@@ -74,9 +74,16 @@ public class EmailUpdateController {
         }
 
         try {
-            csrsService.updateSpacesAvailable(domain, form.getToken(), form.getOrganisation(), false);
-            log.info("User submitted Enter Token form with domain = {}, token = {}, org = {}", domain, form.getToken(), form.getOrganisation());
-            return "redirect:"+lpgChangeOrgUrl;
+            Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
+            if(optionalIdentity.isPresent()) {
+                csrsService.updateSpacesAvailable(domain, form.getToken(), form.getOrganisation(), false);
+                log.info("User submitted Enter Token form with domain = {}, token = {}, org = {}", domain, form.getToken(), form.getOrganisation());
+                identityService.updateRecentlyUpdatedEmailFlag(optionalIdentity.get());
+                return "redirect:/redirectToUIChangeOrgPage";
+            } else {
+                log.info("No identity found for uid {}", uid);
+                throw new ResourceNotFoundException();
+            }
         } catch (ResourceNotFoundException e) {
             redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Incorrect token for this organisation");
             return "redirect:/emailUpdated/enterToken/" + domain;

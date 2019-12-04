@@ -21,11 +21,8 @@ import java.io.IOException;
 public class CustomAuthenticationSuccessHandler
         implements AuthenticationSuccessHandler {
 
-    @Value("${lpg.uiUrl}")
-    private String lpgUiUrl;
-
-    @Value("${lpg.changeOrgUrl}")
-    private String lpgChangeOrgUrl;
+    @Value("${emailUpdate.enterTokenUrl}")
+    private String emailUpdatedEnterTokenUrl;
 
     @Value("${emailUpdate.invalidDomainUrl}")
     private String invalidDomainUrl;
@@ -65,7 +62,7 @@ public class CustomAuthenticationSuccessHandler
     }
 
     protected String determineTargetUrl(Authentication authentication) {
-        String targetURL = lpgUiUrl;
+        String targetURL = "redirect:/redirectToUIHomePage";
         IdentityDetails identityDetails = (IdentityDetails) authentication.getPrincipal();
         Identity identity = identityDetails.getIdentity();
         if(identity.isEmailRecentlyUpdated()) {
@@ -78,11 +75,12 @@ public class CustomAuthenticationSuccessHandler
 
     private String workoutIfUserShouldUseAnAgencyToken(Identity identity) {
         String domain = identityService.getDomainFromEmailAddress(identity.getEmail());
+        String uid = identity.getUid();
         if (agencyTokenService.isDomainWhiteListed(domain)) {
-            return lpgChangeOrgUrl;
+            return "redirect:/redirectToUIChangeOrgPage";
         } else {
             if(agencyTokenService.isDomainAnAgencyTokenDomain(domain)) {
-                return "/emailUpdated/enterToken/" + domain;
+                return String.format(emailUpdatedEnterTokenUrl, domain, uid);
             } else {
                 return invalidDomainUrl;
             }
