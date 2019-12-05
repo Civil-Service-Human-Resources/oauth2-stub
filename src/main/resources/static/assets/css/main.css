@@ -582,9 +582,9 @@ button:focus {
 }
 
 input[type="text"]:focus {
-  border: 2px solid #862d59;
   outline: 3px solid #fd0 !important;
   outline-offset: 0 !important;
+  box-shadow: inset 0 0 0 2px;
 }
 
 main {
