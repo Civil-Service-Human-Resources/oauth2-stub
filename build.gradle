@@ -27,7 +27,14 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 dependencies {
+    
+    compile group: 'com.microsoft.azure', name: 'applicationinsights-web-auto', version: '2.5.0'
+    compile group: 'com.microsoft.azure', name: 'applicationinsights-logging-logback', version: '2.5.0'
+    compile group: 'com.microsoft.azure', name: 'applicationinsights-spring-boot-starter', version: '2.5.0'
 
+    compile group: 'org.springframework.session', name: 'spring-session-data-redis'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-data-redis'
+    
     // https://mvnrepository.com/artifact/org.springframework.data/spring-data-jpa
     compile group: 'org.springframework.data', name: 'spring-data-jpa', version: '2.0.5.RELEASE'
 

@@ -1,5 +1,8 @@
 package uk.gov.cshr.controller;
 
+import com.microsoft.applicationinsights.web.internal.WebRequestTrackingFilter;
+import org.apache.commons.lang3.reflect.FieldUtils;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +18,12 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import uk.gov.cshr.Application;
 import uk.gov.cshr.service.NotifyService;
+
+import javax.servlet.Filter;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletContext;
+
+import java.util.Enumeration;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -32,6 +41,35 @@ public class AuthenticationControllerTest {
     @Qualifier("notifyServiceImpl")
     @MockBean
     private NotifyService notifyService;
+    @Before
+    public void overrideFilters() throws IllegalAccessException {
+        Filter[] filters = (Filter[]) FieldUtils.readField(mockMvc, "filters", true);
+        for (int i = 0; i < filters.length; i++) {
+            if (filters[i].getClass().getSimpleName().equals("PatternMappingFilterProxy")) {
+                WebRequestTrackingFilter filter = (WebRequestTrackingFilter) FieldUtils.readField(filters[i],
+                        "delegate", true);
+                FieldUtils.writeField(filter, "appName", "test", true);
+                filter.init(new FilterConfig() {
+                    @Override
+                    public String getFilterName() {
+                        return null;
+                    }
+                    @Override
+                    public ServletContext getServletContext() {
+                        return null;
+                    }
+                    @Override
+                    public String getInitParameter(String name) {
+                        return null;
+                    }
+                    @Override
+                    public Enumeration<String> getInitParameterNames() {
+                        return null;
+                    }
+                });
+            }
+        }
+    }
 
     @Test
     public void shouldReturnUnauthorisedWhenUnauthenticated() throws Exception {
