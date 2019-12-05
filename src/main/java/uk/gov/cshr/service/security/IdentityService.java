@@ -143,7 +143,7 @@ public class IdentityService implements UserDetailsService {
         identityRepository.save(savedIdentity);
     }
 
-    public void updateRecentlyUpdatedEmailFlag(Identity identity) {
+    public void resetRecentlyUpdatedEmailFlag(Identity identity) {
         Identity savedIdentity = identityRepository.findById(identity.getId())
                 .orElseThrow(() -> new IdentityNotFoundException("No such identity: " + identity.getId()));
 

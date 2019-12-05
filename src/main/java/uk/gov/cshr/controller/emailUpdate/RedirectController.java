@@ -1,4 +1,4 @@
-package uk.gov.cshr.controller;
+package uk.gov.cshr.controller.emailUpdate;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;

@@ -1,4 +1,4 @@
-package uk.gov.cshr.controller;
+package uk.gov.cshr.controller.emailUpdate;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -78,7 +78,7 @@ public class EmailUpdateController {
             if(optionalIdentity.isPresent()) {
                 csrsService.updateSpacesAvailable(domain, form.getToken(), form.getOrganisation(), false);
                 log.info("User submitted Enter Token form with domain = {}, token = {}, org = {}", domain, form.getToken(), form.getOrganisation());
-                identityService.updateRecentlyUpdatedEmailFlag(optionalIdentity.get());
+                identityService.resetRecentlyUpdatedEmailFlag(optionalIdentity.get());
                 return "redirect:/redirectToUIChangeOrgPage";
             } else {
                 log.info("No identity found for uid {}", uid);

@@ -4,6 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -14,6 +15,7 @@ import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.domain.Token;
+import uk.gov.cshr.exception.IdentityNotFoundException;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.TokenRepository;
 import uk.gov.cshr.service.InviteService;
@@ -22,6 +24,7 @@ import uk.gov.cshr.service.NotifyService;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import static java.util.Collections.emptySet;
@@ -55,6 +58,9 @@ public class IdentityServiceTest {
 
     @Mock
     private NotifyService notifyService;
+
+    @Captor
+    private ArgumentCaptor<Identity> identityArgumentCaptor;
 
     @Before
     public void setUp() throws Exception {
@@ -222,5 +228,51 @@ public class IdentityServiceTest {
         verify(tokenServices).revokeToken(accessToken2Value);
 
         verify(notifyService).notify(email, updatePasswordEmailTemplateId);
+    }
+
+    @Test
+    public void givenAValidIdentity_resetRecentlyUpdatedEmailFlag_shouldReturnSuccessfully(){
+        // given
+        Identity identity = mock(Identity.class);
+        Optional<Identity> optionalIdentity = Optional.of(identity);
+        when(identityRepository.findById(anyLong())).thenReturn(optionalIdentity);
+        when(identityRepository.save(identityArgumentCaptor.capture())).thenReturn(new Identity());
+
+        // when
+        identityService.resetRecentlyUpdatedEmailFlag(identity);
+
+        // then
+        verify(identityRepository, times(1)).save(optionalIdentity.get());
+        Identity actualSavedIdentity = identityArgumentCaptor.getValue();
+        assertThat(actualSavedIdentity.isEmailRecentlyUpdated(), equalTo(false));
+    }
+
+    @Test(expected = IdentityNotFoundException.class)
+    public void givenAnNotFoundIdentity_resetRecentlyUpdatedEmailFlag_shouldThrowIdentityNotFoundException(){
+        // given
+        Identity identity = mock(Identity.class);
+        Optional<Identity> optionalIdentity = Optional.empty();
+        when(identityRepository.findById(anyLong())).thenReturn(optionalIdentity);
+
+        // when
+        identityService.resetRecentlyUpdatedEmailFlag(identity);
+
+        // then
+        verify(identityRepository, never()).save(any(Identity.class));
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void givenAnInvalidIdentity_resetRecentlyUpdatedEmailFlag_shouldThrowException(){
+        // given
+        Identity identity = mock(Identity.class);
+        Optional<Identity> optionalIdentity = Optional.of(identity);
+        when(identityRepository.findById(anyLong())).thenReturn(optionalIdentity);
+        when(identityRepository.save(any(Identity.class))).thenThrow(new RuntimeException());
+
+        // when
+        identityService.resetRecentlyUpdatedEmailFlag(identity);
+
+        // then
+        verify(identityRepository, times(1)).save(optionalIdentity.get());
     }
 }
