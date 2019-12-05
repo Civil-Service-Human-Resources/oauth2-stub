@@ -78,9 +78,8 @@ public class InviteService {
         Invite invite = inviteFactory.createSelfSignUpInvite(email);
         invite.setAuthorisedInvite(isAuthorisedInvite);
 
-//        notifyService.notify(invite.getForEmail(), invite.getCode(), govNotifyInviteTemplateId, signupUrlFormat);
+        notifyService.notify(invite.getForEmail(), invite.getCode(), govNotifyInviteTemplateId, signupUrlFormat);
 
-        System.out.println(invite);
         inviteRepository.save(invite);
     }
 
