@@ -6,13 +6,9 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import uk.gov.cshr.controller.signup.EnterTokenForm;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.OrganisationalUnitDto;
-import uk.gov.cshr.exception.BadRequestException;
-import uk.gov.cshr.exception.NotEnoughSpaceAvailableException;
-import uk.gov.cshr.exception.ResourceNotFoundException;
-import uk.gov.cshr.exception.UnableToAllocateAgencyTokenException;
+import uk.gov.cshr.exception.*;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.service.CsrsService;
 import uk.gov.cshr.service.security.IdentityService;
@@ -22,8 +18,8 @@ import java.util.Optional;
 
 @Slf4j
 @Controller
-@RequestMapping("/emailUpdated")
-public class EmailUpdateController {
+@RequestMapping("/updateOrganisation")
+public class UpdateOrganisationController {
 
     private static final String STATUS_ATTRIBUTE = "status";
 
@@ -33,66 +29,62 @@ public class EmailUpdateController {
 
     private final IdentityRepository identityRepository;
 
-    public EmailUpdateController(
-                            IdentityService identityService,
-                            CsrsService csrsService,
-                            IdentityRepository identityRepository) {
+    public UpdateOrganisationController(
+            IdentityService identityService,
+            CsrsService csrsService,
+            IdentityRepository identityRepository) {
         this.identityService = identityService;
         this.csrsService = csrsService;
         this.identityRepository = identityRepository;
     }
 
-    @GetMapping(path = "/enterToken/{domain}/{uid}")
-    public String enterToken(Model model,
+    @GetMapping(path = "/enterOrganisation/{domain}/{uid}")
+    public String enterOrganisation(Model model,
                              @PathVariable("domain") String domain,
                              @PathVariable("uid") String uid) {
 
-        log.info("User accessing token-based email updated screen");
+        log.info("User accessing update or confirm your organisation screen");
 
         OrganisationalUnitDto[] organisations = csrsService.getOrganisationalUnitsFormatted();
 
         model.addAttribute("organisations", organisations);
-        model.addAttribute("newEnterTokenForm", new EnterTokenForm());
+        model.addAttribute("enterOrganisationForm", new EnterOrganisationForm());
         model.addAttribute("domain", domain);
 
-        return "enterTokenSinceEmailUpdate";
+        return "enterOrganisation";
     }
 
-    @PostMapping(path = "/enterToken/{domain}/{uid}")
-    public String submitToken(Model model,
+    @PostMapping(path = "/enterOrganisation/{domain}/{uid}")
+    public String submitOrganisation(Model model,
                               @PathVariable("domain") String domain,
                               @PathVariable("uid") String uid,
-                              @ModelAttribute @Valid EnterTokenForm form,
+                              @ModelAttribute @Valid EnterOrganisationForm form,
                               BindingResult bindingResult,
                               RedirectAttributes redirectAttributes) {
 
-        log.info("User attempting token-based sign up since updating their email");
+        log.info("User attempting to update or confirm their organisation since updating their organisations");
 
         if (bindingResult.hasErrors()) {
-            model.addAttribute("enterTokenForm", form);
-            return "enterTokenSinceEmailUpdate";
+            model.addAttribute("enterOrganisationForm", form);
+            return "enterOrganisation";
         }
 
         try {
             Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
             if(optionalIdentity.isPresent()) {
-                csrsService.updateSpacesAvailable(domain, form.getToken(), form.getOrganisation(), false);
-                log.info("User submitted Enter Token form with domain = {}, token = {}, org = {}", domain, form.getToken(), form.getOrganisation());
-                identityService.resetRecentlyUpdatedEmailFlag(optionalIdentity.get());
-                return "redirect:/redirectToUIChangeOrgPage";
+                log.info("User submitted Enter organisation form with organisation = {}", form.getOrganisation());
+                csrsService.updateOrganisation(uid, form.getOrganisation());
+                return "redirect:/redirectToUIHomePage";
             } else {
                 log.info("No identity found for uid {}", uid);
                 throw new ResourceNotFoundException();
             }
         } catch (ResourceNotFoundException e) {
-            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Incorrect token for this organisation");
-            return "redirect:/emailUpdated/enterToken/" + domain;
-        } catch (NotEnoughSpaceAvailableException e) {
-            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Not enough spaces available on this token");
-            return "redirect:/emailUpdated/enterToken/" + domain;
+            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Incorrect organisation");
+            return "redirect:/updateOrganisation/enterOrganisation/" + domain + "/" + uid;
         } catch (BadRequestException e) {
             return "redirect:/login";
-        } catch (UnableToAllocateAgencyTokenException e) {
+        } catch (UnableToUpdateOrganisationException e) {
             return "redirect:/login";
         }
 
