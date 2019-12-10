@@ -27,6 +27,12 @@ public class CustomAuthenticationSuccessHandler
     @Value("${emailUpdate.invalidDomainUrl}")
     private String invalidDomainUrl;
 
+    @Value("${emailUpdate.enterOrganisationUrl}")
+    private String enterOrganisationUrl;
+
+    @Value("${lpg.uiUrl}")
+    private String lpgUiUrl;
+
     @Autowired
     private RedirectStrategy redirectStrategy;
 
@@ -62,7 +68,7 @@ public class CustomAuthenticationSuccessHandler
     }
 
     protected String determineTargetUrl(Authentication authentication) {
-        String targetURL = "redirect:/redirectToUIHomePage";
+        String targetURL = lpgUiUrl;
         IdentityDetails identityDetails = (IdentityDetails) authentication.getPrincipal();
         Identity identity = identityDetails.getIdentity();
         if(identity.isEmailRecentlyUpdated()) {
@@ -77,7 +83,7 @@ public class CustomAuthenticationSuccessHandler
         String domain = identityService.getDomainFromEmailAddress(identity.getEmail());
         String uid = identity.getUid();
         if (agencyTokenService.isDomainWhiteListed(domain)) {
-            return "redirect:/redirectToUIChangeOrgPage";
+            return enterOrganisationUrl;
         } else {
             if(agencyTokenService.isDomainAnAgencyTokenDomain(domain)) {
                 return String.format(emailUpdatedEnterTokenUrl, domain, uid);

@@ -79,7 +79,8 @@ public class EmailUpdateController {
                 csrsService.updateSpacesAvailable(domain, form.getToken(), form.getOrganisation(), false);
                 log.info("User submitted Enter Token form with domain = {}, token = {}, org = {}", domain, form.getToken(), form.getOrganisation());
                 identityService.resetRecentlyUpdatedEmailFlag(optionalIdentity.get());
-                return "redirect:/redirectToUIChangeOrgPage";
+               String url = String.format("/updateOrganisation/enterOrganisation/%s/%s", domain, uid);
+               return "redirect:"+url;
             } else {
                 log.info("No identity found for uid {}", uid);
                 throw new ResourceNotFoundException();

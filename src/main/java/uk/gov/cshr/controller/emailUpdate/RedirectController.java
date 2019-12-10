@@ -9,9 +9,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.net.URISyntaxException;
+import java.util.Map;
 
 @Controller
 public class RedirectController {
@@ -39,9 +37,15 @@ public class RedirectController {
         return redirectView;
     }
 
-    @RequestMapping("/redirectToUIChangeOrgPage")
-    public void goToChangeOrgPageInLPGUI(HttpServletResponse response) throws URISyntaxException, IOException {
-        response.sendRedirect(lpgUiUrl + "?updateOrg=true");
+    @RequestMapping("/redirectToChangeOrgPage")
+    public RedirectView goToChangeOrgPage(Model model) {
+        Map<String, Object> modelMap = model.asMap();
+        String domain = (String) modelMap.get("domain");
+        String uid = (String) modelMap.get("uid");
+        RedirectView redirectView = new RedirectView();
+        String url = String.format("/updateOrganisation/enterOrganisation/%s/%s", domain, uid);
+        redirectView.setUrl(url);
+        return redirectView;
     }
 
 }

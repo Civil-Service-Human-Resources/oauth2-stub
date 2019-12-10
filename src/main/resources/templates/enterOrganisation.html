@@ -16,7 +16,7 @@
 
                     <h1 class="heading-large">Update or confirm your organisation</h1>
 
-                    <form method="post" class="push-bottom" th:object="${enterTokenForm}">
+                    <form method="post" class="push-bottom" th:object="${enterOrganisationForm}">
                         <div class="form-group" th:classappend="${#fields.hasErrors('organisation')} ? form-group-error : ''">
                             <label th:for="organisation" class="govuk-label">Organisation</label>
                             <span id="organisation-hint" class="form-hint">Start typing to find your organisation name</span>
