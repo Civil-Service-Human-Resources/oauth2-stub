@@ -52,7 +52,7 @@ public class EmailUpdateController {
         OrganisationalUnitDto[] organisations = csrsService.getOrganisationalUnitsFormatted();
 
         model.addAttribute("organisations", organisations);
-        model.addAttribute("newEnterTokenForm", new EnterTokenForm());
+        model.addAttribute("emailUpdatedRecentlyEnterTokenForm", new EmailUpdatedRecentlyEnterTokenForm());
         model.addAttribute("domain", domain);
 
         return "enterTokenSinceEmailUpdate";
@@ -62,14 +62,14 @@ public class EmailUpdateController {
     public String submitToken(Model model,
                               @PathVariable("domain") String domain,
                               @PathVariable("uid") String uid,
-                              @ModelAttribute @Valid EnterTokenForm form,
+                              @ModelAttribute @Valid EmailUpdatedRecentlyEnterTokenForm form,
                               BindingResult bindingResult,
                               RedirectAttributes redirectAttributes) {
 
         log.info("User attempting token-based sign up since updating their email");
 
         if (bindingResult.hasErrors()) {
-            model.addAttribute("enterTokenForm", form);
+            model.addAttribute("emailUpdatedRecentlyEnterTokenForm", form);
             return "enterTokenSinceEmailUpdate";
         }
 
@@ -79,7 +79,7 @@ public class EmailUpdateController {
                 csrsService.updateSpacesAvailable(domain, form.getToken(), form.getOrganisation(), false);
                 log.info("User submitted Enter Token form with domain = {}, token = {}, org = {}", domain, form.getToken(), form.getOrganisation());
                 identityService.resetRecentlyUpdatedEmailFlag(optionalIdentity.get());
-               String url = String.format("/updateOrganisation/enterOrganisation/%s/%s", domain, uid);
+                String url = String.format("/updateOrganisation/enterOrganisation/%s/%s", domain, uid);
                return "redirect:"+url;
             } else {
                 log.info("No identity found for uid {}", uid);
@@ -87,10 +87,10 @@ public class EmailUpdateController {
             }
         } catch (ResourceNotFoundException e) {
             redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Incorrect token for this organisation");
-            return "redirect:/emailUpdated/enterToken/" + domain;
+            return "redirect:/emailUpdated/enterToken/" + domain + "/" + uid;
         } catch (NotEnoughSpaceAvailableException e) {
             redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Not enough spaces available on this token");
-            return "redirect:/emailUpdated/enterToken/" + domain;
+            return "redirect:/emailUpdated/enterToken/" + domain + "/" + uid;
         } catch (BadRequestException e) {
             return "redirect:/login";
         } catch (UnableToAllocateAgencyTokenException e) {

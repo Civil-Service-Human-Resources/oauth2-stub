@@ -1,6 +1,6 @@
 <page xmlns:th="http://www.w3.org/1999/xhtml" th:replace="fragments/user-layout :: page(~{::title},~{::content})">
 
-    <title>Enter token for email update</title>
+    <title>Enter token after updating your email adress</title>
 
     <content>
 
@@ -14,11 +14,11 @@
                         <b th:text="${status}"></b>
                     </div>
 
-                    <h1 class="heading-large">Updated email address</h1>
+                    <h1 class="heading-large">Update your account after updating your email address</h1>
                     <h2 class="heading-medium">Enter the token for your new organisation</h2>
-                    <p class="lede">Your organisation requires you to supply a token in order to continue using the site.</p>
+                    <p class="lede">Your organisation requires you to supply a token in order to create an account.</p>
 
-                    <form method="post" class="push-bottom" th:object="${newEnterTokenForm}">
+                    <form method="post" class="push-bottom" th:object="${emailUpdatedRecentlyEnterTokenForm}">
                         <div class="form-group" th:classappend="${#fields.hasErrors('organisation')} ? form-group-error : ''">
                             <label th:for="organisation" class="govuk-label">Organisation</label>
                             <span id="organisation-hint" class="form-hint">Start typing to find your organisation name</span>

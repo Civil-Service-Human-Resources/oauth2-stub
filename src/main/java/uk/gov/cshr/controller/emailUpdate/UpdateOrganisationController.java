@@ -48,7 +48,7 @@ public class UpdateOrganisationController {
         OrganisationalUnitDto[] organisations = csrsService.getOrganisationalUnitsFormatted();
 
         model.addAttribute("organisations", organisations);
-        model.addAttribute("enterOrganisationForm", new EnterOrganisationForm());
+        model.addAttribute("emailRecentlyUpdatedEnterOrganisationForm", new EmailUpdatedRecentlyEnterOrganisationForm());
         model.addAttribute("domain", domain);
 
         return "enterOrganisation";
@@ -58,14 +58,14 @@ public class UpdateOrganisationController {
     public String submitOrganisation(Model model,
                               @PathVariable("domain") String domain,
                               @PathVariable("uid") String uid,
-                              @ModelAttribute @Valid EnterOrganisationForm form,
+                              @ModelAttribute @Valid EmailUpdatedRecentlyEnterOrganisationForm form,
                               BindingResult bindingResult,
                               RedirectAttributes redirectAttributes) {
 
         log.info("User attempting to update or confirm their organisation since updating their organisations");
 
         if (bindingResult.hasErrors()) {
-            model.addAttribute("enterOrganisationForm", form);
+            model.addAttribute("emailRecentlyUpdatedEnterOrganisationForm", form);
             return "enterOrganisation";
         }
 

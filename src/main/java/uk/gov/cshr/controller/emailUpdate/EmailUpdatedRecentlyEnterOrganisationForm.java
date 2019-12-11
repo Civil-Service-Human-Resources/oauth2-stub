@@ -3,7 +3,6 @@ package uk.gov.cshr.controller.emailUpdate;
 import lombok.Data;
 
 @Data
-public class EnterOrganisationForm {
-
+public class EmailUpdatedRecentlyEnterOrganisationForm {
     private String organisation;
 }
