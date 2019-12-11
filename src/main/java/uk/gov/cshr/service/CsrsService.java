@@ -67,7 +67,7 @@ public class CsrsService {
             } else if (HttpStatus.CONFLICT.equals(e.getStatusCode())) {
                 throw new NotEnoughSpaceAvailableException("Not enough spaces available for AgencyToken " + token);
             } else {
-                throw new BadRequestException();
+                throw new BadRequestException(e);
             }
         } catch (HttpServerErrorException e) {
             log.warn("*****httpServerException");
@@ -86,13 +86,13 @@ public class CsrsService {
             if (HttpStatus.NOT_FOUND.equals(e.getStatusCode())) {
                 throw new ResourceNotFoundException();
             } else {
-                throw new BadRequestException();
+                throw new BadRequestException(e);
             }
         } catch (HttpServerErrorException e) {
-            log.warn("*****httpServerException");
+            log.warn("*****httpServerException", e);
             throw new UnableToUpdateOrganisationException(String.format("Error: Unable to update organisation for uid %s ", uid));
         } catch (Exception e) {
-            log.warn("*****Exception");
+            log.warn("*****Exception", e);
             throw new UnableToUpdateOrganisationException(String.format("Unexpected Error: Unable to update organisation for uid %s ", uid));
         }
     }
@@ -110,7 +110,6 @@ public class CsrsService {
     private void updateOrganisationForUser(String uid, String orgCode) {
         UpdateOrganisationDTO requestDTO = new UpdateOrganisationDTO();
         requestDTO.setOrgCode(orgCode);
-        //requestDTO.setUid(uid);
         restTemplate.put(updateOrganisationUrl, requestDTO, Void.class);
     }
 
