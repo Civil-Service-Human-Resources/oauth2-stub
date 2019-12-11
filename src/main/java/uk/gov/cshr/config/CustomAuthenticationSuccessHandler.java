@@ -83,10 +83,10 @@ public class CustomAuthenticationSuccessHandler
         String domain = identityService.getDomainFromEmailAddress(identity.getEmail());
         String uid = identity.getUid();
         if (agencyTokenService.isDomainWhiteListed(domain)) {
-            return enterOrganisationUrl;
+            return "/redirectToChangeOrgPage/" + domain + "/" + uid;
         } else {
             if(agencyTokenService.isDomainAnAgencyTokenDomain(domain)) {
-                return String.format(emailUpdatedEnterTokenUrl, domain, uid);
+                return "/redirectToEnterTokenPage/" + domain + "/" + uid;
             } else {
                 return invalidDomainUrl;
             }

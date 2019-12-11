@@ -6,7 +6,6 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import uk.gov.cshr.controller.signup.EnterTokenForm;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.OrganisationalUnitDto;
 import uk.gov.cshr.exception.BadRequestException;
@@ -42,31 +41,41 @@ public class EmailUpdateController {
         this.identityRepository = identityRepository;
     }
 
-    @GetMapping(path = "/enterToken/{domain}/{uid}")
-    public String enterToken(Model model,
-                             @PathVariable("domain") String domain,
-                             @PathVariable("uid") String uid) {
+    @GetMapping(path = "/enterToken")
+    public String enterToken(Model model) {
 
         log.info("User accessing token-based email updated screen");
 
-        OrganisationalUnitDto[] organisations = csrsService.getOrganisationalUnitsFormatted();
+        if(model.containsAttribute("emailUpdatedRecentlyEnterTokenForm")) {
+            OrganisationalUnitDto[] organisations = csrsService.getOrganisationalUnitsFormatted();
+            model.addAttribute("organisations", organisations);
+            return "enterTokenSinceEmailUpdate";
+        } else {
+            String domain = (String) model.asMap().get("domain");
+            String uid = (String) model.asMap().get("uid");
 
-        model.addAttribute("organisations", organisations);
-        model.addAttribute("emailUpdatedRecentlyEnterTokenForm", new EmailUpdatedRecentlyEnterTokenForm());
-        model.addAttribute("domain", domain);
+            OrganisationalUnitDto[] organisations = csrsService.getOrganisationalUnitsFormatted();
 
-        return "enterTokenSinceEmailUpdate";
+            model.addAttribute("organisations", organisations);
+            EmailUpdatedRecentlyEnterTokenForm form = new EmailUpdatedRecentlyEnterTokenForm();
+            form.setDomain(domain);
+            form.setUid(uid);
+            model.addAttribute("emailUpdatedRecentlyEnterTokenForm", form);
+            return "enterTokenSinceEmailUpdate";
+        }
+
     }
 
-    @PostMapping(path = "/enterToken/{domain}/{uid}")
+    @PostMapping(path = "/enterToken")
     public String submitToken(Model model,
-                              @PathVariable("domain") String domain,
-                              @PathVariable("uid") String uid,
                               @ModelAttribute @Valid EmailUpdatedRecentlyEnterTokenForm form,
                               BindingResult bindingResult,
                               RedirectAttributes redirectAttributes) {
 
         log.info("User attempting token-based sign up since updating their email");
+
+        String domain = form.getDomain();
+        String uid = form.getUid();
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("emailUpdatedRecentlyEnterTokenForm", form);
@@ -79,7 +88,7 @@ public class EmailUpdateController {
                 csrsService.updateSpacesAvailable(domain, form.getToken(), form.getOrganisation(), false);
                 log.info("User submitted Enter Token form with domain = {}, token = {}, org = {}", domain, form.getToken(), form.getOrganisation());
                 identityService.resetRecentlyUpdatedEmailFlag(optionalIdentity.get());
-                String url = String.format("/updateOrganisation/enterOrganisation/%s/%s", domain, uid);
+                String url = "/updateOrganisation/enterOrganisation";
                return "redirect:"+url;
             } else {
                 log.info("No identity found for uid {}", uid);
@@ -87,10 +96,12 @@ public class EmailUpdateController {
             }
         } catch (ResourceNotFoundException e) {
             redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Incorrect token for this organisation");
-            return "redirect:/emailUpdated/enterToken/" + domain + "/" + uid;
+            redirectAttributes.addFlashAttribute("emailUpdatedRecentlyEnterTokenForm", form);
+            return "redirect:/emailUpdated/enterToken";
         } catch (NotEnoughSpaceAvailableException e) {
             redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Not enough spaces available on this token");
-            return "redirect:/emailUpdated/enterToken/" + domain + "/" + uid;
+            redirectAttributes.addFlashAttribute("emailUpdatedRecentlyEnterTokenForm", form);
+            return "redirect:/emailUpdated/enterToken";
         } catch (BadRequestException e) {
             return "redirect:/login";
         } catch (UnableToAllocateAgencyTokenException e) {

@@ -6,4 +6,6 @@ import lombok.Data;
 public class EmailUpdatedRecentlyEnterTokenForm {
     private String organisation;
     private String token;
+    private String domain;
+    private String uid;
 }

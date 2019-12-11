@@ -4,12 +4,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Map;
 
 @Controller
 public class RedirectController {
@@ -37,13 +37,22 @@ public class RedirectController {
         return redirectView;
     }
 
-    @RequestMapping("/redirectToChangeOrgPage")
-    public RedirectView goToChangeOrgPage(Model model) {
-        Map<String, Object> modelMap = model.asMap();
-        String domain = (String) modelMap.get("domain");
-        String uid = (String) modelMap.get("uid");
+    @RequestMapping("/redirectToChangeOrgPage/{domain}/{uid}")
+    public RedirectView goToChangeOrgPage(HttpServletRequest request, Model model, RedirectAttributes redirectAttributes, @PathVariable String domain, @PathVariable String uid) {
+        redirectAttributes.addFlashAttribute("domain", domain);
+        redirectAttributes.addFlashAttribute("uid", uid);
         RedirectView redirectView = new RedirectView();
-        String url = String.format("/updateOrganisation/enterOrganisation/%s/%s", domain, uid);
+        String url = "/updateOrganisation/enterOrganisation";
+        redirectView.setUrl(url);
+        return redirectView;
+    }
+
+    @RequestMapping("/redirectToEnterTokenPage/{domain}/{uid}")
+    public RedirectView goToEnterTokenSinceEmailUpdatePage(HttpServletRequest request, Model model, RedirectAttributes redirectAttributes, @PathVariable String domain, @PathVariable String uid) {
+        redirectAttributes.addFlashAttribute("domain", domain);
+        redirectAttributes.addFlashAttribute("uid", uid);
+        RedirectView redirectView = new RedirectView();
+        String url = "/emailUpdated/enterToken";
         redirectView.setUrl(url);
         return redirectView;
     }
