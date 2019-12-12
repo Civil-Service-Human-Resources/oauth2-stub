@@ -27,6 +27,8 @@
                         </div>
 
                         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <input type="hidden" id="domain" th:field="*{domain}"/>
+                        <input type="hidden" id="uid" th:field="*{uid}"/>
                         <input type="submit" class="button" value="Continue">
                     </form>
 

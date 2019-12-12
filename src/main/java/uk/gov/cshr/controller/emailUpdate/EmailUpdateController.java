@@ -88,11 +88,11 @@ public class EmailUpdateController {
                 csrsService.updateSpacesAvailable(domain, form.getToken(), form.getOrganisation(), false);
                 log.info("User submitted Enter Token form with domain = {}, token = {}, org = {}", domain, form.getToken(), form.getOrganisation());
                 identityService.resetRecentlyUpdatedEmailFlag(optionalIdentity.get());
-                String url = "/updateOrganisation/enterOrganisation";
-               return "redirect:"+url;
+                String url = "/organisation/enterOrganisation";
+                return "redirect:"+url;
             } else {
                 log.info("No identity found for uid {}", uid);
-                throw new ResourceNotFoundException();
+                return "redirect:/login";
             }
         } catch (ResourceNotFoundException e) {
             redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Incorrect token for this organisation");

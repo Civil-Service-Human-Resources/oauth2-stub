@@ -38,22 +38,20 @@ public class RedirectController {
     }
 
     @RequestMapping("/redirectToChangeOrgPage/{domain}/{uid}")
-    public RedirectView goToChangeOrgPage(HttpServletRequest request, Model model, RedirectAttributes redirectAttributes, @PathVariable String domain, @PathVariable String uid) {
+    public RedirectView goToChangeOrgPage(Model model, RedirectAttributes redirectAttributes, @PathVariable String domain, @PathVariable String uid) {
         redirectAttributes.addFlashAttribute("domain", domain);
         redirectAttributes.addFlashAttribute("uid", uid);
         RedirectView redirectView = new RedirectView();
-        String url = "/updateOrganisation/enterOrganisation";
-        redirectView.setUrl(url);
+        redirectView.setUrl("/organisation/enterOrganisation");
         return redirectView;
     }
 
     @RequestMapping("/redirectToEnterTokenPage/{domain}/{uid}")
-    public RedirectView goToEnterTokenSinceEmailUpdatePage(HttpServletRequest request, Model model, RedirectAttributes redirectAttributes, @PathVariable String domain, @PathVariable String uid) {
+    public RedirectView goToEnterTokenSinceEmailUpdatePage(Model model, RedirectAttributes redirectAttributes, @PathVariable String domain, @PathVariable String uid) {
         redirectAttributes.addFlashAttribute("domain", domain);
         redirectAttributes.addFlashAttribute("uid", uid);
         RedirectView redirectView = new RedirectView();
-        String url = "/emailUpdated/enterToken";
-        redirectView.setUrl(url);
+        redirectView.setUrl("/emailUpdated/enterToken");
         return redirectView;
     }
 

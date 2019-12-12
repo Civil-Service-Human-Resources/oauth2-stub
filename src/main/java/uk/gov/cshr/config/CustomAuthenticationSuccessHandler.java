@@ -21,14 +21,8 @@ import java.io.IOException;
 public class CustomAuthenticationSuccessHandler
         implements AuthenticationSuccessHandler {
 
-    @Value("${emailUpdate.enterTokenUrl}")
-    private String emailUpdatedEnterTokenUrl;
-
     @Value("${emailUpdate.invalidDomainUrl}")
     private String invalidDomainUrl;
-
-    @Value("${emailUpdate.enterOrganisationUrl}")
-    private String enterOrganisationUrl;
 
     @Value("${lpg.uiUrl}")
     private String lpgUiUrl;

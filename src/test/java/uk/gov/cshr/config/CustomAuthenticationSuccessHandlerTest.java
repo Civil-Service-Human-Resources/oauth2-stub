@@ -41,9 +41,6 @@ public class CustomAuthenticationSuccessHandlerTest {
     @Value("${lpg.uiUrl}")
     private String lpgUiUrl;
 
-    @Value("${lpg.changeOrgUrl}")
-    private String lpgChangeOrgUrl;
-
     @Value("${emailUpdate.invalidDomainUrl}")
     private String invalidDomainUrl;
 
@@ -96,7 +93,7 @@ public class CustomAuthenticationSuccessHandlerTest {
         classUnderTest.onAuthenticationSuccess(request, response, SecurityContextHolder.getContext().getAuthentication());
 
         // then
-        verify(redirectStrategy, times(1)).sendRedirect(any(HttpServletRequest.class), any(HttpServletResponse.class), eq("redirect:/redirectToUIHomePage"));
+        verify(redirectStrategy, times(1)).sendRedirect(any(HttpServletRequest.class), any(HttpServletResponse.class), eq(lpgUiUrl));
     }
 
     @Test
@@ -112,7 +109,7 @@ public class CustomAuthenticationSuccessHandlerTest {
         classUnderTest.onAuthenticationSuccess(request, response, SecurityContextHolder.getContext().getAuthentication());
 
         // then
-        verify(redirectStrategy, times(1)).sendRedirect(any(HttpServletRequest.class), any(HttpServletResponse.class), eq("redirect:/redirectToUIChangeOrgPage"));
+        verify(redirectStrategy, times(1)).sendRedirect(any(HttpServletRequest.class), any(HttpServletResponse.class), eq("/redirectToChangeOrgPage/domain.com/specialuid"));
     }
 
     @Test
@@ -129,7 +126,7 @@ public class CustomAuthenticationSuccessHandlerTest {
         classUnderTest.onAuthenticationSuccess(request, response, SecurityContextHolder.getContext().getAuthentication());
 
         // then
-        String expectedEnterTokenUrl = "/emailUpdated/enterToken/domain.com/specialuid";
+        String expectedEnterTokenUrl = "/redirectToEnterTokenPage/domain.com/specialuid";
         verify(redirectStrategy, times(1)).sendRedirect(any(HttpServletRequest.class), any(HttpServletResponse.class), contains(expectedEnterTokenUrl));
     }
 

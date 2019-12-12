@@ -27,12 +27,12 @@ public class RedirectControllerTest {
     private String lpgUiUrl;
 
     @Test
-    public void whenInvalidEmail_shouldRedirectToTheLogoutPage() throws Exception {
-        mockMvc.perform(
-                get("/invalid"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/logout"));
+    public void givenAnInvalidEmailDomain_whenNotAValidEmailDomain_thenShouldRedirectToSignInPage() throws Exception {
 
+        this.mockMvc.perform(get("/invalid"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/logout"))
+                .andExpect(flash().attribute("status","Your organisation is unable to use this service. Please contact your line manager."));
     }
 
     @Test
@@ -45,13 +45,27 @@ public class RedirectControllerTest {
     }
 
     @Test
-    public void whenGoToChangeOrgPageInLPGUI_shouldRedirectToTheLPGUIChangeOrgPage() throws Exception {
-        String expectedRedirectToUrl = lpgUiUrl+"?updateOrg=true";
+    public void whenGoToChangeOrgPage_shouldRedirectToTheEnterOrganisationPage() throws Exception {
+        String expectedRedirectToUrl = "/organisation/enterOrganisation";
 
         mockMvc.perform(
-                get("/redirectToUIChangeOrgPage"))
+                get("/redirectToChangeOrgPage/mydomain/myuid"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(expectedRedirectToUrl));
+                .andExpect(redirectedUrl(expectedRedirectToUrl))
+                .andExpect(flash().attribute("domain","mydomain"))
+                .andExpect(flash().attribute("uid","myuid"));
+    }
+
+    @Test
+    public void whenGoToEnterTokenPage_shouldRedirectToTheEnterTokenPage() throws Exception {
+        String expectedRedirectToUrl = "/emailUpdated/enterToken";
+
+        mockMvc.perform(
+                get("/redirectToEnterTokenPage/mydomain/myuid"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(expectedRedirectToUrl))
+                .andExpect(flash().attribute("domain","mydomain"))
+                .andExpect(flash().attribute("uid","myuid"));
     }
 
 }

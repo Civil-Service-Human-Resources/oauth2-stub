@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.cshr.domain.AgencyToken;
 import uk.gov.cshr.domain.OrganisationalUnitDto;
@@ -25,6 +26,7 @@ public class CsrsServiceTest {
     private String agencyTokensByDomainFormat;
     private String organisationalUnitsFlatUrl;
     private String updateSpacesAvailableUrl;
+    private String updateOrganisationUrl;
     private CsrsService csrsService;
 
     @Before
@@ -33,8 +35,9 @@ public class CsrsServiceTest {
         agencyTokensByDomainFormat = "http://locahost:9002/agencyTokens?domain=%s";
         organisationalUnitsFlatUrl = "http://locahost:9002/organisationalUnits/flat";
         updateSpacesAvailableUrl = "http://locahost:9002/agencyTokens";
+        updateOrganisationUrl = "http://locahost:9002/civilServants/org";
 
-        csrsService = new CsrsService(restTemplate, agencyTokensFormat, agencyTokensByDomainFormat, organisationalUnitsFlatUrl, updateSpacesAvailableUrl);
+        csrsService = new CsrsService(restTemplate, agencyTokensFormat, agencyTokensByDomainFormat, organisationalUnitsFlatUrl, updateSpacesAvailableUrl, updateOrganisationUrl);
     }
 
     @Test

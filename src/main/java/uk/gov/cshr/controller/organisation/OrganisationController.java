@@ -1,4 +1,4 @@
-package uk.gov.cshr.controller.emailUpdate;
+package uk.gov.cshr.controller.organisation;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -18,8 +18,8 @@ import java.util.Optional;
 
 @Slf4j
 @Controller
-@RequestMapping("/updateOrganisation")
-public class UpdateOrganisationController {
+@RequestMapping("/organisation")
+public class OrganisationController {
 
     private static final String STATUS_ATTRIBUTE = "status";
 
@@ -29,7 +29,7 @@ public class UpdateOrganisationController {
 
     private final IdentityRepository identityRepository;
 
-    public UpdateOrganisationController(
+    public OrganisationController(
             IdentityService identityService,
             CsrsService csrsService,
             IdentityRepository identityRepository) {
@@ -38,34 +38,45 @@ public class UpdateOrganisationController {
         this.identityRepository = identityRepository;
     }
 
-    @GetMapping(path = "/enterOrganisation/{domain}/{uid}")
-    public String enterOrganisation(Model model,
-                             @PathVariable("domain") String domain,
-                             @PathVariable("uid") String uid) {
+    @GetMapping(path = "/enterOrganisation")
+    public String enterOrganisation(Model model) {
 
         log.info("User accessing update or confirm your organisation screen");
 
-        OrganisationalUnitDto[] organisations = csrsService.getOrganisationalUnitsFormatted();
+        if(model.containsAttribute("enterOrganisationForm")) {
+            OrganisationalUnitDto[] organisations = csrsService.getOrganisationalUnitsFormatted();
+            model.addAttribute("organisations", organisations);
+            return "enterOrganisation";
+        } else {
 
-        model.addAttribute("organisations", organisations);
-        model.addAttribute("emailRecentlyUpdatedEnterOrganisationForm", new EmailUpdatedRecentlyEnterOrganisationForm());
-        model.addAttribute("domain", domain);
+            String domain = (String) model.asMap().get("domain");
+            String uid = (String) model.asMap().get("uid");
 
-        return "enterOrganisation";
+            OrganisationalUnitDto[] organisations = csrsService.getOrganisationalUnitsFormatted();
+
+            model.addAttribute("organisations", organisations);
+            EnterOrganisationForm form = new EnterOrganisationForm();
+            form.setDomain(domain);
+            form.setUid(uid);
+            model.addAttribute("enterOrganisationForm", form);
+            return "enterOrganisation";
+        }
+
     }
 
-    @PostMapping(path = "/enterOrganisation/{domain}/{uid}")
+    @PostMapping(path = "/enterOrganisation")
     public String submitOrganisation(Model model,
-                              @PathVariable("domain") String domain,
-                              @PathVariable("uid") String uid,
-                              @ModelAttribute @Valid EmailUpdatedRecentlyEnterOrganisationForm form,
+                              @ModelAttribute @Valid EnterOrganisationForm form,
                               BindingResult bindingResult,
                               RedirectAttributes redirectAttributes) {
 
-        log.info("User attempting to update or confirm their organisation since updating their organisations");
+        log.info("User attempting to update or confirm their organisation");
+
+        String domain = form.getDomain();
+        String uid = form.getUid();
 
         if (bindingResult.hasErrors()) {
-            model.addAttribute("emailRecentlyUpdatedEnterOrganisationForm", form);
+            model.addAttribute("enterOrganisationForm", form);
             return "enterOrganisation";
         }
 
@@ -77,11 +88,12 @@ public class UpdateOrganisationController {
                 return "redirect:/redirectToUIHomePage";
             } else {
                 log.info("No identity found for uid {}", uid);
-                throw new ResourceNotFoundException();
+                return "redirect:/login";
             }
         } catch (ResourceNotFoundException e) {
             redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Incorrect organisation");
-            return "redirect:/updateOrganisation/enterOrganisation/" + domain + "/" + uid;
+            redirectAttributes.addFlashAttribute("enterOrganisationForm", form);
+            return "redirect:/organisation/enterOrganisation";
         } catch (BadRequestException e) {
             return "redirect:/login";
         } catch (UnableToUpdateOrganisationException e) {
