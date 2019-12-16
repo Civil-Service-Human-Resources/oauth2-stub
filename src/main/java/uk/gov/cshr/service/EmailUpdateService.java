@@ -1,6 +1,5 @@
 package uk.gov.cshr.service;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +20,7 @@ public class EmailUpdateService {
     private final EmailUpdateFactory emailUpdateFactory;
     private final NotifyService notifyService;
     private final IdentityService identityService;
+    private final CsrsService csrsService;
     private final String updateEmailTemplateId;
     private final String inviteUrlFormat;
 
@@ -28,12 +28,14 @@ public class EmailUpdateService {
                               EmailUpdateFactory emailUpdateFactory,
                               @Qualifier("notifyServiceImpl") NotifyService notifyService,
                               IdentityService identityService,
+                              CsrsService csrsService,
                               @Value("${govNotify.template.emailUpdate}") String updateEmailTemplateId,
                               @Value("${emailUpdate.urlFormat}") String inviteUrlFormat) {
         this.emailUpdateRepository = emailUpdateRepository;
         this.emailUpdateFactory = emailUpdateFactory;
         this.notifyService = notifyService;
         this.identityService = identityService;
+        this.csrsService = csrsService;
         this.updateEmailTemplateId = updateEmailTemplateId;
         this.inviteUrlFormat = inviteUrlFormat;
     }
@@ -51,6 +53,7 @@ public class EmailUpdateService {
         return emailUpdate.getCode();
     }
 
+    @Transactional
     public void updateEmailAddress(Identity identity, String code) {
         EmailUpdate emailUpdate = emailUpdateRepository.findByIdentityAndCode(identity, code)
                 .orElseThrow(() -> new InvalidCodeException(String.format("Code %s does not exist for identity %s", code, identity)));
@@ -62,5 +65,23 @@ public class EmailUpdateService {
 
     public boolean verifyCode(Identity identity, String code) {
         return emailUpdateRepository.findByIdentityAndCode(identity, code).isPresent();
+    }
+
+    @Transactional
+    public boolean updateOrganisationAndResetFlag(String newOrgCode, String uid){
+        csrsService.updateOrganisation(uid, newOrgCode);
+        identityService.resetRecentlyUpdatedEmailFlag(uid);
+        return true;
+    }
+
+    @Transactional
+    public boolean updateOrganisationUpdateAgencyTokenSpacesAndResetFlag(String oldDomain, String newDomain, String oldToken,
+                                                                         String newToken, String oldOrgCode, String newOrgCode,
+                                                                         String uid){
+        csrsService.updateOrganisation(uid, newOrgCode);
+        identityService.resetRecentlyUpdatedEmailFlag(uid);
+        csrsService.updateSpacesAvailable(oldDomain, oldToken, oldOrgCode, true);
+        csrsService.updateSpacesAvailable(newDomain, newToken, newOrgCode, false);
+        return true;
     }
 }

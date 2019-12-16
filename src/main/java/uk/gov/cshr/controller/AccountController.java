@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import uk.gov.cshr.controller.form.UpdateEmailForm;
 import uk.gov.cshr.controller.form.UpdatePasswordForm;
 import uk.gov.cshr.domain.Identity;
+import uk.gov.cshr.exception.ResourceNotFoundException;
 import uk.gov.cshr.service.EmailUpdateService;
 import uk.gov.cshr.service.security.IdentityDetails;
 import uk.gov.cshr.service.security.IdentityService;
@@ -86,7 +87,15 @@ public class AccountController {
             return "redirect:/account/email?invalidCode=true";
         }
 
-        emailUpdateService.updateEmailAddress(identity, code);
+        try {
+            emailUpdateService.updateEmailAddress(identity, code);
+        } catch (ResourceNotFoundException e) {
+            LOGGER.error("Unable to update email: {} {}", code, identity);
+            return "redirect:/account/email?invalidEmail=true";
+        } catch (Exception e) {
+            LOGGER.error("Unable to update email: {} {}", code, identity);
+            return "redirect:/account/email?errorOccurred=true";
+        }
 
         return "redirect:/account/emailUpdated";
     }

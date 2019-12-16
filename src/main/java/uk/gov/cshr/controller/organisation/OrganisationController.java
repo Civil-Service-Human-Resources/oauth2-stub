@@ -11,6 +11,7 @@ import uk.gov.cshr.domain.OrganisationalUnitDto;
 import uk.gov.cshr.exception.*;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.service.CsrsService;
+import uk.gov.cshr.service.EmailUpdateService;
 import uk.gov.cshr.service.security.IdentityService;
 
 import javax.validation.Valid;
@@ -29,13 +30,17 @@ public class OrganisationController {
 
     private final IdentityRepository identityRepository;
 
+    private final EmailUpdateService emailUpdateService;
+
     public OrganisationController(
             IdentityService identityService,
             CsrsService csrsService,
-            IdentityRepository identityRepository) {
+            IdentityRepository identityRepository,
+            EmailUpdateService emailUpdateService) {
         this.identityService = identityService;
         this.csrsService = csrsService;
         this.identityRepository = identityRepository;
+        this.emailUpdateService = emailUpdateService;
     }
 
     @GetMapping(path = "/enterOrganisation")
@@ -72,20 +77,49 @@ public class OrganisationController {
 
         log.info("User attempting to update or confirm their organisation");
 
-        String domain = form.getDomain();
-        String uid = form.getUid();
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("enterOrganisationForm", form);
             return "enterOrganisation";
         }
 
+        boolean isTokenPerson = model.containsAttribute("tokenPerson");
+
+        String domain = form.getDomain();
+        String uid = form.getUid();
+
         try {
             Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
             if(optionalIdentity.isPresent()) {
                 log.info("User submitted Enter organisation form with organisation = {}", form.getOrganisation());
-                csrsService.updateOrganisation(uid, form.getOrganisation());
-                return "redirect:/redirectToUIHomePage";
+
+                boolean ok = false;
+                ///
+                //String oldDomain, String newDomain, String oldToken,
+                //        String newToken, String oldOrgCode, String newOrgCode,
+                //        String uid)
+                ///
+                String oldDomain = "";
+                String newDomain = domain;
+                String oldToken = "";
+                String newToken = ""; // can find it?
+                String oldOrgCode = "";
+                String newOrgCode = form.getOrganisation();
+
+                if(isTokenPerson) {
+                    ok = emailUpdateService.updateOrganisationUpdateAgencyTokenSpacesAndResetFlag(oldDomain, newDomain, oldToken, newToken, oldOrgCode, newOrgCode, uid);
+                } else {
+                    ok = emailUpdateService.updateOrganisationAndResetFlag(newOrgCode, uid);
+                }
+
+                if(ok) {
+                    return "redirect:/redirectToUIHomePage";
+                } else {
+                    redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Incorrect organisation");
+                    redirectAttributes.addFlashAttribute("enterOrganisationForm", form);
+                    return "redirect:/organisation/enterOrganisation";
+                }
+
             } else {
                 log.info("No identity found for uid {}", uid);
                 return "redirect:/login";
@@ -96,7 +130,7 @@ public class OrganisationController {
             return "redirect:/organisation/enterOrganisation";
         } catch (BadRequestException e) {
             return "redirect:/login";
-        } catch (UnableToUpdateOrganisationException e) {
+        } catch (Exception e) {
             return "redirect:/login";
         }
 

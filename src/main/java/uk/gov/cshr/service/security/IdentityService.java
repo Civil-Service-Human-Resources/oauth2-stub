@@ -12,12 +12,15 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.cshr.domain.AgencyToken;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.exception.IdentityNotFoundException;
+import uk.gov.cshr.exception.ResourceNotFoundException;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.TokenRepository;
+import uk.gov.cshr.service.CsrsService;
 import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.NotifyService;
 
@@ -43,6 +46,7 @@ public class IdentityService implements UserDetailsService {
     private final TokenServices tokenServices;
     private final TokenRepository tokenRepository;
     private final NotifyService notifyService;
+    private final CsrsService csrsService;
     private InviteService inviteService;
     private String[] whitelistedDomains;
 
@@ -54,6 +58,7 @@ public class IdentityService implements UserDetailsService {
                            NotifyService notifyService,
                            TokenRepository tokenRepository,
                            @Qualifier("notifyServiceImpl") NotifyService notifyService,
+                           CsrsService csrsService,
                            @Value("${invite.whitelist.domains}") String[] whitelistedDomains) {
         this.updatePasswordEmailTemplateId = updatePasswordEmailTemplateId;
         this.identityRepository = identityRepository;
@@ -61,6 +66,7 @@ public class IdentityService implements UserDetailsService {
         this.tokenServices = tokenServices;
         this.tokenRepository = tokenRepository;
         this.notifyService = notifyService;
+        this.csrsService = csrsService;
         this.whitelistedDomains = whitelistedDomains;
     }
 
@@ -133,6 +139,7 @@ public class IdentityService implements UserDetailsService {
         return identityRepository.save(identity);
     }
 
+    @Transactional
     public void updateEmailAddress(Identity identity, String email) {
         Identity savedIdentity = identityRepository.findById(identity.getId())
                 .orElseThrow(() -> new IdentityNotFoundException("No such identity: " + identity.getId()));
@@ -140,12 +147,25 @@ public class IdentityService implements UserDetailsService {
         savedIdentity.setEmail(email);
         savedIdentity.setEmailRecentlyUpdated(true);
 
+        // is it a token person
+        String domain = getDomainFromEmailAddress(email);
+        if(!isWhitelistedDomain(domain)) {
+            // work out what org they are from and what agency token to remove them from
+            // TODO - BH
+            String orgCode = "";
+            Optional<AgencyToken> agencyToken = csrsService.getAgencyTokenForDomainAndOrganisation(domain, orgCode);
+            if(agencyToken.isPresent()) {
+                csrsService.updateSpacesAvailable(domain, agencyToken.get().getToken(), orgCode, true);
+            } else {
+                throw new ResourceNotFoundException();
+            }
+        }
         identityRepository.save(savedIdentity);
     }
 
-    public void resetRecentlyUpdatedEmailFlag(Identity identity) {
-        Identity savedIdentity = identityRepository.findById(identity.getId())
-                .orElseThrow(() -> new IdentityNotFoundException("No such identity: " + identity.getId()));
+    public void resetRecentlyUpdatedEmailFlag(String uid) {
+        Identity savedIdentity = identityRepository.findFirstByUid(uid)
+                .orElseThrow(() -> new IdentityNotFoundException("No such identity: " + uid));
 
         savedIdentity.setEmailRecentlyUpdated(false);
 

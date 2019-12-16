@@ -8,13 +8,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.OrganisationalUnitDto;
-import uk.gov.cshr.exception.BadRequestException;
-import uk.gov.cshr.exception.NotEnoughSpaceAvailableException;
 import uk.gov.cshr.exception.ResourceNotFoundException;
-import uk.gov.cshr.exception.UnableToAllocateAgencyTokenException;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.service.CsrsService;
-import uk.gov.cshr.service.security.IdentityService;
 
 import javax.validation.Valid;
 import java.util.Optional;
@@ -26,17 +22,13 @@ public class EmailUpdateController {
 
     private static final String STATUS_ATTRIBUTE = "status";
 
-    private final IdentityService identityService;
-
     private final CsrsService csrsService;
 
     private final IdentityRepository identityRepository;
 
     public EmailUpdateController(
-                            IdentityService identityService,
                             CsrsService csrsService,
                             IdentityRepository identityRepository) {
-        this.identityService = identityService;
         this.csrsService = csrsService;
         this.identityRepository = identityRepository;
     }
@@ -67,7 +59,7 @@ public class EmailUpdateController {
     }
 
     @PostMapping(path = "/enterToken")
-    public String submitToken(Model model,
+    public String checkToken(Model model,
                               @ModelAttribute @Valid EmailUpdatedRecentlyEnterTokenForm form,
                               BindingResult bindingResult,
                               RedirectAttributes redirectAttributes) {
@@ -85,11 +77,17 @@ public class EmailUpdateController {
         try {
             Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
             if(optionalIdentity.isPresent()) {
-                csrsService.updateSpacesAvailable(domain, form.getToken(), form.getOrganisation(), false);
-                log.info("User submitted Enter Token form with domain = {}, token = {}, org = {}", domain, form.getToken(), form.getOrganisation());
-                identityService.resetRecentlyUpdatedEmailFlag(optionalIdentity.get());
-                String url = "/organisation/enterOrganisation";
-                return "redirect:"+url;
+                log.info("User checking Enter Token form with domain = {}, token = {}, org = {}", domain, form.getToken(), form.getOrganisation());
+                boolean ok = csrsService.checkTokenExists(domain, form.getToken(), form.getOrganisation(), false);
+                if(ok){
+                    redirectAttributes.addFlashAttribute("uid", uid);
+                    redirectAttributes.addFlashAttribute("domain", domain);
+                    redirectAttributes.addFlashAttribute("tokenPerson", true);
+                    String url = "/organisation/enterOrganisation";
+                    return "redirect:"+url;
+                } else {
+                    throw new ResourceNotFoundException();
+                }
             } else {
                 log.info("No identity found for uid {}", uid);
                 return "redirect:/login";
@@ -98,13 +96,7 @@ public class EmailUpdateController {
             redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Incorrect token for this organisation");
             redirectAttributes.addFlashAttribute("emailUpdatedRecentlyEnterTokenForm", form);
             return "redirect:/emailUpdated/enterToken";
-        } catch (NotEnoughSpaceAvailableException e) {
-            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Not enough spaces available on this token");
-            redirectAttributes.addFlashAttribute("emailUpdatedRecentlyEnterTokenForm", form);
-            return "redirect:/emailUpdated/enterToken";
-        } catch (BadRequestException e) {
-            return "redirect:/login";
-        } catch (UnableToAllocateAgencyTokenException e) {
+        } catch (Exception e) {
             return "redirect:/login";
         }
 

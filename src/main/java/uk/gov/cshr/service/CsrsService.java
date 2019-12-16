@@ -2,7 +2,10 @@ package uk.gov.cshr.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -21,6 +24,7 @@ public class CsrsService {
     private RestTemplate restTemplate;
     private String agencyTokensFormat;
     private String agencyTokensByDomainFormat;
+    private String agencyTokensByDomainAndOrganisationFormat;
     private String organisationalUnitsFlatUrl;
     private String updateSpacesAvailableUrl;
     private String updateOrganisationUrl;
@@ -28,12 +32,14 @@ public class CsrsService {
     public CsrsService(RestTemplate restTemplate,
                        @Value("${registry.agencyTokensFormat}") String agencyTokensFormat,
                        @Value("${registry.agencyTokensByDomainFormat}") String agencyTokensByDomainFormat,
+                       @Value("${registry.agencyTokensByDomainAndOrganisationFormat}") String agencyTokensByDomainAndOrganisationFormat,
                        @Value("${registry.organisationalUnitsFlatUrl}") String organisationalUnitsFlatUrl,
                        @Value("${registry.updateSpacesAvailableUrl}") String updateSpacesAvailableUrl,
                        @Value("${registry.updateOrganisationUrl}") String updateOrganisationUrl) {
         this.restTemplate = restTemplate;
         this.agencyTokensFormat = agencyTokensFormat;
         this.agencyTokensByDomainFormat = agencyTokensByDomainFormat;
+        this.agencyTokensByDomainAndOrganisationFormat = agencyTokensByDomainAndOrganisationFormat;
         this.organisationalUnitsFlatUrl = organisationalUnitsFlatUrl;
         this.updateSpacesAvailableUrl = updateSpacesAvailableUrl;
         this.updateOrganisationUrl = updateOrganisationUrl;
@@ -55,6 +61,26 @@ public class CsrsService {
             System.out.println(e);
             return Optional.empty();
         }
+    }
+
+    public Optional<AgencyToken> getAgencyTokenForDomainAndOrganisation(String domain, String organisation) {
+        try {
+            return Optional.of(restTemplate.getForObject(String.format(agencyTokensByDomainAndOrganisationFormat, domain, organisation), AgencyToken.class));
+        } catch (HttpClientErrorException e) {
+            System.out.println(e);
+            return Optional.empty();
+        }
+    }
+
+    public boolean checkTokenExists(String domain, String token, String organisation, boolean removeUser) {
+            // check there is a valid token for this
+            Optional<AgencyToken> agencyToken = getAgencyTokenForDomainTokenOrganisation(domain, token, organisation);
+
+            if(agencyToken.isPresent()) {
+                return true;
+            } else {
+                return false;
+            }
     }
 
     public void updateSpacesAvailable(String domain, String token, String organisation, boolean removeUser) {
@@ -107,10 +133,17 @@ public class CsrsService {
         return organisationalUnitDtos;
     }
 
+
     private void updateOrganisationForUser(String uid, String orgCode) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
         UpdateOrganisationDTO requestDTO = new UpdateOrganisationDTO();
-        requestDTO.setOrgCode(orgCode);
-        restTemplate.put(updateOrganisationUrl, requestDTO, Void.class);
+        requestDTO.setOrganisation(orgCode);
+        requestDTO.setUid(uid);
+
+        HttpEntity<UpdateOrganisationDTO> entity = new HttpEntity<UpdateOrganisationDTO>(requestDTO ,headers);
+        restTemplate.put(updateOrganisationUrl, entity);
     }
 
     private void updateCsrs(String domain, String token, String organisation, boolean removeUser) {
