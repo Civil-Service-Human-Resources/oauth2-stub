@@ -18,6 +18,7 @@ import uk.gov.cshr.domain.Token;
 import uk.gov.cshr.exception.IdentityNotFoundException;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.TokenRepository;
+import uk.gov.cshr.service.CsrsService;
 import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.NotifyService;
 
@@ -59,6 +60,9 @@ public class IdentityServiceTest {
     @Mock
     private NotifyService notifyService;
 
+    @Mock
+    private CsrsService csrsService;
+
     @Captor
     private ArgumentCaptor<Identity> identityArgumentCaptor;
 
@@ -71,6 +75,7 @@ public class IdentityServiceTest {
                 tokenServices,
                 tokenRepository,
                 notifyService,
+                csrsService,
                 whitelistedDomains
         );
     }
@@ -239,7 +244,7 @@ public class IdentityServiceTest {
         when(identityRepository.save(identityArgumentCaptor.capture())).thenReturn(new Identity());
 
         // when
-        identityService.resetRecentlyUpdatedEmailFlag(identity);
+        identityService.resetRecentlyUpdatedEmailFlag(identity.getUid());
 
         // then
         verify(identityRepository, times(1)).save(optionalIdentity.get());
@@ -255,7 +260,7 @@ public class IdentityServiceTest {
         when(identityRepository.findById(anyLong())).thenReturn(optionalIdentity);
 
         // when
-        identityService.resetRecentlyUpdatedEmailFlag(identity);
+        identityService.resetRecentlyUpdatedEmailFlag(identity.getUid());
 
         // then
         verify(identityRepository, never()).save(any(Identity.class));
@@ -270,7 +275,7 @@ public class IdentityServiceTest {
         when(identityRepository.save(any(Identity.class))).thenThrow(new RuntimeException());
 
         // when
-        identityService.resetRecentlyUpdatedEmailFlag(identity);
+        identityService.resetRecentlyUpdatedEmailFlag(identity.getUid());
 
         // then
         verify(identityRepository, times(1)).save(optionalIdentity.get());

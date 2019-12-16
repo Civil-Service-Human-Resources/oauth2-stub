@@ -24,20 +24,40 @@ public class CsrsServiceTest {
 
     private String agencyTokensFormat;
     private String agencyTokensByDomainFormat;
+    private String agencyTokensByDomainAndOrganisationFormat;
     private String organisationalUnitsFlatUrl;
     private String updateSpacesAvailableUrl;
+    private String getOrganisationUrl;
     private String updateOrganisationUrl;
     private CsrsService csrsService;
 
+    /*
+    RestTemplate restTemplate,
+                       @Value("${registry.agencyTokensFormat}") String agencyTokensFormat,
+                       @Value("${registry.agencyTokensByDomainFormat}") String agencyTokensByDomainFormat,
+                       @Value("${registry.agencyTokensByDomainAndOrganisationFormat}") String agencyTokensByDomainAndOrganisationFormat,
+
+                       @Value("${registry.organisationalUnitsFlatUrl}") String organisationalUnitsFlatUrl,
+
+                       @Value("${registry.updateSpacesAvailableUrl}") String updateSpacesAvailableUrl,
+                       @Value("${registry.getOrganisationUrl}") String getOrganisationUrl,
+                       @Value("${registry.updateOrganisationUrl}") String updateOrganisationUrl)
+     */
     @Before
     public void setUp() {
         agencyTokensFormat = "http://locahost:9002/agencyTokens?domain=%s&token=%s&code=%s";
         agencyTokensByDomainFormat = "http://locahost:9002/agencyTokens?domain=%s";
+        agencyTokensByDomainAndOrganisationFormat = "http://locahost:9002/agencyTokens?domain=%s&code=%s";
         organisationalUnitsFlatUrl = "http://locahost:9002/organisationalUnits/flat";
         updateSpacesAvailableUrl = "http://locahost:9002/agencyTokens";
+        getOrganisationUrl = "http://locahost:9002/civilServants/org?uid=%s";
         updateOrganisationUrl = "http://locahost:9002/civilServants/org";
 
-        csrsService = new CsrsService(restTemplate, agencyTokensFormat, agencyTokensByDomainFormat, organisationalUnitsFlatUrl, updateSpacesAvailableUrl, updateOrganisationUrl);
+        csrsService = new CsrsService(restTemplate,
+                agencyTokensFormat, agencyTokensByDomainFormat, agencyTokensByDomainAndOrganisationFormat,
+                organisationalUnitsFlatUrl,
+                updateSpacesAvailableUrl,
+                getOrganisationUrl, updateOrganisationUrl);
     }
 
     @Test

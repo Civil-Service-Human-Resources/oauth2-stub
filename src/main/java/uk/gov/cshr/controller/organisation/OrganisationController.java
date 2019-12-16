@@ -83,9 +83,6 @@ public class OrganisationController {
             return "enterOrganisation";
         }
 
-        boolean isTokenPerson = model.containsAttribute("tokenPerson");
-
-        String domain = form.getDomain();
         String uid = form.getUid();
 
         try {
@@ -93,33 +90,22 @@ public class OrganisationController {
             if(optionalIdentity.isPresent()) {
                 log.info("User submitted Enter organisation form with organisation = {}", form.getOrganisation());
 
-                boolean ok = false;
-                ///
-                //String oldDomain, String newDomain, String oldToken,
-                //        String newToken, String oldOrgCode, String newOrgCode,
-                //        String uid)
-                ///
-                String oldDomain = "";
-                String newDomain = domain;
-                String oldToken = "";
-                String newToken = ""; // can find it?
-                String oldOrgCode = "";
-                String newOrgCode = form.getOrganisation();
+                String newDomain = identityService.getDomainFromEmailAddress(optionalIdentity.get().getEmail());
+                boolean isTokenPerson = identityService.isWhitelistedDomain(newDomain);
 
                 if(isTokenPerson) {
-                    ok = emailUpdateService.updateOrganisationUpdateAgencyTokenSpacesAndResetFlag(oldDomain, newDomain, oldToken, newToken, oldOrgCode, newOrgCode, uid);
+                    String newToken = csrsService.getOrgCode(uid);
+                    if(newToken == null) {
+                        redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Incorrect organisation");
+                        redirectAttributes.addFlashAttribute("enterOrganisationForm", form);
+                        return "redirect:/organisation/enterOrganisation";
+                    }
+                    emailUpdateService.updateOrganisationUpdateAgencyTokenSpacesAndResetFlag(form.getDomain(), newToken, form.getOrganisation(), uid);
                 } else {
-                    ok = emailUpdateService.updateOrganisationAndResetFlag(newOrgCode, uid);
+                    emailUpdateService.updateOrganisationAndResetFlag(form.getOrganisation(), uid);
                 }
 
-                if(ok) {
-                    return "redirect:/redirectToUIHomePage";
-                } else {
-                    redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Incorrect organisation");
-                    redirectAttributes.addFlashAttribute("enterOrganisationForm", form);
-                    return "redirect:/organisation/enterOrganisation";
-                }
-
+                return "redirect:/redirectToUIHomePage";
             } else {
                 log.info("No identity found for uid {}", uid);
                 return "redirect:/login";

@@ -3,14 +3,17 @@ package uk.gov.cshr.service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.cshr.domain.AgencyToken;
 import uk.gov.cshr.domain.EmailUpdate;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.exception.InvalidCodeException;
+import uk.gov.cshr.exception.ResourceNotFoundException;
 import uk.gov.cshr.repository.EmailUpdateRepository;
 import uk.gov.cshr.service.security.IdentityService;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -53,35 +56,45 @@ public class EmailUpdateService {
         return emailUpdate.getCode();
     }
 
-    @Transactional
-    public void updateEmailAddress(Identity identity, String code) {
-        EmailUpdate emailUpdate = emailUpdateRepository.findByIdentityAndCode(identity, code)
-                .orElseThrow(() -> new InvalidCodeException(String.format("Code %s does not exist for identity %s", code, identity)));
-
-        identityService.updateEmailAddress(identity, emailUpdate.getEmail());
-
-        emailUpdateRepository.delete(emailUpdate);
-    }
-
     public boolean verifyCode(Identity identity, String code) {
         return emailUpdateRepository.findByIdentityAndCode(identity, code).isPresent();
     }
 
     @Transactional
-    public boolean updateOrganisationAndResetFlag(String newOrgCode, String uid){
-        csrsService.updateOrganisation(uid, newOrgCode);
-        identityService.resetRecentlyUpdatedEmailFlag(uid);
-        return true;
+    public void updateEmailAddress(Identity identity, String code) {
+        EmailUpdate emailUpdate = emailUpdateRepository.findByIdentityAndCode(identity, code)
+                .orElseThrow(() -> new InvalidCodeException(String.format("Code %s does not exist for identity %s", code, identity)));
+
+        String oldDomain = identityService.getDomainFromEmailAddress(identity.getEmail());
+        boolean isWhitelistedPersonBeforeEmailChange = identityService.isWhitelistedDomain(oldDomain);
+
+        if(!isWhitelistedPersonBeforeEmailChange) {
+            // work out the token
+            String oldOrg = csrsService.getOrgCode(identity.getUid());
+            Optional<AgencyToken> agencyToken = csrsService.getAgencyTokenForDomainAndOrganisation(oldDomain, oldOrg);
+            if (agencyToken.isPresent()) {
+                AgencyToken at = agencyToken.get();
+                csrsService.updateSpacesAvailable(oldDomain, at.getToken(), oldOrg, true);
+            } else {
+                throw new ResourceNotFoundException();
+            }
+        }
+        identityService.updateEmailAddress(identity, emailUpdate.getEmail());
+        emailUpdateRepository.delete(emailUpdate);
+
     }
 
     @Transactional
-    public boolean updateOrganisationUpdateAgencyTokenSpacesAndResetFlag(String oldDomain, String newDomain, String oldToken,
-                                                                         String newToken, String oldOrgCode, String newOrgCode,
-                                                                         String uid){
+    public void updateOrganisationAndResetFlag(String newOrgCode, String uid){
         csrsService.updateOrganisation(uid, newOrgCode);
         identityService.resetRecentlyUpdatedEmailFlag(uid);
-        csrsService.updateSpacesAvailable(oldDomain, oldToken, oldOrgCode, true);
+    }
+
+    @Transactional
+    public void updateOrganisationUpdateAgencyTokenSpacesAndResetFlag(String newDomain, String newToken,
+                                                                         String newOrgCode, String uid){
+        csrsService.updateOrganisation(uid, newOrgCode);
+        identityService.resetRecentlyUpdatedEmailFlag(uid);
         csrsService.updateSpacesAvailable(newDomain, newToken, newOrgCode, false);
-        return true;
     }
 }

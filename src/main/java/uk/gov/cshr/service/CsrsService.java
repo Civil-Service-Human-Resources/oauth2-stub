@@ -2,10 +2,7 @@ package uk.gov.cshr.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -22,26 +19,29 @@ import java.util.Optional;
 @Service
 public class CsrsService {
     private RestTemplate restTemplate;
-    private String agencyTokensFormat;
+   // private String agencyTokensFormat;
     private String agencyTokensByDomainFormat;
     private String agencyTokensByDomainAndOrganisationFormat;
     private String organisationalUnitsFlatUrl;
     private String updateSpacesAvailableUrl;
+    private String getOrganisationUrl;
     private String updateOrganisationUrl;
 
     public CsrsService(RestTemplate restTemplate,
-                       @Value("${registry.agencyTokensFormat}") String agencyTokensFormat,
+                      // @Value("${registry.agencyTokensFormat}") String agencyTokensFormat,
                        @Value("${registry.agencyTokensByDomainFormat}") String agencyTokensByDomainFormat,
                        @Value("${registry.agencyTokensByDomainAndOrganisationFormat}") String agencyTokensByDomainAndOrganisationFormat,
                        @Value("${registry.organisationalUnitsFlatUrl}") String organisationalUnitsFlatUrl,
                        @Value("${registry.updateSpacesAvailableUrl}") String updateSpacesAvailableUrl,
+                       @Value("${registry.getOrganisationUrl}") String getOrganisationUrl,
                        @Value("${registry.updateOrganisationUrl}") String updateOrganisationUrl) {
         this.restTemplate = restTemplate;
-        this.agencyTokensFormat = agencyTokensFormat;
+       // this.agencyTokensFormat = agencyTokensFormat;
         this.agencyTokensByDomainFormat = agencyTokensByDomainFormat;
         this.agencyTokensByDomainAndOrganisationFormat = agencyTokensByDomainAndOrganisationFormat;
         this.organisationalUnitsFlatUrl = organisationalUnitsFlatUrl;
         this.updateSpacesAvailableUrl = updateSpacesAvailableUrl;
+        this.getOrganisationUrl = getOrganisationUrl;
         this.updateOrganisationUrl = updateOrganisationUrl;
     }
 
@@ -56,7 +56,7 @@ public class CsrsService {
 
     public Optional<AgencyToken> getAgencyTokenForDomainTokenOrganisation(String domain, String token, String organisation) {
         try {
-            return Optional.of(restTemplate.getForObject(String.format(agencyTokensFormat, domain, token, organisation), AgencyToken.class));
+            return Optional.of(restTemplate.getForObject(String.format("", domain, token, organisation), AgencyToken.class));
         } catch (HttpClientErrorException e) {
             System.out.println(e);
             return Optional.empty();
@@ -102,6 +102,31 @@ public class CsrsService {
             log.warn("*****Exception");
             throw new UnableToAllocateAgencyTokenException(String.format("Unexpected Error: Unable to update AgencyToken %s ", token));
         }
+    }
+
+    public void getOrganisationCodeForCivilServant(String uid) throws Exception {
+        try {
+            getOrgCode(uid);
+        } catch (HttpClientErrorException e) {
+            log.warn("*****httpClientException");
+            if (HttpStatus.NOT_FOUND.equals(e.getStatusCode())) {
+                throw new ResourceNotFoundException();
+            } else {
+                throw new BadRequestException(e);
+            }
+        } catch (HttpServerErrorException e) {
+            log.warn("*****httpServerException");
+            throw new Exception(String.format("Error: Unable to get org code %s ", uid), e);
+        } catch (Exception e) {
+            log.warn("*****Exception");
+            throw new Exception(String.format("Unexpected Error: Unable to get org code %s ", uid), e);
+        }
+    }
+
+    public String getOrgCode(String uid) {
+        String url = String.format(getOrganisationUrl, uid);
+        ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+        return response.getBody();
     }
 
     public void updateOrganisation(String uid, String orgCode) {
