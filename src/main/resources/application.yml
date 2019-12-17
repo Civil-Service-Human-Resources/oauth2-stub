@@ -5,11 +5,6 @@ spring:
         enabled: false
   session:
     store-type: none
-
-  datasource:
-    url: ${DATASOURCE:jdbc:mysql://localhost/identity?user=root&password=password&useSSL=false}
-    platform: mysql
-    driver-class-name: com.mysql.cj.jdbc.Driver
   thymeleaf:
     cache: false
   messages:
