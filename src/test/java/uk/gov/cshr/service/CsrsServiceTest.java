@@ -6,6 +6,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.cshr.domain.AgencyToken;
 import uk.gov.cshr.domain.OrganisationalUnitDto;
@@ -38,7 +39,6 @@ public class CsrsServiceTest {
                        @Value("${registry.agencyTokensByDomainAndOrganisationFormat}") String agencyTokensByDomainAndOrganisationFormat,
 
                        @Value("${registry.organisationalUnitsFlatUrl}") String organisationalUnitsFlatUrl,
-
                        @Value("${registry.updateSpacesAvailableUrl}") String updateSpacesAvailableUrl,
                        @Value("${registry.getOrganisationUrl}") String getOrganisationUrl,
                        @Value("${registry.updateOrganisationUrl}") String updateOrganisationUrl)
@@ -53,11 +53,20 @@ public class CsrsServiceTest {
         getOrganisationUrl = "http://locahost:9002/civilServants/org?uid=%s";
         updateOrganisationUrl = "http://locahost:9002/civilServants/org";
 
+      //  ReflectionTestUtils.setField(notifyService, "notificationClient", notificationClient);
+
         csrsService = new CsrsService(restTemplate,
                 agencyTokensFormat, agencyTokensByDomainFormat, agencyTokensByDomainAndOrganisationFormat,
-                organisationalUnitsFlatUrl,
-                updateSpacesAvailableUrl,
-                getOrganisationUrl, updateOrganisationUrl);
+                organisationalUnitsFlatUrl, updateSpacesAvailableUrl, getOrganisationUrl, updateOrganisationUrl);
+
+        ReflectionTestUtils.setField(csrsService, "restTemplate", restTemplate);
+        ReflectionTestUtils.setField(csrsService, "agencyTokensFormat", agencyTokensFormat);
+        ReflectionTestUtils.setField(csrsService, "agencyTokensByDomainFormat", agencyTokensByDomainFormat);
+        ReflectionTestUtils.setField(csrsService, "agencyTokensByDomainAndOrganisationFormat", agencyTokensByDomainAndOrganisationFormat);
+        ReflectionTestUtils.setField(csrsService, "organisationalUnitsFlatUrl", organisationalUnitsFlatUrl);
+        ReflectionTestUtils.setField(csrsService, "updateSpacesAvailableUrl", updateSpacesAvailableUrl);
+        ReflectionTestUtils.setField(csrsService, "getOrganisationUrl", getOrganisationUrl);
+        ReflectionTestUtils.setField(csrsService, "updateOrganisationUrl", updateOrganisationUrl);
     }
 
     @Test

@@ -19,9 +19,6 @@ public class RedirectController {
     @Value("${lpg.uiUrl}")
     private String lpgUiUrl;
 
-    @Value("${lpg.changeOrgUrl}")
-    private String lpgChangeOrgUrl;
-
     @GetMapping("/invalid")
     public RedirectView notAValidEmailDomain(HttpServletRequest request, RedirectAttributes redirectAttributes) {
         // TODO - ASK WHAT SHOULD HAPPEN IN THIS SCENARIO

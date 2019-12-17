@@ -1,5 +1,6 @@
 package uk.gov.cshr.controller.signup;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;

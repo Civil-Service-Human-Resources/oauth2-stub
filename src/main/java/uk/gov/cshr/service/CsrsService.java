@@ -1,6 +1,7 @@
 package uk.gov.cshr.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,7 @@ import java.util.Optional;
 @Service
 public class CsrsService {
     private RestTemplate restTemplate;
-   // private String agencyTokensFormat;
+    private String agencyTokensFormat;
     private String agencyTokensByDomainFormat;
     private String agencyTokensByDomainAndOrganisationFormat;
     private String organisationalUnitsFlatUrl;
@@ -27,8 +28,8 @@ public class CsrsService {
     private String getOrganisationUrl;
     private String updateOrganisationUrl;
 
-    public CsrsService(RestTemplate restTemplate,
-                      // @Value("${registry.agencyTokensFormat}") String agencyTokensFormat,
+    public CsrsService(@Autowired RestTemplate restTemplate,
+                       @Value("${registry.agencyTokensFormat}") String agencyTokensFormat,
                        @Value("${registry.agencyTokensByDomainFormat}") String agencyTokensByDomainFormat,
                        @Value("${registry.agencyTokensByDomainAndOrganisationFormat}") String agencyTokensByDomainAndOrganisationFormat,
                        @Value("${registry.organisationalUnitsFlatUrl}") String organisationalUnitsFlatUrl,
@@ -36,7 +37,7 @@ public class CsrsService {
                        @Value("${registry.getOrganisationUrl}") String getOrganisationUrl,
                        @Value("${registry.updateOrganisationUrl}") String updateOrganisationUrl) {
         this.restTemplate = restTemplate;
-       // this.agencyTokensFormat = agencyTokensFormat;
+        this.agencyTokensFormat = agencyTokensFormat;
         this.agencyTokensByDomainFormat = agencyTokensByDomainFormat;
         this.agencyTokensByDomainAndOrganisationFormat = agencyTokensByDomainAndOrganisationFormat;
         this.organisationalUnitsFlatUrl = organisationalUnitsFlatUrl;
