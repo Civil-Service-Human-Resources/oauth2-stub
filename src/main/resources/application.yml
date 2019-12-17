@@ -72,7 +72,7 @@ registry:
   agencyTokensFormat: "${registry.serviceUrl}/agencyTokens?domain=%s&token=%s&code=%s"
   agencyTokensByDomainFormat: "${registry.serviceUrl}/agencyTokens?domain=%s"
   organisationalUnitsFlatUrl: "${registry.serviceUrl}/organisationalUnits/flat"
-  updateSpacesAvailableUrl: "${registry.serviceUrl}//agencyTokens"
+  updateSpacesAvailableUrl: "${registry.serviceUrl}/agencyTokens"
 ---
 
 spring:

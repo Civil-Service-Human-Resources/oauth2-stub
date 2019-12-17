@@ -1,5 +1,6 @@
 package uk.gov.cshr.controller.signup;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -25,6 +26,7 @@ import uk.gov.cshr.repository.InviteRepository;
 import uk.gov.cshr.service.CsrsService;
 import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.security.IdentityService;
+import uk.gov.cshr.utils.MockMVCFilterOverrider;
 
 import java.util.Optional;
 
@@ -59,6 +61,11 @@ public class SignupControllerTest {
 
     @MockBean
     private SignupFormValidator signupFormValidator;
+
+    @Before
+    public void overridePatternMappingFilterProxyFilter() throws IllegalAccessException {
+        MockMVCFilterOverrider.overrideFilterOf(mockMvc, "PatternMappingFilterProxy" );
+    }
 
     @Test
     public void shouldReturnCreateAccountForm() throws Exception {

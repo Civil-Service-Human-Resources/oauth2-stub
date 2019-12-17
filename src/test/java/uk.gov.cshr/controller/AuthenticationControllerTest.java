@@ -36,7 +36,7 @@ public class AuthenticationControllerTest {
         MockMVCFilterOverrider.overrideFilterOf(mockMvc, "PatternMappingFilterProxy" );
     }
 
-    @Qualifier("mockNotify")
+    @Qualifier("notifyServiceImpl")
     @MockBean
     private NotifyService notifyService;
 
