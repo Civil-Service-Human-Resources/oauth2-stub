@@ -61,7 +61,7 @@ public class EmailUpdateService {
         return emailUpdateRepository.findByIdentityAndCode(identity, code).isPresent();
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void updateEmailAddress(Identity identity, String code) {
         EmailUpdate emailUpdate = emailUpdateRepository.findByIdentityAndCode(identity, code)
                 .orElseThrow(() -> new InvalidCodeException(String.format("Code %s does not exist for identity %s", code, identity)));
@@ -85,13 +85,13 @@ public class EmailUpdateService {
 
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void updateOrganisationAndResetFlag(String newOrgCode, String uid){
         csrsService.updateOrganisation(uid, newOrgCode);
         identityService.resetRecentlyUpdatedEmailFlag(uid);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void updateOrganisationUpdateAgencyTokenSpacesAndResetFlag(String newDomain, String newToken,
                                                                          String newOrgCode, String uid){
         csrsService.updateOrganisation(uid, newOrgCode);

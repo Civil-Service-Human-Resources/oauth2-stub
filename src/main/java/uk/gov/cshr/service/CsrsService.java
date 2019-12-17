@@ -133,18 +133,15 @@ public class CsrsService {
     public void updateOrganisation(String uid, String orgCode) {
         try {
             updateOrganisationForUser(uid, orgCode);
-        } catch (HttpClientErrorException e) {
-            log.warn("*****httpClientException");
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
             if (HttpStatus.NOT_FOUND.equals(e.getStatusCode())) {
                 throw new ResourceNotFoundException();
             } else {
-                throw new BadRequestException(e);
+                log.warn("Error updating organisation", e);
+                throw new UnableToUpdateOrganisationException(String.format("Error: Unable to update organisation for uid %s ", uid));
             }
-        } catch (HttpServerErrorException e) {
-            log.warn("*****httpServerException", e);
-            throw new UnableToUpdateOrganisationException(String.format("Error: Unable to update organisation for uid %s ", uid));
         } catch (Exception e) {
-            log.warn("*****Exception", e);
+            log.warn("Error updating organisation", e);
             throw new UnableToUpdateOrganisationException(String.format("Unexpected Error: Unable to update organisation for uid %s ", uid));
         }
     }
@@ -161,15 +158,18 @@ public class CsrsService {
 
 
     private void updateOrganisationForUser(String uid, String orgCode) {
+       // String token = "IhUmx1R2NQVI63befiLeJHbEoUrWMfHXiy44wb27Mr";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+       // headers.add(HttpHeaders.AUTHORIZATION, "Bearer " + token);
 
         UpdateOrganisationDTO requestDTO = new UpdateOrganisationDTO();
         requestDTO.setOrganisation(orgCode);
         requestDTO.setUid(uid);
 
-        HttpEntity<UpdateOrganisationDTO> entity = new HttpEntity<UpdateOrganisationDTO>(requestDTO ,headers);
-        restTemplate.put(updateOrganisationUrl, entity);
+        HttpEntity<UpdateOrganisationDTO> requestEntity = new HttpEntity<UpdateOrganisationDTO>(requestDTO, headers);
+        ResponseEntity<Void> response = restTemplate.exchange(updateOrganisationUrl, HttpMethod.PUT, requestEntity, Void.class);
+        HttpStatus httpResponse = response.getStatusCode();
     }
 
     private void updateCsrs(String domain, String token, String organisation, boolean removeUser) {
