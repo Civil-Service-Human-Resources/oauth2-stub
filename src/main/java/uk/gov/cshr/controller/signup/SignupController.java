@@ -3,6 +3,7 @@ package uk.gov.cshr.controller.signup;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -10,9 +11,10 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import uk.gov.cshr.controller.InviteController;
 import uk.gov.cshr.domain.InviteStatus;
 import uk.gov.cshr.repository.InviteRepository;
-import uk.gov.cshr.repository.WhiteListRepository;
+import uk.gov.cshr.service.AuthenticationDetails;
 import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.security.IdentityService;
 import uk.gov.service.notify.NotificationClientException;
@@ -30,8 +32,6 @@ public class SignupController {
 
     private final IdentityService identityService;
 
-    private final WhiteListRepository whitelistRepository;
-
     private final InviteRepository inviteRepository;
 
     private final SignupFormValidator signupFormValidator;
@@ -40,13 +40,12 @@ public class SignupController {
 
     public SignupController(InviteService inviteService,
                             IdentityService identityService,
-                            WhiteListRepository whitelistRepository, InviteRepository inviteRepository,
+                            InviteRepository inviteRepository,
                             SignupFormValidator signupFormValidator,
                             @Value("${lpg.uiUrl}") String lpgUiUrl) {
 
         this.inviteService = inviteService;
         this.identityService = identityService;
-        this.whitelistRepository = whitelistRepository;
         this.inviteRepository = inviteRepository;
         this.signupFormValidator = signupFormValidator;
         this.lpgUiUrl = lpgUiUrl;
@@ -62,8 +61,6 @@ public class SignupController {
     public String sendInvite(Model model, @ModelAttribute @Valid RequestInviteForm form, BindingResult bindingResult, RedirectAttributes redirectAttributes) throws NotificationClientException {
         if (bindingResult.hasErrors()) {
             model.addAttribute("requestInviteForm", form);
-//            whitelistRepository.existsByDomain(model.);
-
             return "requestInvite";
         }
         if (inviteRepository.existsByForEmailAndStatus(form.getEmail(), InviteStatus.PENDING)) {

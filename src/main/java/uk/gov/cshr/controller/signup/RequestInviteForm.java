@@ -7,9 +7,6 @@ import uk.gov.cshr.validation.annotations.Whitelisted;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 
-
-// Check if email address is in a valid format and not blank
-
 @FieldMatch(first = "email", second = "confirmEmail", message = "{validation.confirmEmail.match}")
 @Data
 public class RequestInviteForm {
