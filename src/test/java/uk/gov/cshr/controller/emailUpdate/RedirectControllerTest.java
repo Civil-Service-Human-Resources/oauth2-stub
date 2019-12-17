@@ -1,5 +1,6 @@
 package uk.gov.cshr.controller.emailUpdate;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import uk.gov.cshr.utils.MockMVCFilterOverrider;
 
 import javax.transaction.Transactional;
 
@@ -25,6 +27,11 @@ public class RedirectControllerTest {
 
     @Value("${lpg.uiUrl}")
     private String lpgUiUrl;
+
+    @Before
+    public void overridePatternMappingFilterProxyFilter() throws IllegalAccessException {
+        MockMVCFilterOverrider.overrideFilterOf(mockMvc, "PatternMappingFilterProxy" );
+    }
 
     @Test
     public void givenAnInvalidEmailDomain_whenNotAValidEmailDomain_thenShouldRedirectToSignInPage() throws Exception {

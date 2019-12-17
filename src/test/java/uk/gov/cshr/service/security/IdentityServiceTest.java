@@ -42,7 +42,7 @@ public class IdentityServiceTest {
 
     private IdentityService identityService;
 
-    @Mock
+    @Mock(name="identityRepository")
     private IdentityRepository identityRepository;
 
     @Mock
@@ -240,11 +240,11 @@ public class IdentityServiceTest {
         // given
         Identity identity = mock(Identity.class);
         Optional<Identity> optionalIdentity = Optional.of(identity);
-        when(identityRepository.findById(anyLong())).thenReturn(optionalIdentity);
+        when(identityRepository.findFirstByUid(anyString())).thenReturn(optionalIdentity);
         when(identityRepository.save(identityArgumentCaptor.capture())).thenReturn(new Identity());
 
         // when
-        identityService.resetRecentlyUpdatedEmailFlag(identity.getUid());
+        identityService.resetRecentlyUpdatedEmailFlag("myuid");
 
         // then
         verify(identityRepository, times(1)).save(optionalIdentity.get());
@@ -257,7 +257,6 @@ public class IdentityServiceTest {
         // given
         Identity identity = mock(Identity.class);
         Optional<Identity> optionalIdentity = Optional.empty();
-        when(identityRepository.findById(anyLong())).thenReturn(optionalIdentity);
 
         // when
         identityService.resetRecentlyUpdatedEmailFlag(identity.getUid());
@@ -271,8 +270,6 @@ public class IdentityServiceTest {
         // given
         Identity identity = mock(Identity.class);
         Optional<Identity> optionalIdentity = Optional.of(identity);
-        when(identityRepository.findById(anyLong())).thenReturn(optionalIdentity);
-        when(identityRepository.save(any(Identity.class))).thenThrow(new RuntimeException());
 
         // when
         identityService.resetRecentlyUpdatedEmailFlag(identity.getUid());

@@ -25,10 +25,7 @@ import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.NotifyService;
 
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Transactional
@@ -47,7 +44,6 @@ public class IdentityService implements UserDetailsService {
     private final TokenRepository tokenRepository;
     private final NotifyService notifyService;
     private final CsrsService csrsService;
-    private InviteService inviteService;
     private String[] whitelistedDomains;
 
     public IdentityService(@Value("${govNotify.template.passwordUpdate}") String updatePasswordEmailTemplateId,
@@ -55,8 +51,6 @@ public class IdentityService implements UserDetailsService {
                            PasswordEncoder passwordEncoder,
                            TokenServices tokenServices,
                            @Qualifier("tokenRepository") TokenRepository tokenRepository,
-                           NotifyService notifyService,
-                           TokenRepository tokenRepository,
                            @Qualifier("notifyServiceImpl") NotifyService notifyService,
                            CsrsService csrsService,
                            @Value("${invite.whitelist.domains}") String[] whitelistedDomains) {
@@ -151,8 +145,7 @@ public class IdentityService implements UserDetailsService {
         String domain = getDomainFromEmailAddress(email);
         if(!isWhitelistedDomain(domain)) {
             // work out what org they are from and what agency token to remove them from
-            // TODO - BH
-            String orgCode = "";
+            String orgCode = csrsService.getOrgCode(identity.getUid());
             Optional<AgencyToken> agencyToken = csrsService.getAgencyTokenForDomainAndOrganisation(domain, orgCode);
             if(agencyToken.isPresent()) {
                 csrsService.updateSpacesAvailable(domain, agencyToken.get().getToken(), orgCode, true);

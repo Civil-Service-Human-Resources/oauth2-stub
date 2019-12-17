@@ -57,7 +57,7 @@ public class CsrsService {
 
     public Optional<AgencyToken> getAgencyTokenForDomainTokenOrganisation(String domain, String token, String organisation) {
         try {
-            return Optional.of(restTemplate.getForObject(String.format("", domain, token, organisation), AgencyToken.class));
+            return Optional.of(restTemplate.getForObject(String.format(agencyTokensFormat, domain, token, organisation), AgencyToken.class));
         } catch (HttpClientErrorException e) {
             System.out.println(e);
             return Optional.empty();
