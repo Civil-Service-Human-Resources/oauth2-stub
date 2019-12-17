@@ -13,12 +13,12 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 @Target({FIELD, METHOD})
 @Retention(RUNTIME)
+
 @Constraint(validatedBy = WhitelistedValidator.class)
 
 public @interface Whitelisted {
     String message() default "{validation.email.whitelist}";
 
     Class<?>[] groups() default { };
-
     Class<? extends Payload>[] payload() default { };
 }

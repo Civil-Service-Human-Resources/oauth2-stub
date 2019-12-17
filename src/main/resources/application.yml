@@ -1,9 +1,27 @@
 
 spring:
+  datasource:
+#    url: ${DATASOURCE:jdbc:mysql://127.0.0.1:3306/identity?user=root&password=Password123&useSSL=false}
+
+    url: ${DATASOURCE:jdbc:mysql://localhost:3306/identity?user=root&password=MyNewPass&useSSL=false}
+    platform: mysql
+    driver-class-name: com.mysql.cj.jdbc.Driver
+#    tomcat:
+#    initial-size: 10
+#    test-while-idle: true
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  invite:
+    url: ${INVITE_SIGNUP_URL:http://localhost:8080/signup/%s}
+    validityInSeconds: ${INVITE_VALIDITY:259200}
+    whitelist:
+      domains: ${WHITELISTED_DOMAINS:abc.com}
+
   data:
     redis:
+
       repositories:
-        enabled: false
+        enabled: falsetomca
   session:
     store-type: none
   thymeleaf:
@@ -20,6 +38,7 @@ spring:
 server:
   servlet:
     session:
+
       timeout: ${SESSION_TIMEOUT:3600}
   port: 8080
   managementPort: 8085
@@ -46,8 +65,8 @@ govNotify:
 invite:
   url: ${INVITE_SIGNUP_URL:http://localhost:8080/signup/%s}
   validityInSeconds: ${INVITE_VALIDITY:259200}
-  whitelist:
-    domains: ${WHITELISTED_DOMAINS:kainos.com, domain.com}
+#  whitelist:
+#    domains: ${WHITELISTED_DOMAINS:kainos.com, domain.com}
 
 reset:
   url: ${RESET_URL:http://localhost:8080/reset/%s}
