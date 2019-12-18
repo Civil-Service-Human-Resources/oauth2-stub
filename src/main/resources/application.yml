@@ -1,16 +1,5 @@
 
 spring:
-  datasource:
-#    url: ${DATASOURCE:jdbc:mysql://127.0.0.1:3306/identity?user=root&password=Password123&useSSL=false}
-
-    url: ${DATASOURCE:jdbc:mysql://localhost:3306/identity?user=root&password=MyNewPass&useSSL=false}
-    platform: mysql
-    driver-class-name: com.mysql.cj.jdbc.Driver
-#    tomcat:
-#    initial-size: 10
-#    test-while-idle: true
-#    driver-class-name: com.mysql.cj.jdbc.Driver
-
   data:
     redis:
 
