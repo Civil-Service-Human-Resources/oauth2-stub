@@ -88,3 +88,4 @@ CREATE TABLE `email_update` (
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_email_update_identity_id` FOREIGN KEY (`identity_id`) REFERENCES `identity` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 );
+

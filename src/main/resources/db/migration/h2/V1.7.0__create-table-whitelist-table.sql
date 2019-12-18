@@ -4,3 +4,7 @@ CREATE TABLE `whitelisted_domains` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `UK_domain` (`domain`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+INSERT INTO `whitelisted_domains` (domain) VALUES ('aaib.gov.uk');

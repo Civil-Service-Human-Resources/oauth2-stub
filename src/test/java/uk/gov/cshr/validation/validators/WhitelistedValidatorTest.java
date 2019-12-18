@@ -1,28 +1,27 @@
 package uk.gov.cshr.validation.validators;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+import uk.gov.cshr.repository.WhiteListRepository;
+import javax.transaction.Transactional;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
-import javax.validation.ConstraintValidatorContext;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
+@RunWith(SpringRunner.class)
+@SpringBootTest
+@Transactional
 
 public class WhitelistedValidatorTest {
-    private String[] whitelistedDomains = {"example.org", "domain.org"};
 
-    private WhitelistedValidator validator = new WhitelistedValidator(whitelistedDomains);
-
-    private ConstraintValidatorContext constraintValidatorContext = mock(ConstraintValidatorContext.class);
+    @Autowired
+    private WhiteListRepository whitelistRepository;
 
     @Test
-    public void shouldReturnTrueIfValueHasWhitelistedDomain() {
-        assertTrue(validator.isValid("user@domain.org", constraintValidatorContext));
-        assertTrue(validator.isValid("user@example.org", constraintValidatorContext));
-    }
-
-    @Test
-    public void shouldReturnFalseIfValueDoesNotHaveWhitelistedDomain() {
-        assertFalse(validator.isValid("user@not-in-whitelist.org", constraintValidatorContext));
+    public void existsByDomainReturnsCorrectBoolean() {
+        assertThat(whitelistRepository.existsByDomain("aaib.gov.uk"), equalTo(true));
+        assertThat(whitelistRepository.existsByDomain("outlook.com"), equalTo(false));
     }
 }
