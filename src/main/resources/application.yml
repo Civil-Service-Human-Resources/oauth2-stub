@@ -2,7 +2,6 @@
 spring:
   data:
     redis:
-
       repositories:
         enabled: false
   session:
@@ -21,7 +20,6 @@ spring:
 server:
   servlet:
     session:
-
       timeout: ${SESSION_TIMEOUT:3600}
   port: 8080
   managementPort: 8085

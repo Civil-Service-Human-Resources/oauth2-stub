@@ -1,5 +1,7 @@
 package uk.gov.cshr.controller.signup;
 
+
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,20 +18,23 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import uk.gov.cshr.config.UserSecurityConfig;
 import uk.gov.cshr.repository.InviteRepository;
+import uk.gov.cshr.repository.WhiteListRepository;
 import uk.gov.cshr.service.AuthenticationDetails;
 import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.security.IdentityService;
 
+import static org.mockito.Mockito.when;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
 @WebMvcTest({SignupController.class, UserSecurityConfig.class})
 @RunWith(SpringRunner.class)
 public class SignupControllerTest {
+
+    private static final String DOMAIN = "aaib.gov.uk";
 
     @Autowired
     private MockMvc mockMvc;
@@ -46,6 +51,9 @@ public class SignupControllerTest {
     @MockBean
     private SignupFormValidator signupFormValidator;
 
+    @MockBean
+    private WhiteListRepository whiteListRepository;
+
 
     @Test
     public void shouldReturnCreateAccountForm() throws Exception {
@@ -60,12 +68,13 @@ public class SignupControllerTest {
 
     @Test
     public void shouldConfirmInviteSent() throws Exception {
+        when(whiteListRepository.existsByDomain(DOMAIN)).thenReturn(true);
         mockMvc.perform(
                 post("/signup/request")
                         .with(CsrfRequestPostProcessor.csrf())
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-                        .param("email", "user@domain.com")
-                        .param("confirmEmail", "user@domain.com"))
+                        .param("email", "user@aaib.gov.uk")
+                        .param("confirmEmail", "user@aaib.gov.uk"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("We've sent you an email")))
                 .andExpect(content().string(containsString("What happens next")))
@@ -78,8 +87,8 @@ public class SignupControllerTest {
                 post("/signup/request")
                         .with(CsrfRequestPostProcessor.csrf())
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-                        .param("email", "user@blah.org")
-                        .param("confirmEmail", "user@blah.org"))
+                        .param("email", "user@aaib.gov.uk")
+                        .param("confirmEmail", "user@aaib.gov.uk"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Your organisation is unable to use this service. Please contact your line manager.")));
     }
