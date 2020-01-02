@@ -92,16 +92,21 @@ public class CsrsService {
             if (HttpStatus.NOT_FOUND.equals(e.getStatusCode())) {
                 throw new ResourceNotFoundException();
             } else if (HttpStatus.CONFLICT.equals(e.getStatusCode())) {
+                log.warn(String.format("Not enough spaces available on agency token: domain %s, token %s, organisation %s", domain, token, organisation));
                 throw new NotEnoughSpaceAvailableException("Not enough spaces available for AgencyToken " + token);
             } else {
-                throw new BadRequestException(e);
+                BadRequestException badRequest = new BadRequestException(e);
+                log.error("A client error occurred calling update agency token", badRequest);
+                throw badRequest;
             }
         } catch (HttpServerErrorException e) {
-            log.warn("*****httpServerException");
-            throw new UnableToAllocateAgencyTokenException(String.format("Error: Unable to update AgencyToken %s ", token));
+            UnableToAllocateAgencyTokenException exception = new UnableToAllocateAgencyTokenException(String.format("Error: Unable to update AgencyToken %s ", token), e);
+            log.error("An error occurred allocating agency token", exception);
+            throw exception;
         } catch (Exception e) {
-            log.warn("*****Exception");
-            throw new UnableToAllocateAgencyTokenException(String.format("Unexpected Error: Unable to update AgencyToken %s ", token));
+            UnableToAllocateAgencyTokenException exception = new UnableToAllocateAgencyTokenException(String.format("Unexpected Error: Unable to update AgencyToken %s ", token), e);
+            log.error("An unexpected error occurred allocating agency token", exception);
+            throw exception;
         }
     }
 

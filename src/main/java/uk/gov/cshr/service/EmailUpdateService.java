@@ -86,6 +86,18 @@ public class EmailUpdateService {
     }
 
     @Transactional(rollbackFor = Exception.class)
+    public void processEmailUpdatedRecentlyRequestForWhiteListedDomainUser(String uid){
+        identityService.resetRecentlyUpdatedEmailFlag(uid);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void processEmailUpdatedRecentlyRequestForAgencyTokenUser(String newDomain, String newToken,
+                                                                     String newOrgCode, String uid){
+        csrsService.updateSpacesAvailable(newDomain, newToken, newOrgCode, false);
+        identityService.resetRecentlyUpdatedEmailFlag(uid);
+    }
+
+    /*@Transactional(rollbackFor = Exception.class)
     public void updateOrganisationAndResetFlag(String newOrgCode, String uid){
         csrsService.updateOrganisation(uid, newOrgCode);
         identityService.resetRecentlyUpdatedEmailFlag(uid);
@@ -97,5 +109,5 @@ public class EmailUpdateService {
         csrsService.updateOrganisation(uid, newOrgCode);
         identityService.resetRecentlyUpdatedEmailFlag(uid);
         csrsService.updateSpacesAvailable(newDomain, newToken, newOrgCode, false);
-    }
+    }*/
 }

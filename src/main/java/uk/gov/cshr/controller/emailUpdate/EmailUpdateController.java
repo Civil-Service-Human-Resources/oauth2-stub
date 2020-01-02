@@ -1,6 +1,7 @@
 package uk.gov.cshr.controller.emailUpdate;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -11,6 +12,7 @@ import uk.gov.cshr.domain.OrganisationalUnitDto;
 import uk.gov.cshr.exception.ResourceNotFoundException;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.service.CsrsService;
+import uk.gov.cshr.service.EmailUpdateService;
 
 import javax.validation.Valid;
 import java.util.Optional;
@@ -22,15 +24,23 @@ public class EmailUpdateController {
 
     private static final String STATUS_ATTRIBUTE = "status";
 
+    private final EmailUpdateService emailUpdateService;
+
     private final CsrsService csrsService;
 
     private final IdentityRepository identityRepository;
 
+    private final String lpgUiUrl;
+
     public EmailUpdateController(
+                            EmailUpdateService emailUpdateService,
                             CsrsService csrsService,
-                            IdentityRepository identityRepository) {
+                            IdentityRepository identityRepository,
+                            @Value("${lpg.uiUrl}") String lpgUiUrl) {
+        this.emailUpdateService = emailUpdateService;
         this.csrsService = csrsService;
         this.identityRepository = identityRepository;
+        this.lpgUiUrl = lpgUiUrl;
     }
 
     @GetMapping(path = "/enterToken")
@@ -78,16 +88,8 @@ public class EmailUpdateController {
             Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
             if(optionalIdentity.isPresent()) {
                 log.info("User checking Enter Token form with domain = {}, token = {}, org = {}", domain, form.getToken(), form.getOrganisation());
-                boolean ok = csrsService.checkTokenExists(domain, form.getToken(), form.getOrganisation(), false);
-                if(ok){
-                    redirectAttributes.addFlashAttribute("uid", uid);
-                    redirectAttributes.addFlashAttribute("domain", domain);
-                    redirectAttributes.addFlashAttribute("tokenPerson", true);
-                    String url = "/organisation/enterOrganisation";
-                    return "redirect:"+url;
-                } else {
-                    throw new ResourceNotFoundException();
-                }
+                emailUpdateService.processEmailUpdatedRecentlyRequestForAgencyTokenUser(domain, form.getToken(), form.getOrganisation(), uid);
+                return "redirect:" + lpgUiUrl;
             } else {
                 log.info("No identity found for uid {}", uid);
                 return "redirect:/login";

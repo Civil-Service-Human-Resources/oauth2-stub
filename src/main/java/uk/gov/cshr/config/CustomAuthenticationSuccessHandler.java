@@ -9,6 +9,7 @@ import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.service.AgencyTokenService;
+import uk.gov.cshr.service.EmailUpdateService;
 import uk.gov.cshr.service.security.IdentityDetails;
 import uk.gov.cshr.service.security.IdentityService;
 
@@ -35,6 +36,9 @@ public class CustomAuthenticationSuccessHandler
 
     @Autowired
     private IdentityService identityService;
+
+    @Autowired
+    private EmailUpdateService emailUpdateService;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
@@ -77,7 +81,8 @@ public class CustomAuthenticationSuccessHandler
         String domain = identityService.getDomainFromEmailAddress(identity.getEmail());
         String uid = identity.getUid();
         if (agencyTokenService.isDomainWhiteListed(domain)) {
-            return "/redirectToChangeOrgPage/" + domain + "/" + uid;
+            emailUpdateService.processEmailUpdatedRecentlyRequestForWhiteListedDomainUser(uid);
+            return lpgUiUrl;
         } else {
             if(agencyTokenService.isDomainAnAgencyTokenDomain(domain)) {
                 return "/redirectToEnterTokenPage/" + domain + "/" + uid;

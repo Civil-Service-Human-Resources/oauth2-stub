@@ -100,7 +100,9 @@ public class CustomAuthenticationSuccessHandlerTest {
     @WithUserDetails(
             value = "specialuid",
             userDetailsServiceBeanName = "userDetailsService")
-    public void givenSpecialUserThatHasRecentlyChangedTheirEmailAndIsWhitelisted_whenOnAuthenticationSuccess_thenRedirectsToLPGUIUpdateOrgPage() throws IOException, ServletException {
+    public void givenSpecialUserThatHasRecentlyChangedTheirEmailAndIsWhitelisted_whenOnAuthenticationSuccess_thenRedirectsToLPGUIHomePage() throws IOException, ServletException {
+        // *****as the profile checker will automatically redirect them to an org page, i.e. the redirect happens within the UI application, not here.
+
         // given
         prepareSecurityContext("specialuid");
         when(agencyTokenService.isDomainWhiteListed(anyString())).thenReturn(true);
@@ -109,7 +111,7 @@ public class CustomAuthenticationSuccessHandlerTest {
         classUnderTest.onAuthenticationSuccess(request, response, SecurityContextHolder.getContext().getAuthentication());
 
         // then
-        verify(redirectStrategy, times(1)).sendRedirect(any(HttpServletRequest.class), any(HttpServletResponse.class), eq("/redirectToChangeOrgPage/domain.com/specialuid"));
+        verify(redirectStrategy, times(1)).sendRedirect(any(HttpServletRequest.class), any(HttpServletResponse.class), eq(lpgUiUrl));
     }
 
     @Test
