@@ -11,9 +11,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -69,20 +67,34 @@ public class AccountControllerTest {
         MockitoAnnotations.initMocks(this);
     }
 
-    @WithUserDetails(
+   /* @WithUserDetails(
             value = "uid",
-            userDetailsServiceBeanName = "userDetailsService")
-    @WithMockCustomUser
+            userDetailsServiceBeanName = "userDetailsService")*/
     @Test
-    public void shouldUpdateEmailIfCodeIsValid1() throws Exception {
+    public void shouldUpdateEmailIfCodeIsValid() throws Exception {
+        /*
+         *  SpringSecurityTestConfig sets up 2 users, uid and specialuid.  See @Import(SpringSecurityTestConfig.class)
+         *
+         *  1. Find the user uid, get the associated IdentityDetails (prepareAuthentication method)
+         *  2. Create an Authentication object using this. (prepareAuthentication method)
+         *  3. This Authentication object has to be in the request, as its a parameter of the controller method.
+         *      Therefore set this Authentication to be used in the requests UserPrincipal, (the currently logged in user).
+         *
+         *  Note:  This now means that the Authentication object passed into the controller method is not null.
+         *  Note:  If you just simply set the Spring Security Context then,
+         *         this results in the Authentication object being passed into the controller method as null.
+         *         i.e. Authentication must be set in the request......
+         */
 
-        prepareSecurityContext("uid");
+        // given
+        Authentication authentication = prepareAuthentication("uid");
         when(emailUpdateService.verifyCode(any(Identity.class), anyString())).thenReturn(true);
         String expectedCode = "1234567891234567";
 
+        // when
         mockMvc.perform(get("/account/email/verify/1234567891234567")
                 .with(request1 -> {
-                            request1.setUserPrincipal(SecurityContextHolder.getContext().getAuthentication());
+                            request1.setUserPrincipal(authentication);
                             return request1;
                         }
                 ))
@@ -90,13 +102,13 @@ public class AccountControllerTest {
                 .andExpect(redirectedUrl("/account/emailUpdated"))
                 .andDo(print());
 
+        // then
         verify(emailUpdateService, times(1)).updateEmailAddress(any(Identity.class), eq(expectedCode));
     }
 
-    private void prepareSecurityContext(String userNameToAuthenticateWith) {
+    private Authentication prepareAuthentication(String userNameToAuthenticateWith) {
         IdentityDetails identityDetails = (IdentityDetails) userDetailsService.loadUserByUsername(userNameToAuthenticateWith);
-        Authentication authToken = new UsernamePasswordAuthenticationToken (identityDetails, identityDetails.getPassword(), identityDetails.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(authToken);
+        return new UsernamePasswordAuthenticationToken(identityDetails, identityDetails.getPassword(), identityDetails.getAuthorities());
     }
 
 }
