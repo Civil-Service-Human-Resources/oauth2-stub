@@ -79,7 +79,7 @@ public class AccountControllerTest {
     }
 
     @Test
-    public void givenAValidCode_thenUpdateEmail_shouldUpdateEmailAddressAndRedirectToEmailUpdatedPage() throws Exception {
+    public void givenAValidCode_whenUpdateEmail_shouldUpdateEmailAddressAndRedirectToEmailUpdatedPage() throws Exception {
         /*
          *  SpringSecurityTestConfig sets up 2 users, uid and specialuid.  See @Import(SpringSecurityTestConfig.class)
          *
@@ -122,7 +122,7 @@ public class AccountControllerTest {
     }
 
     @Test
-    public void givenAInvalidCode_thenUpdateEmail_shouldRedirectToUpdateEmailPageWithAnInvalidCodeError() throws Exception {
+    public void givenAInvalidCode_whenUpdateEmail_shouldRedirectToUpdateEmailPageWithAnInvalidCodeError() throws Exception {
         // given
         Authentication authentication = prepareAuthentication(NORMAL_TEST_USER_UID);
         when(emailUpdateService.verifyCode(any(Identity.class), anyString())).thenReturn(false);
@@ -143,7 +143,7 @@ public class AccountControllerTest {
     }
 
     @Test
-    public void givenAValidCodeAndNonExistentIdentity_thenUpdateEmail_shouldRedirectToUpdateEmailPageWithAnInvalidEmailError() throws Exception {
+    public void givenAValidCodeAndNonExistentIdentity_whenUpdateEmail_shouldRedirectToUpdateEmailPageWithAnInvalidEmailError() throws Exception {
         // given
         Authentication authentication = prepareAuthentication(NORMAL_TEST_USER_UID);
         when(emailUpdateService.verifyCode(any(Identity.class), anyString())).thenReturn(true);
@@ -173,7 +173,7 @@ public class AccountControllerTest {
     }
 
     @Test
-    public void givenAValidCodeAndATechnicalErrorWhenUpdating_thenUpdateEmail_shouldRedirectToUpdateEmailPageWithAnErrorOccurredError() throws Exception {
+    public void givenAValidCodeAndATechnicalErrorWhenUpdating_whenUpdateEmail_shouldRedirectToUpdateEmailPageWithAnErrorOccurredError() throws Exception {
         // given
         Authentication authentication = prepareAuthentication(NORMAL_TEST_USER_UID);
         when(emailUpdateService.verifyCode(any(Identity.class), anyString())).thenReturn(true);
@@ -203,7 +203,7 @@ public class AccountControllerTest {
     }
 
     @Test
-    public void givenASuccessfulUpdateOfEmailAddress_thenEmailUpdated_shouldRedirectToEmailUpdatedView() throws Exception {
+    public void givenASuccessfulUpdateOfEmailAddress_whenEmailUpdated_shouldRedirectToEmailUpdatedView() throws Exception {
         // when
         mockMvc.perform(get("/account/emailUpdated"))
                 .andExpect(status().isOk())
