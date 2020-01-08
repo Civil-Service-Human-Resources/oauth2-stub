@@ -7,6 +7,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import uk.gov.cshr.controller.form.EmailUpdatedRecentlyEnterTokenForm;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.OrganisationalUnitDto;
 import uk.gov.cshr.exception.ResourceNotFoundException;
@@ -21,6 +22,10 @@ import java.util.Optional;
 @Controller
 @RequestMapping("/emailUpdated")
 public class EmailUpdateController {
+
+    private static final String EMAIL_UPDATED_RECENTLY_ENTER_TOKEN_FORM = "emailUpdatedRecentlyEnterTokenForm";
+
+    private static final String ENTER_TOKEN_SINCE_EMAIL_UPDATE_VIEW_NAME = "enterTokenSinceEmailUpdate";
 
     private static final String STATUS_ATTRIBUTE = "status";
 
@@ -48,10 +53,10 @@ public class EmailUpdateController {
 
         log.info("User accessing token-based email updated screen");
 
-        if(model.containsAttribute("emailUpdatedRecentlyEnterTokenForm")) {
+        if(model.containsAttribute(EMAIL_UPDATED_RECENTLY_ENTER_TOKEN_FORM)) {
             OrganisationalUnitDto[] organisations = csrsService.getOrganisationalUnitsFormatted();
             model.addAttribute("organisations", organisations);
-            return "enterTokenSinceEmailUpdate";
+            return ENTER_TOKEN_SINCE_EMAIL_UPDATE_VIEW_NAME;
         } else {
             String domain = (String) model.asMap().get("domain");
             String uid = (String) model.asMap().get("uid");
@@ -62,8 +67,8 @@ public class EmailUpdateController {
             EmailUpdatedRecentlyEnterTokenForm form = new EmailUpdatedRecentlyEnterTokenForm();
             form.setDomain(domain);
             form.setUid(uid);
-            model.addAttribute("emailUpdatedRecentlyEnterTokenForm", form);
-            return "enterTokenSinceEmailUpdate";
+            model.addAttribute(EMAIL_UPDATED_RECENTLY_ENTER_TOKEN_FORM, form);
+            return ENTER_TOKEN_SINCE_EMAIL_UPDATE_VIEW_NAME;
         }
 
     }
@@ -80,8 +85,8 @@ public class EmailUpdateController {
         String uid = form.getUid();
 
         if (bindingResult.hasErrors()) {
-            model.addAttribute("emailUpdatedRecentlyEnterTokenForm", form);
-            return "enterTokenSinceEmailUpdate";
+            model.addAttribute(EMAIL_UPDATED_RECENTLY_ENTER_TOKEN_FORM, form);
+            return ENTER_TOKEN_SINCE_EMAIL_UPDATE_VIEW_NAME;
         }
 
         try {
@@ -96,7 +101,7 @@ public class EmailUpdateController {
             }
         } catch (ResourceNotFoundException e) {
             redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Incorrect token for this organisation");
-            redirectAttributes.addFlashAttribute("emailUpdatedRecentlyEnterTokenForm", form);
+            redirectAttributes.addFlashAttribute(EMAIL_UPDATED_RECENTLY_ENTER_TOKEN_FORM, form);
             return "redirect:/emailUpdated/enterToken";
         } catch (Exception e) {
             return "redirect:/login";

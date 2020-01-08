@@ -12,29 +12,27 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.test.web.support.WebTestUtils;
-import org.springframework.security.web.csrf.CsrfToken;
-import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.cshr.config.SpringSecurityTestConfig;
+import uk.gov.cshr.controller.form.EmailUpdatedRecentlyEnterTokenForm;
+import uk.gov.cshr.domain.EmailUpdate;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.OrganisationalUnitDto;
+import uk.gov.cshr.exception.ResourceNotFoundException;
+import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.service.CsrsService;
 import uk.gov.cshr.service.EmailUpdateService;
-import uk.gov.cshr.service.security.IdentityDetails;
-import uk.gov.cshr.service.security.IdentityService;
+import uk.gov.cshr.utils.CsrfRequestPostProcessor;
 
 import javax.servlet.Filter;
 
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -47,11 +45,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class EmailUpdateControllerTest {
 
-    private static final String NORMAL_TEST_USER_UID = "uid";
-
-    private static final String VERIFY_EMAIL_URL = "/account/email/verify/1234567891234567";
-
-    private static final String EXPECTED_CODE = "1234567891234567";
+    private static final String ENTER_TOKEN_URL = "/emailUpdated/enterToken";
 
     private MockMvc mockMvc;
 
@@ -65,20 +59,19 @@ public class EmailUpdateControllerTest {
     @Qualifier("springSecurityFilterChain")
     private Filter springSecurityFilterChain;
 
-    @Autowired
-    private UserDetailsService userDetailsService;
-
     @MockBean
     private EmailUpdateService emailUpdateService;
 
     @MockBean
-    private IdentityService identityService;
-
-    @MockBean
     private CsrsService csrsService;
 
+    @MockBean
+    private IdentityRepository identityRepository;
+
     @Captor
-    private ArgumentCaptor<Identity> identityArgumentCaptor;
+    ArgumentCaptor<EmailUpdatedRecentlyEnterTokenForm> formArgumentCaptor;
+
+    private OrganisationalUnitDto[] organisations;
 
     @Before
     public void setup() {
@@ -88,19 +81,44 @@ public class EmailUpdateControllerTest {
                 .build();
 
         MockitoAnnotations.initMocks(this);
+
+        // set up organisations list for all test scenarios
+        organisations = new OrganisationalUnitDto[1];
+        organisations[0] = new OrganisationalUnitDto();
+        when(csrsService.getOrganisationalUnitsFormatted()).thenReturn(organisations);
     }
 
     @Test
-    public void givenAValidRequest_whenEnterToken_thenShouldDisplayEnterTokenPageWithAllPossibleOrganisations() throws Exception {
-        // given
-        OrganisationalUnitDto[] organisations = new OrganisationalUnitDto[1];
-        organisations[0] = new OrganisationalUnitDto();
-        when(csrsService.getOrganisationalUnitsFormatted()).thenReturn(organisations);
-
-        // only called with 2 flash attributes.  From redirect controller.
+    public void givenARequestToDisplayEnterTokenPage_whenEnterToken_thenShouldDisplayEnterTokenPageWithAllPossibleOrganisations() throws Exception {
+        // only called with 2 flash attributes, from redirect controller.
         mockMvc.perform(
-                get("/emailUpdated/enterToken")
+                get(ENTER_TOKEN_URL)
                         .with(CsrfRequestPostProcessor.csrf())
+                        .flashAttr("uid", "myuid")
+                        .flashAttr("domain", "mydomain"))
+                .andExpect(status().isOk())
+                .andExpect(model().size(4))
+                .andExpect(model().attribute("organisations", organisations))
+                .andExpect(model().attribute("domain", "mydomain"))
+                .andExpect(model().attribute("uid", "myuid"))
+                .andExpect(model().attributeExists("emailUpdatedRecentlyEnterTokenForm"))
+                .andExpect(view().name("enterTokenSinceEmailUpdate"))
+                .andDo(print());
+    }
+
+    @Test
+    public void givenARequestToDisplayEnterTokenPageAndFormAlreadyExistsInModel_whenEnterToken_thenShouldDisplayEnterTokenPageWithAllPossibleOrganisationsAndTheExistingForm() throws Exception {
+        // given
+        EmailUpdatedRecentlyEnterTokenForm existingForm = new EmailUpdatedRecentlyEnterTokenForm();
+        existingForm.setUid("myuid");
+        existingForm.setDomain("mydomain");
+        existingForm.setOrganisation("myorganisation");
+        existingForm.setToken("mytoken");
+
+        mockMvc.perform(
+                get(ENTER_TOKEN_URL)
+                        .with(CsrfRequestPostProcessor.csrf())
+                        .flashAttr("emailUpdatedRecentlyEnterTokenForm", existingForm)
                         .flashAttr("uid", "myuid")
                         .flashAttr("domain", "mydomain"))
                 .andExpect(status().isOk())
@@ -119,58 +137,132 @@ public class EmailUpdateControllerTest {
         organisations[0] = new OrganisationalUnitDto();
 
         when(csrsService.getOrganisationalUnitsFormatted()).thenReturn(organisations);
+        Identity identityFound = new Identity();
+        when(identityRepository.findFirstByUid(eq("myuid"))).thenReturn(Optional.of(identityFound));
+        doNothing().when(emailUpdateService).processEmailUpdatedRecentlyRequestForAgencyTokenUser(anyString(), anyString(), anyString(), anyString());
 
         mockMvc.perform(
-                post("/emailUpdated/enterToken")
+                post(ENTER_TOKEN_URL)
                         .with(CsrfRequestPostProcessor.csrf())
-                 )
+                        .param("organisation","myorganisation")
+                        .param("token","mytoken")
+                        .param("domain","mydomain")
+                        .param("uid","myuid")
+        )
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(lpgUiUrl))
-                .andExpect(model().attribute("organisations", organisations))
-                .andExpect(model().attribute("domain", "mydomain"))
-                .andExpect(model().attributeExists("enterTokenForm"));
+                .andExpect(redirectedUrl(lpgUiUrl));
+
+        verify(emailUpdateService, times(1)).processEmailUpdatedRecentlyRequestForAgencyTokenUser(eq("mydomain"), eq("mytoken"), eq("myorganisation"), eq("myuid"));
     }
 
-    private Authentication prepareAuthentication(String userNameToAuthenticateWith) {
-        IdentityDetails identityDetails = (IdentityDetails) userDetailsService.loadUserByUsername(userNameToAuthenticateWith);
-        return new UsernamePasswordAuthenticationToken(identityDetails, identityDetails.getPassword(), identityDetails.getAuthorities());
+    @Test
+    public void givenAInvalidTokenFormNoOrganisation_whenCheckToken_thenShouldRedisplayToEnterTokenPageWithOneErrorMessage() throws Exception {
+        OrganisationalUnitDto[] organisations = new OrganisationalUnitDto[1];
+        organisations[0] = new OrganisationalUnitDto();
+
+        when(csrsService.getOrganisationalUnitsFormatted()).thenReturn(organisations);
+        Identity identityFound = new Identity();
+        when(identityRepository.findFirstByUid(eq("myuid"))).thenReturn(Optional.of(identityFound));
+        doNothing().when(emailUpdateService).processEmailUpdatedRecentlyRequestForAgencyTokenUser(anyString(), anyString(), anyString(), anyString());
+
+        mockMvc.perform(
+                post(ENTER_TOKEN_URL)
+                        .with(CsrfRequestPostProcessor.csrf())
+                        .param("organisation","")
+                        .param("token","mytoken")
+                        .param("domain","mydomain")
+                        .param("uid","myuid")
+        )
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("emailUpdatedRecentlyEnterTokenForm"))
+                .andExpect(model().errorCount(1))
+                .andExpect(model().attributeHasFieldErrorCode("emailUpdatedRecentlyEnterTokenForm", "organisation", "Please confirm your new organisation"))
+                .andExpect(view().name("enterTokenSinceEmailUpdate"));
+
+        verify(emailUpdateService, never()).processEmailUpdatedRecentlyRequestForAgencyTokenUser(anyString(), anyString(), anyString(), anyString());
     }
 
-    private static class CsrfRequestPostProcessor implements RequestPostProcessor {
+    @Test
+    public void givenAInvalidTokenFormNoOrganisationAndNoToken_whenCheckToken_thenShouldRedisplayToEnterTokenPageWithTwoErrorMessages() throws Exception {
+        OrganisationalUnitDto[] organisations = new OrganisationalUnitDto[1];
+        organisations[0] = new OrganisationalUnitDto();
 
-        private boolean useInvalidToken = false;
+        when(csrsService.getOrganisationalUnitsFormatted()).thenReturn(organisations);
+        Identity identityFound = new Identity();
+        when(identityRepository.findFirstByUid(eq("myuid"))).thenReturn(Optional.of(identityFound));
+        doNothing().when(emailUpdateService).processEmailUpdatedRecentlyRequestForAgencyTokenUser(anyString(), anyString(), anyString(), anyString());
 
-        private boolean asHeader = false;
+        mockMvc.perform(
+                post(ENTER_TOKEN_URL)
+                        .with(CsrfRequestPostProcessor.csrf())
+                        .param("organisation","")
+                        .param("token","")
+                        .param("domain","mydomain")
+                        .param("uid","myuid")
+        )
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("emailUpdatedRecentlyEnterTokenForm"))
+                .andExpect(model().errorCount(2))
+                .andExpect(model().attributeHasFieldErrorCode("emailUpdatedRecentlyEnterTokenForm", "organisation", "Please confirm your new organisation"))
+                .andExpect(model().attributeHasFieldErrorCode("emailUpdatedRecentlyEnterTokenForm", "toke", "Please confirm your new token"))
+                .andExpect(view().name("enterTokenSinceEmailUpdate"));
 
-        public static CsrfRequestPostProcessor csrf() {
-            return new CsrfRequestPostProcessor();
-        }
+        verify(emailUpdateService, never()).processEmailUpdatedRecentlyRequestForAgencyTokenUser(anyString(), anyString(), anyString(), anyString());
+    }
 
-        @Override
-        public MockHttpServletRequest postProcessRequest(MockHttpServletRequest request) {
-            CsrfTokenRepository repository = WebTestUtils.getCsrfTokenRepository(request);
-            CsrfToken token = repository.generateToken(request);
-            repository.saveToken(token, request, new MockHttpServletResponse());
-            String tokenValue = useInvalidToken ? "invalid" + token.getToken() : token
-                    .getToken();
-            if (asHeader) {
-                request.setAttribute(token.getHeaderName(), token);
-            }
-            else {
-                request.setAttribute(token.getParameterName(), token);
-            }
-            return request;
-        }
+    @Test
+    public void givenAValidTokenFormAndNoIdentityFound_whenCheckToken_thenShouldRedirectToLoginPage() throws Exception {
+        OrganisationalUnitDto[] organisations = new OrganisationalUnitDto[1];
+        organisations[0] = new OrganisationalUnitDto();
 
-        public RequestPostProcessor invalidToken() {
-            this.useInvalidToken = true;
-            return this;
-        }
+        when(csrsService.getOrganisationalUnitsFormatted()).thenReturn(organisations);
+        Identity identityFound = new Identity();
+        when(identityRepository.findFirstByUid(eq("myuid"))).thenReturn(Optional.empty());
 
-        public RequestPostProcessor asHeader() {
-            this.asHeader = true;
-            return this;
-        }
+        mockMvc.perform(
+                post(ENTER_TOKEN_URL)
+                        .with(CsrfRequestPostProcessor.csrf())
+                        .param("organisation","myorganisation")
+                        .param("token","mytoken")
+                        .param("domain","mydomain")
+                        .param("uid","myuid")
+        )
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
+
+        verify(emailUpdateService, never()).processEmailUpdatedRecentlyRequestForAgencyTokenUser(anyString(), anyString(), anyString(), anyString());
+    }
+
+    @Test
+    public void givenAValidTokenFormAndResourceNotFoundDuringEmailUpdate_whenCheckToken_thenShouldRedirectToEnterTokenPageWithErrorMessage() throws Exception {
+        OrganisationalUnitDto[] organisations = new OrganisationalUnitDto[1];
+        organisations[0] = new OrganisationalUnitDto();
+
+        when(csrsService.getOrganisationalUnitsFormatted()).thenReturn(organisations);
+        Identity identityFound = new Identity();
+        when(identityRepository.findFirstByUid(eq("myuid"))).thenReturn(Optional.of(identityFound));
+        doThrow(new ResourceNotFoundException()).when(emailUpdateService).processEmailUpdatedRecentlyRequestForAgencyTokenUser(anyString(), anyString(), anyString(), anyString());
+
+        mockMvc.perform(
+                post(ENTER_TOKEN_URL)
+                        .with(CsrfRequestPostProcessor.csrf())
+                        .param("organisation","myorganisation")
+                        .param("token","mytoken")
+                        .param("domain","mydomain")
+                        .param("uid","myuid")
+        )
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/emailUpdated/enterToken"))
+                .andExpect(flash().attribute("status", "Incorrect token for this organisation"))
+                .andExpect(flash().attribute("emailUpdatedRecentlyEnterTokenForm", formArgumentCaptor.capture()));
+
+        EmailUpdatedRecentlyEnterTokenForm formRerendered = formArgumentCaptor.getValue();
+        assertThat(formRerendered.getDomain()).isEqualTo("mydomain");
+        assertThat(formRerendered.getOrganisation()).isEqualTo("myorganisation");
+        assertThat(formRerendered.getUid()).isEqualTo("myuid");
+        assertThat(formRerendered.getToken()).isEqualTo("mytoken");
+
+        verify(emailUpdateService, times(1)).processEmailUpdatedRecentlyRequestForAgencyTokenUser(eq("mydomain"), eq("mytoken"), eq("myorganisation"), eq("myuid"));
     }
 
 }
