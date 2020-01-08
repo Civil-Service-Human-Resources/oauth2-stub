@@ -3,14 +3,14 @@ package uk.gov.cshr.controller.emailUpdate;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -18,7 +18,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import uk.gov.cshr.config.SpringSecurityTestConfig;
 import uk.gov.cshr.controller.form.EmailUpdatedRecentlyEnterTokenForm;
-import uk.gov.cshr.domain.EmailUpdate;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.OrganisationalUnitDto;
 import uk.gov.cshr.exception.ResourceNotFoundException;
@@ -26,12 +25,12 @@ import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.service.CsrsService;
 import uk.gov.cshr.service.EmailUpdateService;
 import uk.gov.cshr.utils.CsrfRequestPostProcessor;
+import uk.gov.cshr.utils.MockMVCFilterOverrider;
 
 import javax.servlet.Filter;
 
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -40,6 +39,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@AutoConfigureMockMvc
 @Import(SpringSecurityTestConfig.class)
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -47,17 +47,11 @@ public class EmailUpdateControllerTest {
 
     private static final String ENTER_TOKEN_URL = "/emailUpdated/enterToken";
 
-    private MockMvc mockMvc;
-
     @Value("${lpg.uiUrl}")
     private String lpgUiUrl;
 
     @Autowired
-    private WebApplicationContext context;
-
-    @Autowired
-    @Qualifier("springSecurityFilterChain")
-    private Filter springSecurityFilterChain;
+    private MockMvc mockMvc;
 
     @MockBean
     private EmailUpdateService emailUpdateService;
@@ -65,22 +59,14 @@ public class EmailUpdateControllerTest {
     @MockBean
     private CsrsService csrsService;
 
-    @MockBean
+    @MockBean(name="identityRepository")
     private IdentityRepository identityRepository;
-
-    @Captor
-    ArgumentCaptor<EmailUpdatedRecentlyEnterTokenForm> formArgumentCaptor;
 
     private OrganisationalUnitDto[] organisations;
 
     @Before
-    public void setup() {
-        mockMvc = MockMvcBuilders
-                .webAppContextSetup(context)
-                .apply(springSecurity(springSecurityFilterChain))
-                .build();
-
-        MockitoAnnotations.initMocks(this);
+    public void setup() throws IllegalAccessException {
+        MockMVCFilterOverrider.overrideFilterOf(mockMvc, "PatternMappingFilterProxy" );
 
         // set up organisations list for all test scenarios
         organisations = new OrganisationalUnitDto[1];
@@ -216,7 +202,6 @@ public class EmailUpdateControllerTest {
         organisations[0] = new OrganisationalUnitDto();
 
         when(csrsService.getOrganisationalUnitsFormatted()).thenReturn(organisations);
-        Identity identityFound = new Identity();
         when(identityRepository.findFirstByUid(eq("myuid"))).thenReturn(Optional.empty());
 
         mockMvc.perform(
@@ -254,13 +239,7 @@ public class EmailUpdateControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/emailUpdated/enterToken"))
                 .andExpect(flash().attribute("status", "Incorrect token for this organisation"))
-                .andExpect(flash().attribute("emailUpdatedRecentlyEnterTokenForm", formArgumentCaptor.capture()));
-
-        EmailUpdatedRecentlyEnterTokenForm formRerendered = formArgumentCaptor.getValue();
-        assertThat(formRerendered.getDomain()).isEqualTo("mydomain");
-        assertThat(formRerendered.getOrganisation()).isEqualTo("myorganisation");
-        assertThat(formRerendered.getUid()).isEqualTo("myuid");
-        assertThat(formRerendered.getToken()).isEqualTo("mytoken");
+                .andExpect(flash().attributeExists("emailUpdatedRecentlyEnterTokenForm"));
 
         verify(emailUpdateService, times(1)).processEmailUpdatedRecentlyRequestForAgencyTokenUser(eq("mydomain"), eq("mytoken"), eq("myorganisation"), eq("myuid"));
     }
