@@ -97,17 +97,4 @@ public class EmailUpdateService {
         identityService.resetRecentlyUpdatedEmailFlag(uid);
     }
 
-    /*@Transactional(rollbackFor = Exception.class)
-    public void updateOrganisationAndResetFlag(String newOrgCode, String uid){
-        csrsService.updateOrganisation(uid, newOrgCode);
-        identityService.resetRecentlyUpdatedEmailFlag(uid);
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    public void updateOrganisationUpdateAgencyTokenSpacesAndResetFlag(String newDomain, String newToken,
-                                                                         String newOrgCode, String uid){
-        csrsService.updateOrganisation(uid, newOrgCode);
-        identityService.resetRecentlyUpdatedEmailFlag(uid);
-        csrsService.updateSpacesAvailable(newDomain, newToken, newOrgCode, false);
-    }*/
 }

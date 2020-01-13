@@ -47,6 +47,7 @@ public class CustomAuthenticationSuccessHandlerTest {
     @Autowired
     private AuthenticationSuccessHandler classUnderTest;
 
+    // Spring bean from SpringSecurityTestConfig, not real one.
     @Autowired
     private UserDetailsService userDetailsService;
 
@@ -77,6 +78,7 @@ public class CustomAuthenticationSuccessHandlerTest {
 
     @After
     public void atEndOfEachTest() {
+        // ensure that this is always cleared.
         String webAttributeAuthException = (String) session.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(webAttributeAuthException).isNull();
     }
@@ -101,7 +103,8 @@ public class CustomAuthenticationSuccessHandlerTest {
             value = "specialuid",
             userDetailsServiceBeanName = "userDetailsService")
     public void givenSpecialUserThatHasRecentlyChangedTheirEmailAndIsWhitelisted_whenOnAuthenticationSuccess_thenRedirectsToLPGUIHomePage() throws IOException, ServletException {
-        // *****as the profile checker will automatically redirect them to an org page, i.e. the redirect happens within the UI application, not here.
+        // *****as the profile checker in the UI will automatically redirect them to an org page.
+        // i.e. the redirect happens within the UI application, not here in the Java.
 
         // given
         prepareSecurityContext("specialuid");
@@ -118,7 +121,7 @@ public class CustomAuthenticationSuccessHandlerTest {
     @WithUserDetails(
             value = "specialuid",
             userDetailsServiceBeanName = "userDetailsService")
-    public void givenSpecialUserThatHasRecentlyChangedTheirEmailAndIsAnAgencyTokenPerson_whenOnAuthenticationSuccess_thenRedirectsToLPGUIEnterTokenPage() throws IOException, ServletException {
+    public void givenSpecialUserThatHasRecentlyChangedTheirEmailAndIsAnAgencyTokenPerson_whenOnAuthenticationSuccess_thenRedirectsToControllerThatStoresTheUIDAndDomainAndThenPerformsTheRedirectToEnterTokenPage() throws IOException, ServletException {
         // given
         prepareSecurityContext("specialuid");
         when(agencyTokenService.isDomainWhiteListed(anyString())).thenReturn(false);
@@ -136,7 +139,7 @@ public class CustomAuthenticationSuccessHandlerTest {
     @WithUserDetails(
             value = "specialuid",
             userDetailsServiceBeanName = "userDetailsService")
-    public void givenSpecialUserThatHasRecentlyChangedTheirEmailAndIsAnInvalidDomain_whenOnAuthenticationSuccess_thenRedirectsToSignOnPageWithErrorInvalidOrgMessage() throws IOException, ServletException {
+    public void givenSpecialUserThatHasRecentlyChangedTheirEmailAndIsAnInvalidDomain_whenOnAuthenticationSuccess_thenRedirectsToControllerThatPerformsTheRedirectToToSignOnPageWithErrorInvalidOrgMessage() throws IOException, ServletException {
         // given
         prepareSecurityContext("specialuid");
         when(agencyTokenService.isDomainWhiteListed(anyString())).thenReturn(false);
@@ -151,6 +154,13 @@ public class CustomAuthenticationSuccessHandlerTest {
     }
 
     private void prepareSecurityContext(String userNameToAuthenticateWith) {
+        /*
+         * Get the test user given from the userdetailsservice, in this case from Spring Security Test Config.
+         * Create the users associated authentication object using the IdentityDetails provided.
+         * See the Spring Security context to ensure Spring has this Authentication object.
+         * (The same as the real code).
+         * The tests have to ensure the same object types otherwise we get class cast exceptions and so on.
+         */
         IdentityDetails identityDetails = (IdentityDetails) userDetailsService.loadUserByUsername(userNameToAuthenticateWith);
         Authentication authToken = new UsernamePasswordAuthenticationToken (identityDetails, identityDetails.getPassword(), identityDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authToken);

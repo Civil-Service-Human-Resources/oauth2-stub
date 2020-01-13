@@ -52,18 +52,6 @@ public class RedirectControllerTest {
     }
 
     @Test
-    public void whenGoToChangeOrgPage_shouldRedirectToTheEnterOrganisationPage() throws Exception {
-        String expectedRedirectToUrl = "/organisation/enterOrganisation";
-
-        mockMvc.perform(
-                get("/redirectToChangeOrgPage/mydomain/myuid"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(expectedRedirectToUrl))
-                .andExpect(flash().attribute("domain","mydomain"))
-                .andExpect(flash().attribute("uid","myuid"));
-    }
-
-    @Test
     public void whenGoToEnterTokenPage_shouldRedirectToTheEnterTokenPage() throws Exception {
         String expectedRedirectToUrl = "/emailUpdated/enterToken";
 

@@ -11,11 +11,9 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import uk.gov.cshr.domain.Identity;
-import uk.gov.cshr.domain.Invite;
-import uk.gov.cshr.domain.Role;
-import uk.gov.cshr.domain.Token;
+import uk.gov.cshr.domain.*;
 import uk.gov.cshr.exception.IdentityNotFoundException;
+import uk.gov.cshr.exception.ResourceNotFoundException;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.TokenRepository;
 import uk.gov.cshr.service.CsrsService;
@@ -38,7 +36,18 @@ import static org.mockito.Mockito.*;
 public class IdentityServiceTest {
 
     private final String updatePasswordEmailTemplateId = "template-id";
-    private final String[] whitelistedDomains = new String[]{""};
+    private final String[] whitelistedDomains = new String[]{"whitelisted.gov.uk"};
+    private final String orgCode = "AB";
+
+    private static final String EMAIL = "test@example.com";
+    private static final String CODE = "abc123";
+    private static final String UID = "uid123";
+    private static final Boolean ACTIVE = true;
+    private static final Boolean LOCKED = false;
+    private static final String PASSWORD = "password";
+    private static final Set<Role> ROLES = new HashSet();
+
+    private static Identity IDENTITY = new Identity(UID, EMAIL, PASSWORD, ACTIVE, LOCKED, ROLES, Instant.now(), false, false);
 
     private IdentityService identityService;
 
@@ -236,10 +245,122 @@ public class IdentityServiceTest {
     }
 
     @Test
+    public void givenAValidIdentityWithAWhitelistedDomain_whenUpdateEmailAddress_shouldReturnSuccessfully(){
+        // given
+       // Identity identity = new Identity(UID, EMAIL, PASSWORD, ACTIVE, LOCKED, ROLES, Instant.now(), false, false);
+        Optional<Identity> optionalIdentity = Optional.of(IDENTITY);
+        when(identityRepository.findById(anyLong())).thenReturn(optionalIdentity);
+        when(identityRepository.save(identityArgumentCaptor.capture())).thenReturn(new Identity());
+
+        Identity identityParam = new Identity();
+        identityParam.setId(new Long(123l));
+
+        // when
+        identityService.updateEmailAddress(identityParam, "mynewemail@whitelisted.gov.uk");
+
+        // then
+        verify(identityRepository, times(1)).findById(anyLong());
+        verify(identityRepository, times(1)).save(optionalIdentity.get());
+        Identity actualSavedIdentity = identityArgumentCaptor.getValue();
+        assertThat(actualSavedIdentity.isEmailRecentlyUpdated(), equalTo(true));
+        // ensure token flow was NOT executed
+        verify(csrsService, never()).getOrgCode(anyString());
+        verify(csrsService, never()).getAgencyTokenForDomainAndOrganisation(anyString(), anyString());
+        verify(csrsService, never()).updateSpacesAvailable(anyString(), anyString(), anyString(), anyBoolean());
+    }
+
+    @Test
+    public void givenAValidIdentityWithAnAgencyTokenDomain_whenUpdateEmailAddress_shouldReturnSuccessfully(){
+        // given
+        //Identity identity = mock(Identity.class);
+       // identity.setId(123l);
+        //when(identity.getUid()).thenReturn("myuid");
+        Optional<Identity> optionalIdentity = Optional.of(IDENTITY);
+        when(identityRepository.findById(anyLong())).thenReturn(optionalIdentity);
+        when(csrsService.getOrgCode(any())).thenReturn(orgCode);
+        AgencyToken agencyToken = buildAgencyToken();
+        Optional<AgencyToken> optionalAgencyToken = Optional.of(agencyToken);
+        when(csrsService.getAgencyTokenForDomainAndOrganisation(anyString(), anyString())).thenReturn(optionalAgencyToken);
+        doNothing().when(csrsService).updateSpacesAvailable(anyString(), anyString(), anyString(), anyBoolean());
+        when(identityRepository.save(identityArgumentCaptor.capture())).thenReturn(new Identity());
+
+        Identity identityParam = new Identity();
+        identityParam.setId(new Long(123l));
+
+        // when
+        identityService.updateEmailAddress(identityParam, "mynewemail@notawhitelisted.gov.uk");
+
+        // then
+        String expectedDomain = "notawhitelisted.gov.uk";
+        verify(identityRepository, times(1)).findById(anyLong());
+        // ensure token flow was executed
+        verify(csrsService, times(1)).getOrgCode(any());
+        verify(csrsService, times(1)).getAgencyTokenForDomainAndOrganisation(expectedDomain, orgCode);
+        verify(csrsService, times(1)).updateSpacesAvailable(expectedDomain, agencyToken.getToken(), orgCode, true);
+        // and updated identity still saved
+        verify(identityRepository, times(1)).save(optionalIdentity.get());
+        Identity actualSavedIdentity = identityArgumentCaptor.getValue();
+        assertThat(actualSavedIdentity.isEmailRecentlyUpdated(), equalTo(true));
+    }
+
+    @Test(expected = ResourceNotFoundException.class)
+    public void givenAValidIdentityWithAnAgencyTokenDomainAndNoOrgCode_whenUpdateEmailAddress_shouldNotFindAnyAgencyTokens(){
+        // given
+      //  Identity identity = mock(Identity.class);
+        Optional<Identity> optionalIdentity = Optional.of(IDENTITY);
+        when(identityRepository.findById(anyLong())).thenReturn(optionalIdentity);
+  ////       when(csrsService.getOrgCode(anyString())).thenReturn(null);
+  ////      when(csrsService.getAgencyTokenForDomainAndOrganisation(anyString(), anyString())).thenReturn(Optional.empty());
+       // doNothing().when(csrsService).updateSpacesAvailable(anyString(), anyString(), anyString(), anyBoolean());
+        //when(identityRepository.save(identityArgumentCaptor.capture())).thenReturn(new Identity());
+
+        Identity identityParam = new Identity();
+        identityParam.setId(new Long(123l));
+
+        // when
+        identityService.updateEmailAddress(identityParam, "mynewemail@notawhitelisted.gov.uk");
+
+        // then
+        String expectedDomain = "notawhitelisted.gov.uk";
+        verify(identityRepository, times(1)).findById(anyLong());
+        // ensure token flow was executed
+        verify(csrsService, times(1)).getOrgCode(any());
+        verify(csrsService, times(1)).getAgencyTokenForDomainAndOrganisation(expectedDomain, any());
+        verify(csrsService, never()).updateSpacesAvailable(anyString(), anyString(), anyString(), anyBoolean());
+        verify(identityRepository, never()).save(any());
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void givenAValidIdentityWithAnAgencyTokenDomainAnTechnicalErrorWithUpdatingSpacesAvailable_whenUpdateEmailAddress_shouldThrowExceptionAndNotUpdateSpacesAvailable(){
+        // given
+        Optional<Identity> optionalIdentity = Optional.of(IDENTITY);
+        when(identityRepository.findById(anyLong())).thenReturn(optionalIdentity);
+//        when(csrsService.getOrgCode(anyString())).thenReturn(orgCode);
+        AgencyToken agencyToken = buildAgencyToken();
+        Optional<AgencyToken> optionalAgencyToken = Optional.of(agencyToken);
+  //      when(csrsService.getAgencyTokenForDomainAndOrganisation(anyString(), anyString())).thenReturn(optionalAgencyToken);
+  //      doThrow(new RuntimeException()).when(csrsService).updateSpacesAvailable(anyString(), anyString(), anyString(), anyBoolean());
+
+        Identity identityParam = new Identity();
+        identityParam.setId(new Long(123l));
+
+        // when
+        identityService.updateEmailAddress(identityParam, "mynewemail@notawhitelisted.gov.uk");
+
+        // then
+        String expectedDomain = "notawhitelisted.gov.uk";
+        verify(identityRepository, times(1)).findById(anyLong());
+        // ensure token flow was executed
+        verify(csrsService, times(1)).getOrgCode(any());
+        verify(csrsService, times(1)).getAgencyTokenForDomainAndOrganisation(expectedDomain, any());
+        verify(csrsService, times(1)).updateSpacesAvailable(expectedDomain, agencyToken.getToken(), orgCode, true);
+        verify(identityRepository, never()).save(any());
+    }
+
+    @Test
     public void givenAValidIdentity_resetRecentlyUpdatedEmailFlag_shouldReturnSuccessfully(){
         // given
-        Identity identity = mock(Identity.class);
-        Optional<Identity> optionalIdentity = Optional.of(identity);
+        Optional<Identity> optionalIdentity = Optional.of(IDENTITY);
         when(identityRepository.findFirstByUid(anyString())).thenReturn(optionalIdentity);
         when(identityRepository.save(identityArgumentCaptor.capture())).thenReturn(new Identity());
 
@@ -255,11 +376,10 @@ public class IdentityServiceTest {
     @Test(expected = IdentityNotFoundException.class)
     public void givenAnNotFoundIdentity_resetRecentlyUpdatedEmailFlag_shouldThrowIdentityNotFoundException(){
         // given
-        Identity identity = mock(Identity.class);
-        Optional<Identity> optionalIdentity = Optional.empty();
+        when(identityRepository.findFirstByUid(anyString())).thenReturn(Optional.empty());
 
         // when
-        identityService.resetRecentlyUpdatedEmailFlag(identity.getUid());
+        identityService.resetRecentlyUpdatedEmailFlag("myuid");
 
         // then
         verify(identityRepository, never()).save(any(Identity.class));
@@ -268,13 +388,20 @@ public class IdentityServiceTest {
     @Test(expected = RuntimeException.class)
     public void givenAnInvalidIdentity_resetRecentlyUpdatedEmailFlag_shouldThrowException(){
         // given
-        Identity identity = mock(Identity.class);
-        Optional<Identity> optionalIdentity = Optional.of(identity);
+        Optional<Identity> optionalIdentity = Optional.of(IDENTITY);
 
         // when
-        identityService.resetRecentlyUpdatedEmailFlag(identity.getUid());
+        identityService.resetRecentlyUpdatedEmailFlag("myuid");
 
         // then
         verify(identityRepository, times(1)).save(optionalIdentity.get());
+    }
+
+    private AgencyToken buildAgencyToken() {
+        AgencyToken at = new AgencyToken();
+        at.setToken("token123");
+        at.setCapacity(100);
+        at.setCapacityUsed(11);
+        return at;
     }
 }

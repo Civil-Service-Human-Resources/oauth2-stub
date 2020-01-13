@@ -32,6 +32,8 @@ public class CsrsServiceTest {
     private String updateOrganisationUrl;
     private CsrsService csrsService;
 
+    private EmailUpdateService emailUpdateService;
+
     /*
     RestTemplate restTemplate,
                        @Value("${registry.agencyTokensFormat}") String agencyTokensFormat,

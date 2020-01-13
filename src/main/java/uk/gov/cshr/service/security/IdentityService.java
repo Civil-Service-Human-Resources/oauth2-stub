@@ -141,7 +141,7 @@ public class IdentityService implements UserDetailsService {
         savedIdentity.setEmail(email);
         savedIdentity.setEmailRecentlyUpdated(true);
 
-        // is it a token person
+        // is the new email domain a token person
         String domain = getDomainFromEmailAddress(email);
         if(!isWhitelistedDomain(domain)) {
             // work out what org they are from and what agency token to remove them from

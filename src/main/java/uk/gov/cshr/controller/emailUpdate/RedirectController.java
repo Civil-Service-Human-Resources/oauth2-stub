@@ -21,7 +21,7 @@ public class RedirectController {
 
     @GetMapping("/invalid")
     public RedirectView notAValidEmailDomain(HttpServletRequest request, RedirectAttributes redirectAttributes) {
-        // TODO - ASK WHAT SHOULD HAPPEN IN THIS SCENARIO
+        // TODO - ASK WHAT SHOULD HAPPEN IN THIS SCENARIO - ASSUME LOG OUT WITH ERROR MESSAGE FOR NOW
         redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Your organisation is unable to use this service. Please contact your line manager.");
         return new RedirectView("/logout");
     }
@@ -31,15 +31,6 @@ public class RedirectController {
         model.asMap().clear();
         RedirectView redirectView = new RedirectView();
         redirectView.setUrl(lpgUiUrl);
-        return redirectView;
-    }
-
-    @RequestMapping("/redirectToChangeOrgPage/{domain}/{uid}")
-    public RedirectView goToChangeOrgPage(Model model, RedirectAttributes redirectAttributes, @PathVariable String domain, @PathVariable String uid) {
-        redirectAttributes.addFlashAttribute("domain", domain);
-        redirectAttributes.addFlashAttribute("uid", uid);
-        RedirectView redirectView = new RedirectView();
-        redirectView.setUrl("/organisation/enterOrganisation");
         return redirectView;
     }
 
