@@ -27,6 +27,7 @@ import java.util.Optional;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -37,6 +38,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @WithMockUser(username = "user")
 public class SignupControllerTest {
+
+    private static final String STATUS_ATTRIBUTE = "status";
 
     @Autowired
     private MockMvc mockMvc;
@@ -150,6 +153,31 @@ public class SignupControllerTest {
     }
 
     @Test
+    public void shouldConfirmInviteSentIfWhitelistedEmail() throws Exception {
+        String email = "user@domain.com";
+        String domain = "domain.com";
+
+        when(inviteRepository.existsByForEmailAndStatus(email, InviteStatus.PENDING)).thenReturn(false);
+        when(identityService.existsByEmail(email)).thenReturn(false);
+        when(identityService.getDomainFromEmailAddress(email)).thenReturn(domain);
+        when(identityService.isWhitelistedDomain(domain)).thenReturn(true);
+
+        mockMvc.perform(
+                post("/signup/request")
+                        .with(CsrfRequestPostProcessor.csrf())
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("email", email)
+                        .param("confirmEmail", email))
+                .andExpect(status().isOk())
+                .andExpect(view().name("inviteSent"))
+                .andExpect(content().string(containsString("We've sent you an email")))
+                .andExpect(content().string(containsString("What happens next")))
+                .andExpect(content().string(containsString("We have sent you an email with a link to <strong>continue creating your account</strong>.")));
+
+        Mockito.verify(inviteService).sendSelfSignupInvite(email, true);
+    }
+
+    @Test
     public void shouldConfirmInviteSentIfAgencyTokenEmail() throws Exception {
         String email = "user@domain.com";
         String domain = "domain.com";
@@ -168,6 +196,7 @@ public class SignupControllerTest {
                         .param("email", email)
                         .param("confirmEmail", email))
                 .andExpect(status().isOk())
+                .andExpect(view().name("inviteSent"))
                 .andExpect(content().string(containsString("We've sent you an email")))
                 .andExpect(content().string(containsString("What happens next")))
                 .andExpect(content().string(containsString("We have sent you an email with a link to <strong>continue creating your account</strong>.")));
@@ -175,7 +204,7 @@ public class SignupControllerTest {
         Mockito.verify(inviteService).sendSelfSignupInvite(email, false);
     }
 
-    @Test
+    @Test 
     public void shouldNotSendInviteIfNotWhitelistedAndNotAgencyTokenEmail() throws Exception {
         String email = "user@domain.com";
         String domain = "domain.com";
@@ -193,9 +222,10 @@ public class SignupControllerTest {
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
                         .param("email", email)
                         .param("confirmEmail", email))
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/signup/request"))
+                .andExpect(flash().attribute(STATUS_ATTRIBUTE, "Your organisation is unable to use this service. Please contact your line manager."));
     }
-
 
     @Test
     public void shouldSendToLoginIfSignupCodeNotValid() throws Exception {
@@ -211,7 +241,7 @@ public class SignupControllerTest {
     }
 
     @Test
-    public void shouldRedirectToTokenIfInviteNotAuthorised() throws Exception {
+    public void shouldRedirectToEnterTokenPageIfInviteNotAuthorised() throws Exception {
         String code = "abc123";
         Invite invite = new Invite();
         invite.setAuthorisedInvite(false);
@@ -227,7 +257,7 @@ public class SignupControllerTest {
     }
 
     @Test
-    public void shouldReturnSignupIfTokenAuthorised() throws Exception {
+    public void shouldReturnSignupIfInviteAuthorised() throws Exception {
         String code = "abc123";
         Invite invite = new Invite();
         invite.setAuthorisedInvite(true);
@@ -261,6 +291,24 @@ public class SignupControllerTest {
 //                .andExpect(view().name("signup"));
 //    }
 
+    @Test 
+    public void shouldRedirectToSignUpIfFormHasError() throws Exception {
+        String code = "abc123";
+        String password = "password";
+
+        when(inviteService.isInviteValid(code)).thenReturn(false);
+        when(signupFormValidator.supports(any())).thenReturn(true);
+        when(inviteRepository.findByCode(anyString())).thenReturn(new Invite());
+
+        mockMvc.perform(
+                post("/signup/" + code)
+                        .with(CsrfRequestPostProcessor.csrf())
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("password", password)
+                        .param("confirmPassword", "doesn't match"))
+                .andExpect(view().name("signup"))
+                .andExpect(model().attributeExists("invite"));
+    }
 
     @Test
     public void shouldRedirectToLoginIfInviteNotValid() throws Exception {
@@ -430,9 +478,8 @@ public class SignupControllerTest {
                 .andExpect(redirectedUrl("/signup/" + code));
     }
 
-
-    @Test
-    public void shouldRedirectToEnterTokenIfInviteValid() throws Exception {
+    @Test 
+    public void shouldRedirectToEnterTokenWithErrorMessageIfNoTokensFound() throws Exception {
         String code = "abc123";
         String organisation = "org";
         String token = "token123";
@@ -457,7 +504,8 @@ public class SignupControllerTest {
                         .param("organisation", organisation)
                         .param("token", token))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/signup/enterToken/" + code));
+                .andExpect(redirectedUrl("/signup/enterToken/" + code))
+                .andExpect(flash().attribute(STATUS_ATTRIBUTE, "Incorrect token for this organisation"));
     }
 
 }
