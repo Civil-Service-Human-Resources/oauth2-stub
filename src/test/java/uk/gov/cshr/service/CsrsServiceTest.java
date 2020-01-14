@@ -29,7 +29,6 @@ public class CsrsServiceTest {
     private String organisationalUnitsFlatUrl;
     private String updateSpacesAvailableUrl;
     private String getOrganisationUrl;
-    private String updateOrganisationUrl;
     private CsrsService csrsService;
 
     private EmailUpdateService emailUpdateService;
@@ -53,13 +52,12 @@ public class CsrsServiceTest {
         organisationalUnitsFlatUrl = "http://locahost:9002/organisationalUnits/flat";
         updateSpacesAvailableUrl = "http://locahost:9002/agencyTokens";
         getOrganisationUrl = "http://locahost:9002/civilServants/org?uid=%s";
-        updateOrganisationUrl = "http://locahost:9002/civilServants/org";
 
       //  ReflectionTestUtils.setField(notifyService, "notificationClient", notificationClient);
 
         csrsService = new CsrsService(restTemplate,
                 agencyTokensFormat, agencyTokensByDomainFormat, agencyTokensByDomainAndOrganisationFormat,
-                organisationalUnitsFlatUrl, updateSpacesAvailableUrl, getOrganisationUrl, updateOrganisationUrl);
+                organisationalUnitsFlatUrl, updateSpacesAvailableUrl, getOrganisationUrl);
 
         ReflectionTestUtils.setField(csrsService, "restTemplate", restTemplate);
         ReflectionTestUtils.setField(csrsService, "agencyTokensFormat", agencyTokensFormat);
@@ -68,7 +66,6 @@ public class CsrsServiceTest {
         ReflectionTestUtils.setField(csrsService, "organisationalUnitsFlatUrl", organisationalUnitsFlatUrl);
         ReflectionTestUtils.setField(csrsService, "updateSpacesAvailableUrl", updateSpacesAvailableUrl);
         ReflectionTestUtils.setField(csrsService, "getOrganisationUrl", getOrganisationUrl);
-        ReflectionTestUtils.setField(csrsService, "updateOrganisationUrl", updateOrganisationUrl);
     }
 
     @Test
