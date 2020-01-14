@@ -97,8 +97,12 @@ public class CsrsService {
 
     public String getOrgCode(String uid) {
         String url = String.format(getOrganisationUrl, uid);
-        ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-        return response.getBody();
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            return response.getBody();
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     public OrganisationalUnitDto[] getOrganisationalUnitsFormatted() {

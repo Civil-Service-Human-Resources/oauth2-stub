@@ -6,16 +6,21 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.cshr.domain.AgencyToken;
 import uk.gov.cshr.domain.OrganisationalUnitDto;
 
 import java.util.Optional;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.ResponseEntity.ok;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CsrsServiceTest {
@@ -31,19 +36,6 @@ public class CsrsServiceTest {
     private String getOrganisationUrl;
     private CsrsService csrsService;
 
-    private EmailUpdateService emailUpdateService;
-
-    /*
-    RestTemplate restTemplate,
-                       @Value("${registry.agencyTokensFormat}") String agencyTokensFormat,
-                       @Value("${registry.agencyTokensByDomainFormat}") String agencyTokensByDomainFormat,
-                       @Value("${registry.agencyTokensByDomainAndOrganisationFormat}") String agencyTokensByDomainAndOrganisationFormat,
-
-                       @Value("${registry.organisationalUnitsFlatUrl}") String organisationalUnitsFlatUrl,
-                       @Value("${registry.updateSpacesAvailableUrl}") String updateSpacesAvailableUrl,
-                       @Value("${registry.getOrganisationUrl}") String getOrganisationUrl,
-                       @Value("${registry.updateOrganisationUrl}") String updateOrganisationUrl)
-     */
     @Before
     public void setUp() {
         agencyTokensFormat = "http://locahost:9002/agencyTokens?domain=%s&token=%s&code=%s";
@@ -52,8 +44,6 @@ public class CsrsServiceTest {
         organisationalUnitsFlatUrl = "http://locahost:9002/organisationalUnits/flat";
         updateSpacesAvailableUrl = "http://locahost:9002/agencyTokens";
         getOrganisationUrl = "http://locahost:9002/civilServants/org?uid=%s";
-
-      //  ReflectionTestUtils.setField(notifyService, "notificationClient", notificationClient);
 
         csrsService = new CsrsService(restTemplate,
                 agencyTokensFormat, agencyTokensByDomainFormat, agencyTokensByDomainAndOrganisationFormat,
@@ -103,4 +93,71 @@ public class CsrsServiceTest {
 
         assertArrayEquals(organisationalUnitDtoArray, csrsService.getOrganisationalUnitsFormatted());
     }
+
+    @Test
+    public void givenAgencyTokenDomainAndOrganisation_whenGetAgencyTokenForDomainAndOrganisation_thenShouldReturnAgencyToken() {
+        // given
+        AgencyToken agencyToken = buildAgencyToken();
+        String domain = "example.com";
+        String code = "code";
+        when(restTemplate.getForObject(String.format(agencyTokensByDomainAndOrganisationFormat, domain, code), AgencyToken.class)).thenReturn(agencyToken);
+
+        // when
+        Optional<AgencyToken> actual = csrsService.getAgencyTokenForDomainAndOrganisation(domain, code);
+
+        // then
+        assertThat(actual.get().getToken(), equalTo(agencyToken.getToken()));
+        assertThat(actual.get().getCapacity(), equalTo(100));
+        assertThat(actual.get().getCapacityUsed(), equalTo(11));
+    }
+
+    @Test
+    public void givenDomainAndOrganisationWithNoAgencyToken_whenGetAgencyTokenForDomainAndOrganisation_thenShouldReturnEmpty() {
+        // given
+        AgencyToken agencyToken = buildAgencyToken();
+        String domain = "example.com";
+        String code = "code";
+        when(restTemplate.getForObject(String.format(agencyTokensByDomainAndOrganisationFormat, domain, code), AgencyToken.class)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
+
+        // when
+        Optional<AgencyToken> actual = csrsService.getAgencyTokenForDomainAndOrganisation(domain, code);
+
+        // then
+        assertFalse(actual.isPresent());
+    }
+
+    @Test
+    public void givenAValidUID_whenGetOrgCode_thenShouldReturnSuccessfully() {
+        // given
+        String uid = "myuid";
+        when(restTemplate.getForEntity(String.format(getOrganisationUrl, uid), String.class)).thenReturn(new ResponseEntity<String>("co", HttpStatus.OK));
+
+        // when
+        String actual = csrsService.getOrgCode(uid);
+
+        // then
+        assertThat(actual, equalTo("co"));
+    }
+
+    @Test
+    public void givenAInvalidUID_whenGetOrgCode_thenShouldReturnEmptyString() {
+        // given
+        String uid = "myuid";
+        when(restTemplate.getForEntity(String.format(getOrganisationUrl, uid), String.class)).thenThrow(new RuntimeException());
+
+        // when
+        String actual = csrsService.getOrgCode(uid);
+
+        // then
+        assertThat(actual, equalTo(""));
+    }
+
+    private AgencyToken buildAgencyToken() {
+        AgencyToken at = new AgencyToken();
+        at.setToken("token123");
+        at.setCapacity(100);
+        at.setCapacityUsed(11);
+        return at;
+    }
+
 }
