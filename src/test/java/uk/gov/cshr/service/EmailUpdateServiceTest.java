@@ -7,10 +7,12 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import uk.gov.cshr.domain.AgencyToken;
 import uk.gov.cshr.domain.EmailUpdate;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.exception.InvalidCodeException;
+import uk.gov.cshr.exception.ResourceNotFoundException;
 import uk.gov.cshr.repository.EmailUpdateRepository;
 import uk.gov.cshr.service.security.IdentityService;
 
@@ -112,8 +114,8 @@ public class EmailUpdateServiceTest {
         verify(emailUpdateRepository, never()).delete(any(EmailUpdate.class));
     }
 
-    /*@Test
-    public void givenAValidIdentityAndAValidCodeAndANonAgencyTokenPerson_whenUpdateEmailAddress_shouldReturnSuccessfully(){
+    @Test
+    public void givenAValidIdentityAndAValidCodeAndAnAgencyTokenUser_whenUpdateEmailAddress_shouldReturnSuccessfully(){
         // given
         EmailUpdate emailUpdate = new EmailUpdate();
         emailUpdate.setId(100l);
@@ -122,6 +124,12 @@ public class EmailUpdateServiceTest {
         when(emailUpdateRepository.findByIdentityAndCode(any(Identity.class), anyString())).thenReturn(optionalEmailUpdate);
         when(identityService.getDomainFromEmailAddress(anyString())).thenReturn("myoldomain.com");
         when(identityService.isWhitelistedDomain(anyString())).thenReturn(false);
+        // agency token scenario
+        when(csrsService.getOrgCode(any())).thenReturn("ab");
+        Optional<AgencyToken> optionalAgencyToken = Optional.of(buildAgencyToken());
+        when(csrsService.getAgencyTokenForDomainAndOrganisation(anyString(), anyString())).thenReturn(optionalAgencyToken);
+        doNothing().when(csrsService).updateSpacesAvailable(anyString(), anyString(), anyString(), anyBoolean());
+        // end of agency token scenario
         doNothing().when(identityService).updateEmailAddress(eq(IDENTITY), eq(emailUpdate.getEmail()));
         doNothing().when(emailUpdateRepository).delete(any(EmailUpdate.class));
 
@@ -132,11 +140,67 @@ public class EmailUpdateServiceTest {
         verify(emailUpdateRepository, times(1)).findByIdentityAndCode(eq(IDENTITY), eq("CO"));
         verify(identityService, times(1)).getDomainFromEmailAddress(eq(IDENTITY.getEmail()));
         verify(identityService, times(1)).isWhitelistedDomain(eq("myoldomain.com"));
+        // agency token scenario
+        verify(csrsService).getAgencyTokenForDomainAndOrganisation(eq("myoldomain.com"), eq("ab"));
+        verify(csrsService).updateSpacesAvailable(eq("myoldomain.com"), eq("token123"), eq("ab"), eq(true));
+        // end of agency token scenario
         verify(identityService, times(1)).updateEmailAddress(eq(IDENTITY), eq(emailUpdate.getEmail()));
         verify(emailUpdateRepository, times(1)).delete(emailUpdateArgumentCaptor.capture());
 
         EmailUpdate actualDeletedEmailUpdate = emailUpdateArgumentCaptor.getValue();
         assertThat(actualDeletedEmailUpdate.getId(), equalTo(100l));
     }
-*/
+
+    @Test (expected = ResourceNotFoundException.class)
+    public void givenAValidIdentityAndAValidCodeAndAnAgencyTokenUserAndNoAgencyToken_whenUpdateEmailAddress_shouldThrowResourceNotFoundException(){
+        // given
+        EmailUpdate emailUpdate = new EmailUpdate();
+        emailUpdate.setId(100l);
+        emailUpdate.setEmail("myemail@mynewemail.com");
+        Optional<EmailUpdate> optionalEmailUpdate = Optional.of(emailUpdate);
+        when(emailUpdateRepository.findByIdentityAndCode(any(Identity.class), anyString())).thenReturn(optionalEmailUpdate);
+        when(identityService.getDomainFromEmailAddress(anyString())).thenReturn("myoldomain.com");
+        when(identityService.isWhitelistedDomain(anyString())).thenReturn(false);
+        // agency token scenario
+        when(csrsService.getOrgCode(anyString())).thenReturn("ab");
+        //Optional<AgencyToken> optionalAgencyToken = Optional.of(buildAgencyToken());
+        when(csrsService.getAgencyTokenForDomainAndOrganisation(anyString(), anyString())).thenReturn(Optional.empty());
+        // end of agency token scenario
+
+        // when
+        classUnderTest.updateEmailAddress(IDENTITY, "CO");
+
+        // then
+        verify(emailUpdateRepository, times(1)).findByIdentityAndCode(eq(IDENTITY), eq("CO"));
+        verify(identityService, times(1)).getDomainFromEmailAddress(eq(IDENTITY.getEmail()));
+        verify(identityService, times(1)).isWhitelistedDomain(eq("myoldomain.com"));
+        // agency token scenario
+        verify(csrsService.getOrgCode(any()));
+        verify(csrsService).getAgencyTokenForDomainAndOrganisation(eq("myoldomain.com"), eq("ab"));
+        verify(csrsService, never()).updateSpacesAvailable(anyString(), anyString(), anyString(), anyBoolean());
+        // end of agency token scenario
+        verify(identityService, never()).updateEmailAddress(any(Identity.class), anyString());
+        verify(emailUpdateRepository, never()).delete(any(EmailUpdate.class));
+    }
+
+
+    @Test
+    public void givenAValidUIDAndAWhitelistedUser_whenprocessEmailUpdatedRecentlyRequestForWhiteListedDomainUser_shouldReturnSuccessfully(){
+        // given
+        doNothing().when(identityService).resetRecentlyUpdatedEmailFlag(eq("myuid"));
+
+        // when
+        classUnderTest.processEmailUpdatedRecentlyRequestForWhiteListedDomainUser("myuid");
+
+       // verify(identityService)
+
+    }
+
+    private AgencyToken buildAgencyToken() {
+        AgencyToken at = new AgencyToken();
+        at.setToken("token123");
+        at.setCapacity(100);
+        at.setCapacityUsed(11);
+        return at;
+    }
 }
