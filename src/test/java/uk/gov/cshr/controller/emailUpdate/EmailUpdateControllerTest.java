@@ -54,11 +54,19 @@ public class EmailUpdateControllerTest {
     @MockBean(name="identityRepository")
     private IdentityRepository identityRepository;
 
+    private EmailUpdateController classUnderTest;
+
     private OrganisationalUnitDto[] organisations;
 
     @Before
     public void setup() throws IllegalAccessException {
         MockMVCFilterOverrider.overrideFilterOf(mockMvc, "PatternMappingFilterProxy" );
+
+        classUnderTest = new EmailUpdateController(
+                emailUpdateService,
+                csrsService,
+                identityRepository,
+                lpgUiUrl);
 
         // set up organisations list for all test scenarios
         organisations = new OrganisationalUnitDto[1];
