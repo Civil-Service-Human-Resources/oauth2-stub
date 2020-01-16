@@ -133,7 +133,7 @@ public class EmailUpdateControllerTest {
         verify(emailUpdateService, times(1)).processEmailUpdatedRecentlyRequestForAgencyTokenUser(eq("mydomain"), eq("mytoken"), eq("myorganisation"), eq("myuid"));
     }
 
-    @Test // BH BROKEN
+    @Test 
     public void givenAInvalidTokenFormNoOrganisation_whenCheckToken_thenShouldRedisplayToEnterTokenPageWithOneErrorMessage() throws Exception {
         OrganisationalUnitDto[] organisations = new OrganisationalUnitDto[1];
         organisations[0] = new OrganisationalUnitDto();
@@ -161,7 +161,7 @@ public class EmailUpdateControllerTest {
         verify(emailUpdateService, never()).processEmailUpdatedRecentlyRequestForAgencyTokenUser(anyString(), anyString(), anyString(), anyString());
     }
 
-    @Test // BH BROKEN
+    @Test 
     public void givenAInvalidTokenFormNoOrganisationAndNoToken_whenCheckToken_thenShouldRedisplayToEnterTokenPageWithTwoErrorMessages() throws Exception {
         OrganisationalUnitDto[] organisations = new OrganisationalUnitDto[1];
         organisations[0] = new OrganisationalUnitDto();

@@ -13,6 +13,7 @@ import uk.gov.cshr.domain.OrganisationalUnitDto;
 import uk.gov.cshr.dto.AgencyTokenDTO;
 import uk.gov.cshr.exception.*;
 
+import java.net.ConnectException;
 import java.util.Optional;
 
 @Slf4j
@@ -88,6 +89,10 @@ public class CsrsService {
             UnableToAllocateAgencyTokenException exception = new UnableToAllocateAgencyTokenException(String.format("Error: Unable to update AgencyToken %s ", token), e);
             log.error("An error occurred allocating agency token", exception);
             throw exception;
+        } catch (ConnectException e) {
+            ExternalServiceUnavailableException exception = new ExternalServiceUnavailableException(String.format("External Service is unavailable: %s ", "csrs"), e);
+            log.error("External Service is unavailable: csrs", exception);
+            throw exception;
         } catch (Exception e) {
             UnableToAllocateAgencyTokenException exception = new UnableToAllocateAgencyTokenException(String.format("Unexpected Error: Unable to update AgencyToken %s ", token), e);
             log.error("An unexpected error occurred allocating agency token", exception);
@@ -115,7 +120,7 @@ public class CsrsService {
         return organisationalUnitDtos;
     }
 
-    private void updateCsrs(String domain, String token, String organisation, boolean removeUser) {
+    private void updateCsrs(String domain, String token, String organisation, boolean removeUser) throws Exception {
         AgencyTokenDTO requestDTO = buildAgencyTokenDTO(domain, token, organisation, removeUser);
         restTemplate.put(updateSpacesAvailableUrl, requestDTO);
     }

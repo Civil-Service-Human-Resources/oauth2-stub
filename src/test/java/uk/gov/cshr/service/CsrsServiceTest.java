@@ -1,8 +1,13 @@
 package uk.gov.cshr.service;
 
 import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,23 +15,33 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.cshr.domain.AgencyToken;
 import uk.gov.cshr.domain.OrganisationalUnitDto;
+import uk.gov.cshr.dto.AgencyTokenDTO;
+import uk.gov.cshr.exception.*;
 
+import java.net.ConnectException;
 import java.util.Optional;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.http.ResponseEntity.ok;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CsrsServiceTest {
 
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
+
     @Mock
     private RestTemplate restTemplate;
+
+    @Captor
+    private ArgumentCaptor<AgencyTokenDTO> agencyTokenDTOArgumentCaptor;
 
     private String agencyTokensFormat;
     private String agencyTokensByDomainFormat;
@@ -150,6 +165,173 @@ public class CsrsServiceTest {
 
         // then
         assertThat(actual, equalTo(""));
+    }
+
+    @Test
+    public void givenAValidAgencyTokenAndSpacesAvailableAndAddUser_whenUpdateSpacesAvailable_thenReduceSpacesByOne() {
+        // given
+        String domain = "mydomain";
+        String token = "token123";
+        String code = "mycode";
+//        doNothing().when(restTemplate).put(updateSpacesAvailableUrl, AgencyTokenDTO.class);
+
+        // when
+        csrsService.updateSpacesAvailable(domain, token, code, false);
+
+        // then
+        verify(restTemplate).put(eq(updateSpacesAvailableUrl), agencyTokenDTOArgumentCaptor.capture());
+        // check that the correct parameter is put into the correct field of the request DTO.
+        AgencyTokenDTO actualValuesSentInRequest = agencyTokenDTOArgumentCaptor.getValue();
+        assertThat(actualValuesSentInRequest.getDomain(), equalTo("mydomain"));
+        assertThat(actualValuesSentInRequest.getToken(), equalTo("token123"));
+        assertThat(actualValuesSentInRequest.getCode(), equalTo("mycode"));
+    }
+
+    @Test
+    public void givenAnNonExistantAgencyTokenAndSpacesAvailableAndAddUser_whenUpdateSpacesAvailable_thenThrowResourceNotFoundException() {
+        // given
+        String domain = "mydomain";
+        String token = "token123";
+        String code = "mycode";
+        // expected
+        expectedException.expect(ResourceNotFoundException.class);
+
+        HttpClientErrorException notFound = new HttpClientErrorException(HttpStatus.NOT_FOUND);
+        doThrow(notFound).when(restTemplate).put(anyString(), any(AgencyTokenDTO.class));
+
+
+        // when
+        csrsService.updateSpacesAvailable(domain, token, code, false);
+
+        // then
+        verify(restTemplate).put(eq(updateSpacesAvailableUrl), agencyTokenDTOArgumentCaptor.capture());
+        // check that the correct parameter is put into the correct field of the request DTO.
+        AgencyTokenDTO actualValuesSentInRequest = agencyTokenDTOArgumentCaptor.getValue();
+        assertThat(actualValuesSentInRequest.getDomain(), equalTo("mydomain"));
+        assertThat(actualValuesSentInRequest.getToken(), equalTo("token123"));
+        assertThat(actualValuesSentInRequest.getCode(), equalTo("mycode"));
+    }
+
+    @Test
+    public void givenAValidAgencyTokenAndSpacesAvailableAndAddUser_whenUpdateSpacesAvailable_thenThrowNotEnoughSpaceAvailableException() {
+        // given
+        String domain = "mydomain";
+        String token = "token123";
+        String code = "mycode";
+        // expected
+        expectedException.expect(NotEnoughSpaceAvailableException.class);
+
+        HttpClientErrorException conflict = new HttpClientErrorException(HttpStatus.CONFLICT);
+        doThrow(conflict).when(restTemplate).put(anyString(), any(AgencyTokenDTO.class));
+
+        // when
+        csrsService.updateSpacesAvailable(domain, token, code, false);
+
+        // then
+        verify(restTemplate).put(eq(updateSpacesAvailableUrl), agencyTokenDTOArgumentCaptor.capture());
+        // check that the correct parameter is put into the correct field of the request DTO.
+        AgencyTokenDTO actualValuesSentInRequest = agencyTokenDTOArgumentCaptor.getValue();
+        assertThat(actualValuesSentInRequest.getDomain(), equalTo("mydomain"));
+        assertThat(actualValuesSentInRequest.getToken(), equalTo("token123"));
+        assertThat(actualValuesSentInRequest.getCode(), equalTo("mycode"));
+    }
+
+    @Test
+    public void givenAClientErrorAndAddUser_whenUpdateSpacesAvailable_thenThrowBadRequestException() {
+        // given
+        String domain = "mydomain";
+        String token = "token123";
+        String code = "mycode";
+        // expected
+        expectedException.expect(BadRequestException.class);
+
+        HttpClientErrorException bad = new HttpClientErrorException(HttpStatus.BAD_REQUEST);
+        doThrow(bad).when(restTemplate).put(anyString(), any(AgencyTokenDTO.class));
+
+        // when
+        csrsService.updateSpacesAvailable(domain, token, code, false);
+
+        // then
+        verify(restTemplate).put(eq(updateSpacesAvailableUrl), agencyTokenDTOArgumentCaptor.capture());
+        // check that the correct parameter is put into the correct field of the request DTO.
+        AgencyTokenDTO actualValuesSentInRequest = agencyTokenDTOArgumentCaptor.getValue();
+        assertThat(actualValuesSentInRequest.getDomain(), equalTo("mydomain"));
+        assertThat(actualValuesSentInRequest.getToken(), equalTo("token123"));
+        assertThat(actualValuesSentInRequest.getCode(), equalTo("mycode"));
+    }
+
+    @Test
+    public void givenAServerErrorAndAddUser_whenUpdateSpacesAvailable_thenThrowUnableToAllocateAgencyTokenException() {
+        // given
+        String domain = "mydomain";
+        String token = "token123";
+        String code = "mycode";
+        // expected
+        expectedException.expect(UnableToAllocateAgencyTokenException.class);
+
+        // HTTP repsonse code starts with a 5.  (504)
+        HttpServerErrorException timeout = new HttpServerErrorException(HttpStatus.GATEWAY_TIMEOUT);
+        doThrow(timeout).when(restTemplate).put(anyString(), any(AgencyTokenDTO.class));
+
+        // when
+        csrsService.updateSpacesAvailable(domain, token, code, false);
+
+        // then
+        verify(restTemplate).put(eq(updateSpacesAvailableUrl), agencyTokenDTOArgumentCaptor.capture());
+        // check that the correct parameter is put into the correct field of the request DTO.
+        AgencyTokenDTO actualValuesSentInRequest = agencyTokenDTOArgumentCaptor.getValue();
+        assertThat(actualValuesSentInRequest.getDomain(), equalTo("mydomain"));
+        assertThat(actualValuesSentInRequest.getToken(), equalTo("token123"));
+        assertThat(actualValuesSentInRequest.getCode(), equalTo("mycode"));
+    }
+
+    @Ignore
+    @Test
+    public void givenServiceIsDownAndAddUser_whenUpdateSpacesAvailable_thenThrowExternalServiceUnavailableException() {
+        // given
+        String domain = "mydomain";
+        String token = "token123";
+        String code = "mycode";
+        // expected
+        expectedException.expect(ExternalServiceUnavailableException.class);
+
+        // connect exception / service down
+        doThrow(new ConnectException()).when(restTemplate).put(anyString(), any(AgencyTokenDTO.class));
+
+        // when
+        csrsService.updateSpacesAvailable(domain, token, code, false);
+
+        // then
+        verify(restTemplate).put(eq(updateSpacesAvailableUrl), agencyTokenDTOArgumentCaptor.capture());
+        // check that the correct parameter is put into the correct field of the request DTO.
+        AgencyTokenDTO actualValuesSentInRequest = agencyTokenDTOArgumentCaptor.getValue();
+        assertThat(actualValuesSentInRequest.getDomain(), equalTo("mydomain"));
+        assertThat(actualValuesSentInRequest.getToken(), equalTo("token123"));
+        assertThat(actualValuesSentInRequest.getCode(), equalTo("mycode"));
+    }
+
+    @Test
+    public void givenAnTechnicalErrorAndAddUser_whenUpdateSpacesAvailable_thenThrowUnableToAllocateAgencyTokenException() {
+        // given
+        String domain = "mydomain";
+        String token = "token123";
+        String code = "mycode";
+        // expected
+        expectedException.expect(UnableToAllocateAgencyTokenException.class);
+
+        // connect exception / service down
+        doThrow(new RuntimeException()).when(restTemplate).put(anyString(), any(AgencyTokenDTO.class));
+
+        // when
+        csrsService.updateSpacesAvailable(domain, token, code, false);
+
+        // then
+        verify(restTemplate).put(eq(updateSpacesAvailableUrl), agencyTokenDTOArgumentCaptor.capture());
+        // check that the correct parameter is put into the correct field of the request DTO.
+        AgencyTokenDTO actualValuesSentInRequest = agencyTokenDTOArgumentCaptor.getValue();
+        assertThat(actualValuesSentInRequest.getDomain(), equalTo("mydomain"));
+        assertThat(actualValuesSentInRequest.getToken(), equalTo("token123"));
+        assertThat(actualValuesSentInRequest.getCode(), equalTo("mycode"));
     }
 
     private AgencyToken buildAgencyToken() {
