@@ -1,5 +1,6 @@
 package uk.gov.cshr.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @Transactional
 public class EmailUpdateService {
@@ -66,35 +68,65 @@ public class EmailUpdateService {
         EmailUpdate emailUpdate = emailUpdateRepository.findByIdentityAndCode(identity, code)
                 .orElseThrow(() -> new InvalidCodeException(String.format("Code %s does not exist for identity %s", code, identity)));
 
+        log.info("email update found");
+        log.info("email update code: " + emailUpdate.getCode());
+        log.info("email update email: " + emailUpdate.getEmail());
+        log.info("email update id: " + emailUpdate.getId());
+        log.info("email update identity: " + emailUpdate.getIdentity());
+        log.info("email update timestamp: " + emailUpdate.getTimestamp());
+
+        log.info("email update identity email: " + emailUpdate.getIdentity().getEmail());
+        log.info("email update identity uid: " + emailUpdate.getIdentity().getUid());
+
+        log.info("identity email: " + identity.getEmail());
+        log.info("identity uid: " + identity.getUid());
+
         String oldDomain = identityService.getDomainFromEmailAddress(identity.getEmail());
         boolean isWhitelistedPersonBeforeEmailChange = identityService.isWhitelistedDomain(oldDomain);
 
+        // remove from old agency token quota
+
         if(!isWhitelistedPersonBeforeEmailChange) {
             // work out the token
+            log.info("user used to be a token person, work out which token and remove them from that quota");
             String oldOrg = csrsService.getOrgCode(identity.getUid());
+            if(oldOrg !=null) {
+                log.info("old org code found is:" + oldOrg);
+            }
+
             Optional<AgencyToken> agencyToken = csrsService.getAgencyTokenForDomainAndOrganisation(oldDomain, oldOrg);
             if (agencyToken.isPresent()) {
+                log.info("old agency token found");
                 AgencyToken at = agencyToken.get();
+                log.info("updating old agency token quota");
+                log.info("old domain: " + oldDomain);
+                log.info("old token: " + at.getToken());
+                log.info("old org: " + oldOrg);
                 csrsService.updateSpacesAvailable(oldDomain, at.getToken(), oldOrg, true);
             } else {
+                log.warn("users old agency token not found");
                 throw new ResourceNotFoundException();
             }
+        } else {
+            log.info("user used to be a whitelisted person, no agency token to update");
         }
-        identityService.updateEmailAddress(identity, emailUpdate.getEmail());
+        log.info("updating email address on users identity");
+        identityService.updateEmailAddressAndEmailRecentlyUpdatedFlagToTrue(identity, emailUpdate.getEmail());
+        log.info("deleting the email update config for this user");
         emailUpdateRepository.delete(emailUpdate);
-
+        log.info("all ok");
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void processEmailUpdatedRecentlyRequestForWhiteListedDomainUser(String uid){
-        identityService.resetRecentlyUpdatedEmailFlag(uid);
+        identityService.resetRecentlyUpdatedEmailFlagToFalse(uid);
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void processEmailUpdatedRecentlyRequestForAgencyTokenUser(String newDomain, String newToken,
                                                                      String newOrgCode, String uid){
         csrsService.updateSpacesAvailable(newDomain, newToken, newOrgCode, false);
-        identityService.resetRecentlyUpdatedEmailFlag(uid);
+        identityService.resetRecentlyUpdatedEmailFlagToFalse(uid);
     }
 
 }
