@@ -38,7 +38,7 @@ public class Identity implements Serializable {
 
     private boolean deletionNotificationSent;
 
-    private Boolean emailRecentlyUpdated;
+    private boolean emailRecentlyUpdated;
 
     public Identity() {
     }
@@ -138,6 +138,7 @@ public class Identity implements Serializable {
                 ", uid='" + uid + '\'' +
                 ", active=" + active +
                 ", locked=" + locked +
+                ", emailRecentlyUpdated=" + emailRecentlyUpdated +
                 '}';
     }
 }
