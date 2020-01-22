@@ -139,14 +139,16 @@ public class IdentityService implements UserDetailsService {
 
         savedIdentity.setEmail(email);
         savedIdentity.setEmailRecentlyUpdated(true);
-        identityRepository.save(savedIdentity);
+        Identity updatedIdentity = identityRepository.save(savedIdentity);
+        System.out.println("updated identity should have flag set to true=" + updatedIdentity.isEmailRecentlyUpdated());
     }
 
     public void resetRecentlyUpdatedEmailFlagToFalse(String uid) {
         Identity savedIdentity = identityRepository.findFirstByUid(uid)
                 .orElseThrow(() -> new IdentityNotFoundException("No such identity: " + uid));
         savedIdentity.setEmailRecentlyUpdated(false);
-        identityRepository.save(savedIdentity);
+        Identity updatedIdentity = identityRepository.save(savedIdentity);
+        System.out.println("updated identity should have flag set to false=" + updatedIdentity.isEmailRecentlyUpdated());
     }
 
     public boolean isWhitelistedDomain(String domain) {
