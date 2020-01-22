@@ -68,19 +68,6 @@ public class EmailUpdateService {
         EmailUpdate emailUpdate = emailUpdateRepository.findByIdentityAndCode(identity, code)
                 .orElseThrow(() -> new InvalidCodeException(String.format("Code %s does not exist for identity %s", code, identity)));
 
-        log.info("email update found");
-        log.info("email update code: " + emailUpdate.getCode());
-        log.info("email update email: " + emailUpdate.getEmail());
-        log.info("email update id: " + emailUpdate.getId());
-        log.info("email update identity: " + emailUpdate.getIdentity());
-        log.info("email update timestamp: " + emailUpdate.getTimestamp());
-
-        log.info("email update identity email: " + emailUpdate.getIdentity().getEmail());
-        log.info("email update identity uid: " + emailUpdate.getIdentity().getUid());
-
-        log.info("identity email: " + identity.getEmail());
-        log.info("identity uid: " + identity.getUid());
-
         String oldDomain = identityService.getDomainFromEmailAddress(identity.getEmail());
         boolean isWhitelistedPersonBeforeEmailChange = identityService.isWhitelistedDomain(oldDomain);
 

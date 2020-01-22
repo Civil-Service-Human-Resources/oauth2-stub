@@ -13,7 +13,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import uk.gov.cshr.domain.*;
 import uk.gov.cshr.exception.IdentityNotFoundException;
-import uk.gov.cshr.exception.ResourceNotFoundException;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.TokenRepository;
 import uk.gov.cshr.service.CsrsService;
@@ -247,7 +246,6 @@ public class IdentityServiceTest {
     @Test
     public void givenAValidIdentityWithAWhitelistedDomain_whenUpdateEmailAddress_shouldReturnSuccessfully(){
         // given
-       // Identity identity = new Identity(UID, EMAIL, PASSWORD, ACTIVE, LOCKED, ROLES, Instant.now(), false, false);
         Optional<Identity> optionalIdentity = Optional.of(IDENTITY);
         when(identityRepository.findById(anyLong())).thenReturn(optionalIdentity);
         when(identityRepository.save(identityArgumentCaptor.capture())).thenReturn(new Identity());
@@ -256,7 +254,7 @@ public class IdentityServiceTest {
         identityParam.setId(new Long(123l));
 
         // when
-        identityService.updateEmailAddress(identityParam, "mynewemail@whitelisted.gov.uk");
+        identityService.updateEmailAddressAndEmailRecentlyUpdatedFlagToTrue(identityParam, "mynewemail@whitelisted.gov.uk");
 
         // then
         verify(identityRepository, times(1)).findById(anyLong());
@@ -270,94 +268,6 @@ public class IdentityServiceTest {
     }
 
     @Test
-    public void givenAValidIdentityWithAnAgencyTokenDomain_whenUpdateEmailAddress_shouldReturnSuccessfully(){
-        // given
-        //Identity identity = mock(Identity.class);
-       // identity.setId(123l);
-        //when(identity.getUid()).thenReturn("myuid");
-        Optional<Identity> optionalIdentity = Optional.of(IDENTITY);
-        when(identityRepository.findById(anyLong())).thenReturn(optionalIdentity);
-        when(csrsService.getOrgCode(any())).thenReturn(orgCode);
-        AgencyToken agencyToken = buildAgencyToken();
-        Optional<AgencyToken> optionalAgencyToken = Optional.of(agencyToken);
-        when(csrsService.getAgencyTokenForDomainAndOrganisation(anyString(), anyString())).thenReturn(optionalAgencyToken);
-        doNothing().when(csrsService).updateSpacesAvailable(anyString(), anyString(), anyString(), anyBoolean());
-        when(identityRepository.save(identityArgumentCaptor.capture())).thenReturn(new Identity());
-
-        Identity identityParam = new Identity();
-        identityParam.setId(new Long(123l));
-
-        // when
-        identityService.updateEmailAddress(identityParam, "mynewemail@notawhitelisted.gov.uk");
-
-        // then
-        String expectedDomain = "notawhitelisted.gov.uk";
-        verify(identityRepository, times(1)).findById(anyLong());
-        // ensure token flow was executed
-        verify(csrsService, times(1)).getOrgCode(any());
-        verify(csrsService, times(1)).getAgencyTokenForDomainAndOrganisation(expectedDomain, orgCode);
-        verify(csrsService, times(1)).updateSpacesAvailable(expectedDomain, agencyToken.getToken(), orgCode, true);
-        // and updated identity still saved
-        verify(identityRepository, times(1)).save(optionalIdentity.get());
-        Identity actualSavedIdentity = identityArgumentCaptor.getValue();
-        assertThat(actualSavedIdentity.isEmailRecentlyUpdated(), equalTo(true));
-    }
-
-    @Test(expected = ResourceNotFoundException.class)
-    public void givenAValidIdentityWithAnAgencyTokenDomainAndNoOrgCode_whenUpdateEmailAddress_shouldNotFindAnyAgencyTokens(){
-        // given
-      //  Identity identity = mock(Identity.class);
-        Optional<Identity> optionalIdentity = Optional.of(IDENTITY);
-        when(identityRepository.findById(anyLong())).thenReturn(optionalIdentity);
-  ////       when(csrsService.getOrgCode(anyString())).thenReturn(null);
-  ////      when(csrsService.getAgencyTokenForDomainAndOrganisation(anyString(), anyString())).thenReturn(Optional.empty());
-       // doNothing().when(csrsService).updateSpacesAvailable(anyString(), anyString(), anyString(), anyBoolean());
-        //when(identityRepository.save(identityArgumentCaptor.capture())).thenReturn(new Identity());
-
-        Identity identityParam = new Identity();
-        identityParam.setId(new Long(123l));
-
-        // when
-        identityService.updateEmailAddress(identityParam, "mynewemail@notawhitelisted.gov.uk");
-
-        // then
-        String expectedDomain = "notawhitelisted.gov.uk";
-        verify(identityRepository, times(1)).findById(anyLong());
-        // ensure token flow was executed
-        verify(csrsService, times(1)).getOrgCode(any());
-        verify(csrsService, times(1)).getAgencyTokenForDomainAndOrganisation(expectedDomain, any());
-        verify(csrsService, never()).updateSpacesAvailable(anyString(), anyString(), anyString(), anyBoolean());
-        verify(identityRepository, never()).save(any());
-    }
-
-    @Test(expected = RuntimeException.class)
-    public void givenAValidIdentityWithAnAgencyTokenDomainAnTechnicalErrorWithUpdatingSpacesAvailable_whenUpdateEmailAddress_shouldThrowExceptionAndNotUpdateSpacesAvailable(){
-        // given
-        Optional<Identity> optionalIdentity = Optional.of(IDENTITY);
-        when(identityRepository.findById(anyLong())).thenReturn(optionalIdentity);
-//        when(csrsService.getOrgCode(anyString())).thenReturn(orgCode);
-        AgencyToken agencyToken = buildAgencyToken();
-        Optional<AgencyToken> optionalAgencyToken = Optional.of(agencyToken);
-  //      when(csrsService.getAgencyTokenForDomainAndOrganisation(anyString(), anyString())).thenReturn(optionalAgencyToken);
-  //      doThrow(new RuntimeException()).when(csrsService).updateSpacesAvailable(anyString(), anyString(), anyString(), anyBoolean());
-
-        Identity identityParam = new Identity();
-        identityParam.setId(new Long(123l));
-
-        // when
-        identityService.updateEmailAddress(identityParam, "mynewemail@notawhitelisted.gov.uk");
-
-        // then
-        String expectedDomain = "notawhitelisted.gov.uk";
-        verify(identityRepository, times(1)).findById(anyLong());
-        // ensure token flow was executed
-        verify(csrsService, times(1)).getOrgCode(any());
-        verify(csrsService, times(1)).getAgencyTokenForDomainAndOrganisation(expectedDomain, any());
-        verify(csrsService, times(1)).updateSpacesAvailable(expectedDomain, agencyToken.getToken(), orgCode, true);
-        verify(identityRepository, never()).save(any());
-    }
-
-    @Test
     public void givenAValidIdentity_resetRecentlyUpdatedEmailFlag_shouldReturnSuccessfully(){
         // given
         Optional<Identity> optionalIdentity = Optional.of(IDENTITY);
@@ -365,7 +275,7 @@ public class IdentityServiceTest {
         when(identityRepository.save(identityArgumentCaptor.capture())).thenReturn(new Identity());
 
         // when
-        identityService.resetRecentlyUpdatedEmailFlag("myuid");
+        identityService.resetRecentlyUpdatedEmailFlagToFalse("myuid");
 
         // then
         verify(identityRepository, times(1)).save(optionalIdentity.get());
@@ -379,7 +289,7 @@ public class IdentityServiceTest {
         when(identityRepository.findFirstByUid(anyString())).thenReturn(Optional.empty());
 
         // when
-        identityService.resetRecentlyUpdatedEmailFlag("myuid");
+        identityService.resetRecentlyUpdatedEmailFlagToFalse("myuid");
 
         // then
         verify(identityRepository, never()).save(any(Identity.class));
@@ -391,7 +301,7 @@ public class IdentityServiceTest {
         Optional<Identity> optionalIdentity = Optional.of(IDENTITY);
 
         // when
-        identityService.resetRecentlyUpdatedEmailFlag("myuid");
+        identityService.resetRecentlyUpdatedEmailFlagToFalse("myuid");
 
         // then
         verify(identityRepository, times(1)).save(optionalIdentity.get());

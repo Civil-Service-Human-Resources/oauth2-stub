@@ -110,7 +110,7 @@ public class EmailUpdateServiceTest {
         when(emailUpdateRepository.findByIdentityAndCode(any(Identity.class), anyString())).thenReturn(optionalEmailUpdate);
         when(identityService.getDomainFromEmailAddress(anyString())).thenReturn("myoldomain.com");
         when(identityService.isWhitelistedDomain(anyString())).thenReturn(true);
-        doNothing().when(identityService).updateEmailAddress(eq(IDENTITY), eq(emailUpdate.getEmail()));
+        doNothing().when(identityService).updateEmailAddressAndEmailRecentlyUpdatedFlagToTrue(eq(IDENTITY), eq(emailUpdate.getEmail()));
         doNothing().when(emailUpdateRepository).delete(any(EmailUpdate.class));
 
         // when
@@ -120,7 +120,7 @@ public class EmailUpdateServiceTest {
         verify(emailUpdateRepository, times(1)).findByIdentityAndCode(eq(IDENTITY), eq("CO"));
         verify(identityService, times(1)).getDomainFromEmailAddress(eq(IDENTITY.getEmail()));
         verify(identityService, times(1)).isWhitelistedDomain(eq("myoldomain.com"));
-        verify(identityService, times(1)).updateEmailAddress(eq(IDENTITY), eq(emailUpdate.getEmail()));
+        verify(identityService, times(1)).updateEmailAddressAndEmailRecentlyUpdatedFlagToTrue(eq(IDENTITY), eq(emailUpdate.getEmail()));
         verify(emailUpdateRepository, times(1)).delete(emailUpdateArgumentCaptor.capture());
 
         EmailUpdate actualDeletedEmailUpdate = emailUpdateArgumentCaptor.getValue();
@@ -140,7 +140,7 @@ public class EmailUpdateServiceTest {
         verify(emailUpdateRepository, times(1)).findByIdentityAndCode(eq(IDENTITY), eq("CO"));
         verify(identityService, never()).getDomainFromEmailAddress(anyString());
         verify(identityService, never()).isWhitelistedDomain(anyString());
-        verify(identityService, never()).updateEmailAddress(any(Identity.class), anyString());
+        verify(identityService, never()).updateEmailAddressAndEmailRecentlyUpdatedFlagToTrue(any(Identity.class), anyString());
         verify(emailUpdateRepository, never()).delete(any(EmailUpdate.class));
     }
 
@@ -160,7 +160,7 @@ public class EmailUpdateServiceTest {
         when(csrsService.getAgencyTokenForDomainAndOrganisation(anyString(), anyString())).thenReturn(optionalAgencyToken);
         doNothing().when(csrsService).updateSpacesAvailable(anyString(), anyString(), anyString(), anyBoolean());
         // end of agency token scenario
-        doNothing().when(identityService).updateEmailAddress(eq(IDENTITY), eq(emailUpdate.getEmail()));
+        doNothing().when(identityService).updateEmailAddressAndEmailRecentlyUpdatedFlagToTrue(eq(IDENTITY), eq(emailUpdate.getEmail()));
         doNothing().when(emailUpdateRepository).delete(any(EmailUpdate.class));
 
         // when
@@ -174,7 +174,7 @@ public class EmailUpdateServiceTest {
         verify(csrsService).getAgencyTokenForDomainAndOrganisation(eq("myoldomain.com"), eq("ab"));
         verify(csrsService).updateSpacesAvailable(eq("myoldomain.com"), eq("token123"), eq("ab"), eq(true));
         // end of agency token scenario
-        verify(identityService, times(1)).updateEmailAddress(eq(IDENTITY), eq(emailUpdate.getEmail()));
+        verify(identityService, times(1)).updateEmailAddressAndEmailRecentlyUpdatedFlagToTrue(eq(IDENTITY), eq(emailUpdate.getEmail()));
         verify(emailUpdateRepository, times(1)).delete(emailUpdateArgumentCaptor.capture());
 
         EmailUpdate actualDeletedEmailUpdate = emailUpdateArgumentCaptor.getValue();
@@ -193,7 +193,6 @@ public class EmailUpdateServiceTest {
         when(identityService.isWhitelistedDomain(anyString())).thenReturn(false);
         // agency token scenario
         when(csrsService.getOrgCode(anyString())).thenReturn("ab");
-        //Optional<AgencyToken> optionalAgencyToken = Optional.of(buildAgencyToken());
         when(csrsService.getAgencyTokenForDomainAndOrganisation(anyString(), anyString())).thenReturn(Optional.empty());
         // end of agency token scenario
 
@@ -209,7 +208,7 @@ public class EmailUpdateServiceTest {
         verify(csrsService).getAgencyTokenForDomainAndOrganisation(eq("myoldomain.com"), eq("ab"));
         verify(csrsService, never()).updateSpacesAvailable(anyString(), anyString(), anyString(), anyBoolean());
         // end of agency token scenario
-        verify(identityService, never()).updateEmailAddress(any(Identity.class), anyString());
+        verify(identityService, never()).updateEmailAddressAndEmailRecentlyUpdatedFlagToTrue(any(Identity.class), anyString());
         verify(emailUpdateRepository, never()).delete(any(EmailUpdate.class));
     }
 
@@ -220,13 +219,13 @@ public class EmailUpdateServiceTest {
     @Test
     public void givenAValidUIDAndAWhitelistedUser_whenProcessEmailUpdatedRecentlyRequestForWhiteListedDomainUser_shouldReturnSuccessfullyAndCommitTransaction(){
         // given
-        doNothing().when(identityService).resetRecentlyUpdatedEmailFlag(anyString());
+        doNothing().when(identityService).resetRecentlyUpdatedEmailFlagToFalse(anyString());
 
         // when
         classUnderTest.processEmailUpdatedRecentlyRequestForWhiteListedDomainUser("myuid");
 
         // then
-        verify(identityService).resetRecentlyUpdatedEmailFlag(eq("myuid"));
+        verify(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq("myuid"));
         assertTrue(TestTransaction.isActive());
         assertFalse(TestTransaction.isFlaggedForRollback());
     }
@@ -234,13 +233,13 @@ public class EmailUpdateServiceTest {
     @Test (expected = RuntimeException.class)
     public void givenAValidUIDAndAWhitelistedUserAndTechnicalErrorOccurs_whenProcessEmailUpdatedRecentlyRequestForWhiteListedDomainUser_shouldThrowExceptionAndRollbackTransaction(){
         // given
-        doThrow(new RuntimeException()).when(identityService).resetRecentlyUpdatedEmailFlag(anyString());
+        doThrow(new RuntimeException()).when(identityService).resetRecentlyUpdatedEmailFlagToFalse(anyString());
 
         // when
         classUnderTest.processEmailUpdatedRecentlyRequestForWhiteListedDomainUser("myuid");
 
         // then
-        verify(identityService).resetRecentlyUpdatedEmailFlag(eq("myuid"));
+        verify(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq("myuid"));
         assertTrue(TestTransaction.isActive());
         assertTrue(TestTransaction.isFlaggedForRollback());
     }
@@ -248,13 +247,13 @@ public class EmailUpdateServiceTest {
     @Test (expected = IdentityNotFoundException.class)
     public void givenAValidUIDAndAWhitelistedUserAndIdentityNotFoundErrorOccurs_whenProcessEmailUpdatedRecentlyRequestForWhiteListedDomainUser_shouldThrowIdentityNotFoundExceptionAndRollbackTransaction(){
         // given
-        doThrow(new IdentityNotFoundException("abc")).when(identityService).resetRecentlyUpdatedEmailFlag(anyString());
+        doThrow(new IdentityNotFoundException("abc")).when(identityService).resetRecentlyUpdatedEmailFlagToFalse(anyString());
 
         // when
         classUnderTest.processEmailUpdatedRecentlyRequestForWhiteListedDomainUser("myuid");
 
         // then
-        verify(identityService).resetRecentlyUpdatedEmailFlag(eq("myuid"));
+        verify(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq("myuid"));
         assertTrue(TestTransaction.isActive());
         assertTrue(TestTransaction.isFlaggedForRollback());
     }
@@ -266,14 +265,14 @@ public class EmailUpdateServiceTest {
     @Test
     public void givenAValidUIDAndAnAgencyTokenUser_whenprocessEmailUpdatedRecentlyRequestForAgencyTokenUser_shouldReturnSuccessfullyAndCommitTransaction(){
         // given
-        doNothing().when(identityService).resetRecentlyUpdatedEmailFlag(eq("myuid"));
+        doNothing().when(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq("myuid"));
         doNothing().when(csrsService).updateSpacesAvailable(anyString(), anyString(), anyString(), anyBoolean());
 
         // when
         classUnderTest.processEmailUpdatedRecentlyRequestForAgencyTokenUser("mynewdomain", "mynewtoken", "myneworgcode", "myuid");
 
         // then
-        verify(identityService).resetRecentlyUpdatedEmailFlag(eq("myuid"));
+        verify(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq("myuid"));
         verify(csrsService).updateSpacesAvailable(eq("mynewdomain"), eq("mynewtoken"), eq("myneworgcode"), eq(false));
         assertTrue(TestTransaction.isActive());
         assertFalse(TestTransaction.isFlaggedForRollback());
@@ -282,13 +281,13 @@ public class EmailUpdateServiceTest {
     @Test (expected = RuntimeException.class)
     public void givenAValidUIDAndAnAgencyTokenAndTechnicalErrorOccurs_processEmailUpdatedRecentlyRequestForAgencyTokenUser_shouldThrowExceptionAndRollbackTransaction(){
         // given
-        doThrow(new RuntimeException()).when(identityService).resetRecentlyUpdatedEmailFlag(eq("myuid"));
+        doThrow(new RuntimeException()).when(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq("myuid"));
 
         // when
         classUnderTest.processEmailUpdatedRecentlyRequestForAgencyTokenUser("mynewdomain", "mynewtoken", "myneworgcode", "myuid");
 
         // then
-        verify(identityService).resetRecentlyUpdatedEmailFlag(eq("myuid"));
+        verify(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq("myuid"));
         verify(csrsService).updateSpacesAvailable(eq("mynewdomain"), eq("mynewtoken"), eq("myneworgcode"), eq(false));
         assertTrue(TestTransaction.isActive());
         assertTrue(TestTransaction.isFlaggedForRollback());
@@ -297,13 +296,13 @@ public class EmailUpdateServiceTest {
     @Test (expected = IdentityNotFoundException.class)
     public void givenAValidUIDAndAnAgencyTokenUserAndIdentityNotFoundErrorOccurs_processEmailUpdatedRecentlyRequestForAgencyTokenUser_shouldThrowIdentityNotFoundExceptionAndRollbackTransaction(){
         // given
-        doThrow(new IdentityNotFoundException("abc")).when(identityService).resetRecentlyUpdatedEmailFlag(eq("myuid"));
+        doThrow(new IdentityNotFoundException("abc")).when(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq("myuid"));
 
         // when
         classUnderTest.processEmailUpdatedRecentlyRequestForAgencyTokenUser("mynewdomain", "mynewtoken", "myneworgcode", "myuid");
 
         // then
-        verify(identityService).resetRecentlyUpdatedEmailFlag(eq("myuid"));
+        verify(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq("myuid"));
         verify(csrsService, never()).updateSpacesAvailable(anyString(), anyString(), anyString(), anyBoolean());
         assertTrue(TestTransaction.isActive());
         assertTrue(TestTransaction.isFlaggedForRollback());
@@ -312,14 +311,14 @@ public class EmailUpdateServiceTest {
     @Test (expected = RuntimeException.class)
     public void givenAValidUIDAndAnAgencyTokenUserAndTechnicalErrorOccurs_processEmailUpdatedRecentlyRequestForAgencyTokenUser_shouldThrowExceptionAndRollbackTransaction(){
         // given
-        doNothing().when(identityService).resetRecentlyUpdatedEmailFlag(eq("myuid"));
+        doNothing().when(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq("myuid"));
         doThrow(new RuntimeException()).when(csrsService).updateSpacesAvailable(anyString(), anyString(), anyString(), anyBoolean());
 
         // when
         classUnderTest.processEmailUpdatedRecentlyRequestForAgencyTokenUser("mynewdomain", "mynewtoken", "myneworgcode", "myuid");
 
         // then
-        verify(identityService).resetRecentlyUpdatedEmailFlag(eq("myuid"));
+        verify(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq("myuid"));
         verify(csrsService).updateSpacesAvailable(eq("mynewdomain"), eq("mynewtoken"), eq("myneworgcode"), eq(false));
         assertTrue(TestTransaction.isActive());
         assertTrue(TestTransaction.isFlaggedForRollback());
