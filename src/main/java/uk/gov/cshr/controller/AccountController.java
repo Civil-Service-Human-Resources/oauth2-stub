@@ -1,5 +1,6 @@
 package uk.gov.cshr.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -17,6 +18,7 @@ import uk.gov.cshr.service.security.IdentityService;
 
 import javax.validation.Valid;
 
+@Slf4j
 @Controller
 @RequestMapping("/account")
 public class AccountController {
@@ -68,7 +70,7 @@ public class AccountController {
         }
 
         if(identityService.checkEmailExists(form.getEmail())) {
-            LOGGER.error("Email already taken: {}", form.getEmail());
+            log.error("Email already taken: {}", form.getEmail());
             model.addAttribute("updateEmailForm", form);
             return "redirect:/account/email?emailAlreadyTaken=true";
         }
@@ -83,17 +85,18 @@ public class AccountController {
         Identity identity = ((IdentityDetails) authentication.getPrincipal()).getIdentity();
 
         if(!emailUpdateService.verifyCode(identity, code)) {
-            LOGGER.error("Unable to verify email update code: {} {}", code, identity);
+            log.error("Unable to verify email update code: {} {}", code, identity);
             return "redirect:/account/email?invalidCode=true";
         }
 
         try {
+            log.info("email code verified:  updating email address");
             emailUpdateService.updateEmailAddress(identity, code);
         } catch (ResourceNotFoundException e) {
-            LOGGER.error("Unable to update email: {} {}", code, identity);
+            log.error("Unable to update email: {} {}", code, identity);
             return "redirect:/account/email?invalidEmail=true";
         } catch (Exception e) {
-            LOGGER.error("Unable to update email: {} {}", code, identity);
+            log.error("Unable to update email: {} {}", code, identity);
             return "redirect:/account/email?errorOccurred=true";
         }
 
