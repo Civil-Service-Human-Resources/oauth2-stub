@@ -133,35 +133,19 @@ public class IdentityService implements UserDetailsService {
         return identityRepository.save(identity);
     }
 
-    @Transactional
-    public void updateEmailAddress(Identity identity, String email) {
+    public void updateEmailAddressAndEmailRecentlyUpdatedFlagToTrue(Identity identity, String email) {
         Identity savedIdentity = identityRepository.findById(identity.getId())
                 .orElseThrow(() -> new IdentityNotFoundException("No such identity: " + identity.getId()));
 
         savedIdentity.setEmail(email);
         savedIdentity.setEmailRecentlyUpdated(true);
-
-        // is the new email domain a token person
-        String domain = getDomainFromEmailAddress(email);
-        if(!isWhitelistedDomain(domain)) {
-            // work out what org they are from and what agency token to remove them from
-            String orgCode = csrsService.getOrgCode(identity.getUid());
-            Optional<AgencyToken> agencyToken = csrsService.getAgencyTokenForDomainAndOrganisation(domain, orgCode);
-            if(agencyToken.isPresent()) {
-                csrsService.updateSpacesAvailable(domain, agencyToken.get().getToken(), orgCode, true);
-            } else {
-                throw new ResourceNotFoundException();
-            }
-        }
         identityRepository.save(savedIdentity);
     }
 
-    public void resetRecentlyUpdatedEmailFlag(String uid) {
+    public void resetRecentlyUpdatedEmailFlagToFalse(String uid) {
         Identity savedIdentity = identityRepository.findFirstByUid(uid)
                 .orElseThrow(() -> new IdentityNotFoundException("No such identity: " + uid));
-
         savedIdentity.setEmailRecentlyUpdated(false);
-
         identityRepository.save(savedIdentity);
     }
 
