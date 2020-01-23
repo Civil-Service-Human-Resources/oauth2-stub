@@ -47,7 +47,6 @@ public class CsrsService {
         try {
             return restTemplate.getForObject(String.format(agencyTokensByDomainFormat, domain), AgencyToken[].class);
         } catch (HttpClientErrorException e) {
-            System.out.println(e);
             return new AgencyToken[]{};
         }
     }
@@ -56,7 +55,6 @@ public class CsrsService {
         try {
             return Optional.of(restTemplate.getForObject(String.format(agencyTokensFormat, domain, token, organisation), AgencyToken.class));
         } catch (HttpClientErrorException e) {
-            System.out.println(e);
             return Optional.empty();
         }
     }
@@ -65,7 +63,6 @@ public class CsrsService {
         try {
             return Optional.of(restTemplate.getForObject(String.format(agencyTokensByDomainAndOrganisationFormat, domain, organisation), AgencyToken.class));
         } catch (HttpClientErrorException e) {
-            System.out.println(e);
             return Optional.empty();
         }
     }
