@@ -2,11 +2,13 @@ package uk.gov.cshr.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import uk.gov.cshr.dto.DomainDTO;
 import uk.gov.cshr.service.security.IdentityService;
 
 @Slf4j
@@ -18,16 +20,22 @@ public class DomainController {
     private IdentityService identityService;
 
     @GetMapping("/isWhitelisted")
-    public ResponseEntity<Boolean> isDomainWhitelisted(@RequestParam String domain) {
+    public ResponseEntity<DomainDTO> isDomainWhitelisted(@RequestParam String domain) {
+        DomainDTO dto = new DomainDTO();
         boolean isWhiteListed = false;
 
         try {
             isWhiteListed = identityService.isWhitelistedDomain(domain);
         } catch (Exception e) {
-            return ResponseEntity.ok(isWhiteListed);
+            dto.setIsWhiteListed("false");
         }
-        log.info("is domain " + domain + " whitelisted=" + isWhiteListed);
-        return ResponseEntity.ok(isWhiteListed);
+        if(isWhiteListed) {
+            dto.setIsWhiteListed("true");
+        } else {
+            dto.setIsWhiteListed("false");
+        }
+
+        return ResponseEntity.ok(dto);
     }
 
 }

@@ -10,7 +10,9 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import uk.gov.cshr.dto.DomainDTO;
 import uk.gov.cshr.service.security.IdentityService;
+import uk.gov.cshr.utils.JsonUtils;
 import uk.gov.cshr.utils.MockMVCFilterOverrider;
 
 import static org.mockito.ArgumentMatchers.anyString;
@@ -41,10 +43,13 @@ public class DomainControllerTest {
     public void shouldReturnTrueIfWhitelistedTrue() throws Exception {
         when(identityService.isWhitelistedDomain(anyString())).thenReturn(true);
 
+        DomainDTO expectedResponseDTO = new DomainDTO();
+        expectedResponseDTO.setIsWhiteListed("true");
+
         mockMvc.perform(
                 get("/domain/isWhitelisted").param("domain", "co"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("true"));
+                .andExpect(content().string(JsonUtils.asJsonString(expectedResponseDTO)));
 
         verify(identityService, times(1)).isWhitelistedDomain(eq("co"));
     }
@@ -53,10 +58,13 @@ public class DomainControllerTest {
     public void shouldReturnFalseIfWhitelistedFalse() throws Exception {
         when(identityService.isWhitelistedDomain(anyString())).thenReturn(false);
 
+        DomainDTO expectedResponseDTO = new DomainDTO();
+        expectedResponseDTO.setIsWhiteListed("false");
+
         mockMvc.perform(
                 get("/domain/isWhitelisted").param("domain", "co"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("false"));
+                .andExpect(content().string(JsonUtils.asJsonString(expectedResponseDTO)));
 
         verify(identityService, times(1)).isWhitelistedDomain(eq("co"));
     }
@@ -65,10 +73,13 @@ public class DomainControllerTest {
     public void shouldReturnFalseIfExceptionThrown() throws Exception {
         when(identityService.isWhitelistedDomain(anyString())).thenThrow(new RuntimeException());
 
+        DomainDTO expectedResponseDTO = new DomainDTO();
+        expectedResponseDTO.setIsWhiteListed("false");
+
         mockMvc.perform(
                 get("/domain/isWhitelisted").param("domain", "co"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("false"));
+                .andExpect(content().string(JsonUtils.asJsonString(expectedResponseDTO)));
 
         verify(identityService, times(1)).isWhitelistedDomain(eq("co"));
     }
