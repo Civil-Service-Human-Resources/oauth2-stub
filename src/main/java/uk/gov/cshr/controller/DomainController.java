@@ -2,13 +2,12 @@ package uk.gov.cshr.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import uk.gov.cshr.dto.DomainDTO;
 import uk.gov.cshr.service.security.IdentityService;
 
 @Slf4j
@@ -19,23 +18,21 @@ public class DomainController {
     @Autowired
     private IdentityService identityService;
 
-    @GetMapping("/isWhitelisted")
-    public ResponseEntity<DomainDTO> isDomainWhitelisted(@RequestParam String domain) {
-        DomainDTO dto = new DomainDTO();
+    @GetMapping(value = "/isWhitelisted/{domain}")
+    public ResponseEntity<String> isDomainWhitelisted(@PathVariable String domain) {
+        String dto = "false";
         boolean isWhiteListed = false;
 
         try {
             isWhiteListed = identityService.isWhitelistedDomain(domain);
         } catch (Exception e) {
-            dto.setIsWhiteListed("false");
+            return new ResponseEntity<String>(dto, HttpStatus.INTERNAL_SERVER_ERROR);
         }
         if(isWhiteListed) {
-            dto.setIsWhiteListed("true");
-        } else {
-            dto.setIsWhiteListed("false");
+            return new ResponseEntity<String>("true", HttpStatus.OK);
         }
 
-        return ResponseEntity.ok(dto);
+        return new ResponseEntity<String>(dto, HttpStatus.OK);
     }
 
 }
