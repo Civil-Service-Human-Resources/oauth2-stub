@@ -4,21 +4,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import uk.gov.cshr.service.security.IdentityService;
 
 @Slf4j
-@Controller
-@RequestMapping("/domain")
+@RestController
 public class DomainController {
 
     @Autowired
     private IdentityService identityService;
 
-    @GetMapping(value = "/isWhitelisted/{domain}")
+    @RequestMapping(value = "/domain/isWhitelisted/{domain}")
     public ResponseEntity<String> isDomainWhitelisted(@PathVariable String domain) {
         String dto = "false";
         boolean isWhiteListed = false;
