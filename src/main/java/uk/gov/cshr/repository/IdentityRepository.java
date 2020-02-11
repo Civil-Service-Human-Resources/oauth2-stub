@@ -14,15 +14,15 @@ import java.util.Optional;
 @Repository
 public interface IdentityRepository extends JpaRepository<Identity, Long> {
 
-    Identity findFirstByActiveTrueAndEmailEquals(String email);
+        Identity findFirstByActiveTrueAndEmailEquals(String email);
 
-    Identity findFirstByEmailEquals(String email);
+        Identity findFirstByEmailEquals(String email);
 
-    boolean existsByEmail(String email);
+        boolean existsByEmail(String email);
 
-    Optional<Identity> findFirstByUid(String uid);
+        Optional<Identity> findFirstByUid(String uid);
 
-    @Query("select new uk.gov.cshr.dto.IdentityDTO(i.email, i.uid) " +
-            "from Identity i")
-    List<IdentityDTO> findAllNormalised();
-}
+        @Query("select new uk.gov.cshr.dto.IdentityDTO(i.email, i.uid) " +
+        "from Identity i")
+        List<IdentityDTO> findAllNormalised();
+        }

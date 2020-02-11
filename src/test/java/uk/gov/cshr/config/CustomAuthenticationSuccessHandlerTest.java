@@ -90,6 +90,7 @@ public class CustomAuthenticationSuccessHandlerTest {
     public void givenNormalUser_whenOnAuthenticationSuccess_thenRedirectsToLPGUIHomePage() throws IOException, ServletException {
         // given
         prepareSecurityContext("uid");
+        when(identityService.getRecentlyUpdatedEmailFlag(anyString())).thenReturn(false);
 
         // when
         classUnderTest.onAuthenticationSuccess(request, response, SecurityContextHolder.getContext().getAuthentication());
@@ -108,6 +109,7 @@ public class CustomAuthenticationSuccessHandlerTest {
 
         // given
         prepareSecurityContext("specialuid");
+        when(identityService.getRecentlyUpdatedEmailFlag(anyString())).thenReturn(true);
         when(agencyTokenService.isDomainWhiteListed(anyString())).thenReturn(true);
 
         // when
@@ -124,6 +126,7 @@ public class CustomAuthenticationSuccessHandlerTest {
     public void givenSpecialUserThatHasRecentlyChangedTheirEmailAndIsAnAgencyTokenPerson_whenOnAuthenticationSuccess_thenRedirectsToControllerThatStoresTheUIDAndDomainAndThenPerformsTheRedirectToEnterTokenPage() throws IOException, ServletException {
         // given
         prepareSecurityContext("specialuid");
+        when(identityService.getRecentlyUpdatedEmailFlag(anyString())).thenReturn(true);
         when(agencyTokenService.isDomainWhiteListed(anyString())).thenReturn(false);
         when(agencyTokenService.isDomainAnAgencyTokenDomain(anyString())).thenReturn(true);
 
@@ -142,6 +145,7 @@ public class CustomAuthenticationSuccessHandlerTest {
     public void givenSpecialUserThatHasRecentlyChangedTheirEmailAndIsAnInvalidDomain_whenOnAuthenticationSuccess_thenRedirectsToControllerThatPerformsTheRedirectToToSignOnPageWithErrorInvalidOrgMessage() throws IOException, ServletException {
         // given
         prepareSecurityContext("specialuid");
+        when(identityService.getRecentlyUpdatedEmailFlag(anyString())).thenReturn(true);
         when(agencyTokenService.isDomainWhiteListed(anyString())).thenReturn(false);
         when(agencyTokenService.isDomainAnAgencyTokenDomain(anyString())).thenReturn(false);
 

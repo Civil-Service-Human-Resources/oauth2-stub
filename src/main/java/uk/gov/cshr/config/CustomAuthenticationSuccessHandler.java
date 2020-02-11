@@ -67,9 +67,11 @@ public class CustomAuthenticationSuccessHandler
 
     protected String determineTargetUrl(Authentication authentication) {
         String targetURL = lpgUiUrl;
+        // GET FLAG FROM IDENTITY REPO (NOT SPRING AUTH)
         IdentityDetails identityDetails = (IdentityDetails) authentication.getPrincipal();
         Identity identity = identityDetails.getIdentity();
-        if(identity.isEmailRecentlyUpdated()) {
+        boolean hasUserRecentlyUpdatedTheirEmail = identityService.getRecentlyUpdatedEmailFlag(identity.getUid());
+        if(hasUserRecentlyUpdatedTheirEmail) {
             log.debug("users email has recently been updated");
             targetURL = workoutIfUserShouldUseAnAgencyToken(identity);
         }

@@ -149,6 +149,12 @@ public class IdentityService implements UserDetailsService {
         Identity updatedIdentity = identityRepository.save(savedIdentity);
     }
 
+    public boolean getRecentlyUpdatedEmailFlag(String uid) {
+        Identity savedIdentity = identityRepository.findFirstByUid(uid)
+                .orElseThrow(() -> new IdentityNotFoundException("No such identity: " + uid));
+        return savedIdentity.isEmailRecentlyUpdated();
+    }
+
     public boolean isWhitelistedDomain(String domain) {
         return Arrays.asList(whitelistedDomains).contains(domain);
     }
