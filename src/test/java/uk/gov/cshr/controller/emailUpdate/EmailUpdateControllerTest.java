@@ -34,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Import(SpringSecurityTestConfig.class)
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 public class EmailUpdateControllerTest {
 
     private static final String ENTER_TOKEN_URL = "/emailUpdated/enterToken";

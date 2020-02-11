@@ -31,12 +31,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 public class DomainControllerTest {
 
-    public static final String EMAIL = "test@example.org";
-    public static final String PASSWORD = "password123";
-    public static final String UID = "abc123";
+    private static final String EMAIL = "test@example.org";
+    private static final String PASSWORD = "password123";
+    private static final String UID = "abc123";
 
     @MockBean
     private IdentityService identityService;
@@ -126,8 +126,7 @@ public class DomainControllerTest {
     }
 
     private Identity createIdentity() {
-        Identity identity = new Identity(UID, EMAIL, PASSWORD, true, false, null, Instant.now(), false, false);
-        return identity;
+        return new Identity(UID, EMAIL, PASSWORD, true, false, null, Instant.now(), false, false);
     }
 
 }

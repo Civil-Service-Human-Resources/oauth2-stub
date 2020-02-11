@@ -38,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Import(SpringSecurityTestConfig.class)
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 public class AccountControllerTest {
 
     private static final String NORMAL_TEST_USER_UID = "uid";
