@@ -46,17 +46,13 @@ public class DomainControllerTest {
 
     private MockMvc mockMvc;
 
-    @Autowired
-    @Qualifier("springSecurityFilterChain")
-    private Filter springSecurityFilterChain;
-
     private Authentication authentication;
 
     @Before
     public void setup() {
         mockMvc = MockMvcBuilders
                 .webAppContextSetup(context)
-                .apply(springSecurity()).addFilter(springSecurityFilterChain)
+                .apply(springSecurity())
                 .build();
         MockitoAnnotations.initMocks(this);
 
