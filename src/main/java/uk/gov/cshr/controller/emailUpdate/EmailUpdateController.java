@@ -93,7 +93,7 @@ public class EmailUpdateController {
             Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
             if(optionalIdentity.isPresent()) {
                 log.info("User checking Enter Token form with domain = {}, token = {}, org = {}", domain, form.getToken(), form.getOrganisation());
-                emailUpdateService.processEmailUpdatedRecentlyRequestForAgencyTokenUser(domain, form.getToken(), form.getOrganisation(), uid);
+                emailUpdateService.processEmailUpdatedRecentlyRequestForAgencyTokenUser(domain, form.getToken(), form.getOrganisation(), optionalIdentity.get());
                 return "redirect:" + lpgUiUrl;
             } else {
                 log.info("No identity found for uid {}", uid);

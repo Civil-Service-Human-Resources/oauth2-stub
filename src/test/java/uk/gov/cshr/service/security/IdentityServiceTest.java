@@ -270,12 +270,13 @@ public class IdentityServiceTest {
     @Test
     public void givenAValidIdentity_resetRecentlyUpdatedEmailFlag_shouldReturnSuccessfully(){
         // given
+        IDENTITY.setId(123L);
         Optional<Identity> optionalIdentity = Optional.of(IDENTITY);
-        when(identityRepository.findFirstByUid(anyString())).thenReturn(optionalIdentity);
+        when(identityRepository.findById(anyLong())).thenReturn(optionalIdentity);
         when(identityRepository.save(identityArgumentCaptor.capture())).thenReturn(new Identity());
 
         // when
-        identityService.resetRecentlyUpdatedEmailFlagToFalse("myuid");
+        identityService.resetRecentlyUpdatedEmailFlagToFalse(IDENTITY);
 
         // then
         verify(identityRepository, times(1)).save(optionalIdentity.get());
@@ -286,10 +287,10 @@ public class IdentityServiceTest {
     @Test(expected = IdentityNotFoundException.class)
     public void givenAnNotFoundIdentity_resetRecentlyUpdatedEmailFlag_shouldThrowIdentityNotFoundException(){
         // given
-        when(identityRepository.findFirstByUid(anyString())).thenReturn(Optional.empty());
+//        when(identityRepository.findFirstByUid(anyString())).thenReturn(Optional.empty());
 
         // when
-        identityService.resetRecentlyUpdatedEmailFlagToFalse("myuid");
+        identityService.resetRecentlyUpdatedEmailFlagToFalse(new Identity());
 
         // then
         verify(identityRepository, never()).save(any(Identity.class));
@@ -301,7 +302,7 @@ public class IdentityServiceTest {
         Optional<Identity> optionalIdentity = Optional.of(IDENTITY);
 
         // when
-        identityService.resetRecentlyUpdatedEmailFlagToFalse("myuid");
+        identityService.resetRecentlyUpdatedEmailFlagToFalse(new Identity());
 
         // then
         verify(identityRepository, times(1)).save(optionalIdentity.get());

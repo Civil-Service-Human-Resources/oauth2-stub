@@ -1,5 +1,6 @@
 package uk.gov.cshr.service.security;
 
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,7 @@ import uk.gov.cshr.service.NotifyService;
 import java.time.Instant;
 import java.util.*;
 
+@Slf4j
 @Service
 @Transactional
 public class IdentityService implements UserDetailsService {
@@ -142,16 +144,18 @@ public class IdentityService implements UserDetailsService {
         Identity updatedIdentity = identityRepository.save(savedIdentity);
     }
 
-    public void resetRecentlyUpdatedEmailFlagToFalse(String uid) {
-        Identity savedIdentity = identityRepository.findFirstByUid(uid)
-                .orElseThrow(() -> new IdentityNotFoundException("No such identity: " + uid));
+    public void resetRecentlyUpdatedEmailFlagToFalse(Identity identity) {
+        Identity savedIdentity = identityRepository.findById(identity.getId())
+                .orElseThrow(() -> new IdentityNotFoundException("No such identity: " + identity.getId()));
         savedIdentity.setEmailRecentlyUpdated(false);
         Identity updatedIdentity = identityRepository.save(savedIdentity);
+        log.info("identity has been updated to have a recently updated email flag of: " + updatedIdentity.isEmailRecentlyUpdated());
     }
 
-    public boolean getRecentlyUpdatedEmailFlag(String uid) {
-        Identity savedIdentity = identityRepository.findFirstByUid(uid)
-                .orElseThrow(() -> new IdentityNotFoundException("No such identity: " + uid));
+    public boolean getRecentlyUpdatedEmailFlag(Identity identity) {
+        Identity savedIdentity = identityRepository.findById(identity.getId())
+                .orElseThrow(() -> new IdentityNotFoundException("No such identity: " + identity.getId()));
+        log.info("found identity, email recently updated flag is: " + savedIdentity.isEmailRecentlyUpdated());
         return savedIdentity.isEmailRecentlyUpdated();
     }
 

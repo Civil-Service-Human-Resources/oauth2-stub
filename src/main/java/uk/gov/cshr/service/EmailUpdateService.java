@@ -105,15 +105,15 @@ public class EmailUpdateService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void processEmailUpdatedRecentlyRequestForWhiteListedDomainUser(String uid){
-        identityService.resetRecentlyUpdatedEmailFlagToFalse(uid);
+    public void processEmailUpdatedRecentlyRequestForWhiteListedDomainUser(Identity identity){
+        identityService.resetRecentlyUpdatedEmailFlagToFalse(identity);
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void processEmailUpdatedRecentlyRequestForAgencyTokenUser(String newDomain, String newToken,
-                                                                     String newOrgCode, String uid){
+                                                                     String newOrgCode, Identity identity){
         csrsService.updateSpacesAvailable(newDomain, newToken, newOrgCode, false);
-        identityService.resetRecentlyUpdatedEmailFlagToFalse(uid);
+        identityService.resetRecentlyUpdatedEmailFlagToFalse(identity);
     }
 
 }

@@ -70,7 +70,7 @@ public class CustomAuthenticationSuccessHandler
         // GET FLAG FROM IDENTITY REPO (NOT SPRING AUTH)
         IdentityDetails identityDetails = (IdentityDetails) authentication.getPrincipal();
         Identity identity = identityDetails.getIdentity();
-        boolean hasUserRecentlyUpdatedTheirEmail = identityService.getRecentlyUpdatedEmailFlag(identity.getUid());
+        boolean hasUserRecentlyUpdatedTheirEmail = identityService.getRecentlyUpdatedEmailFlag(identity);
         if(hasUserRecentlyUpdatedTheirEmail) {
             log.debug("users email has recently been updated");
             targetURL = workoutIfUserShouldUseAnAgencyToken(identity);
@@ -83,7 +83,7 @@ public class CustomAuthenticationSuccessHandler
         String domain = identityService.getDomainFromEmailAddress(identity.getEmail());
         String uid = identity.getUid();
         if (agencyTokenService.isDomainWhiteListed(domain)) {
-            emailUpdateService.processEmailUpdatedRecentlyRequestForWhiteListedDomainUser(uid);
+            emailUpdateService.processEmailUpdatedRecentlyRequestForWhiteListedDomainUser(identity);
             return lpgUiUrl;
         } else {
             if(agencyTokenService.isDomainAnAgencyTokenDomain(domain)) {

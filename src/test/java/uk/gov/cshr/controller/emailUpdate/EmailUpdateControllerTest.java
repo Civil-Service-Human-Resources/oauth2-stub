@@ -125,7 +125,7 @@ public class EmailUpdateControllerTest {
         when(csrsService.getOrganisationalUnitsFormatted()).thenReturn(organisations);
         Identity identityFound = new Identity();
         when(identityRepository.findFirstByUid(eq("myuid"))).thenReturn(Optional.of(identityFound));
-        doNothing().when(emailUpdateService).processEmailUpdatedRecentlyRequestForAgencyTokenUser(anyString(), anyString(), anyString(), anyString());
+        doNothing().when(emailUpdateService).processEmailUpdatedRecentlyRequestForAgencyTokenUser(anyString(), anyString(), anyString(), any(Identity.class));
 
         mockMvc.perform(
                 post(ENTER_TOKEN_URL)
@@ -138,7 +138,7 @@ public class EmailUpdateControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(lpgUiUrl));
 
-        verify(emailUpdateService, times(1)).processEmailUpdatedRecentlyRequestForAgencyTokenUser(eq("mydomain"), eq("mytoken"), eq("myorganisation"), eq("myuid"));
+        verify(emailUpdateService, times(1)).processEmailUpdatedRecentlyRequestForAgencyTokenUser(eq("mydomain"), eq("mytoken"), eq("myorganisation"), eq(identityFound));
     }
 
     @Test 
@@ -149,7 +149,7 @@ public class EmailUpdateControllerTest {
         when(csrsService.getOrganisationalUnitsFormatted()).thenReturn(organisations);
         Identity identityFound = new Identity();
         when(identityRepository.findFirstByUid(eq("myuid"))).thenReturn(Optional.of(identityFound));
-        doNothing().when(emailUpdateService).processEmailUpdatedRecentlyRequestForAgencyTokenUser(anyString(), anyString(), anyString(), anyString());
+        doNothing().when(emailUpdateService).processEmailUpdatedRecentlyRequestForAgencyTokenUser(anyString(), anyString(), anyString(), any(Identity.class));
 
         mockMvc.perform(
                 post(ENTER_TOKEN_URL)
@@ -166,7 +166,7 @@ public class EmailUpdateControllerTest {
                 //.andExpect(model().attributeHasFieldErrorCode("emailUpdatedRecentlyEnterTokenForm", "organisation", "Please confirm your new organisation"))
                 .andExpect(view().name("enterTokenSinceEmailUpdate"));
 
-        verify(emailUpdateService, never()).processEmailUpdatedRecentlyRequestForAgencyTokenUser(anyString(), anyString(), anyString(), anyString());
+        verify(emailUpdateService, never()).processEmailUpdatedRecentlyRequestForAgencyTokenUser(anyString(), anyString(), anyString(), any(Identity.class));
     }
 
     @Test 
@@ -177,7 +177,7 @@ public class EmailUpdateControllerTest {
         when(csrsService.getOrganisationalUnitsFormatted()).thenReturn(organisations);
         Identity identityFound = new Identity();
         when(identityRepository.findFirstByUid(eq("myuid"))).thenReturn(Optional.of(identityFound));
-        doNothing().when(emailUpdateService).processEmailUpdatedRecentlyRequestForAgencyTokenUser(anyString(), anyString(), anyString(), anyString());
+        doNothing().when(emailUpdateService).processEmailUpdatedRecentlyRequestForAgencyTokenUser(anyString(), anyString(), anyString(), any(Identity.class));
 
         mockMvc.perform(
                 post(ENTER_TOKEN_URL)
@@ -195,7 +195,7 @@ public class EmailUpdateControllerTest {
                // .andExpect(model().attributeHasFieldErrorCode("emailUpdatedRecentlyEnterTokenForm", "token", "Please confirm your new token"))
                 .andExpect(view().name("enterTokenSinceEmailUpdate"));
 
-        verify(emailUpdateService, never()).processEmailUpdatedRecentlyRequestForAgencyTokenUser(anyString(), anyString(), anyString(), anyString());
+        verify(emailUpdateService, never()).processEmailUpdatedRecentlyRequestForAgencyTokenUser(anyString(), anyString(), anyString(), any(Identity.class));
     }
 
     @Test
@@ -217,7 +217,7 @@ public class EmailUpdateControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login"));
 
-        verify(emailUpdateService, never()).processEmailUpdatedRecentlyRequestForAgencyTokenUser(anyString(), anyString(), anyString(), anyString());
+        verify(emailUpdateService, never()).processEmailUpdatedRecentlyRequestForAgencyTokenUser(anyString(), anyString(), anyString(), any(Identity.class));
     }
 
     @Test
@@ -228,7 +228,7 @@ public class EmailUpdateControllerTest {
         when(csrsService.getOrganisationalUnitsFormatted()).thenReturn(organisations);
         Identity identityFound = new Identity();
         when(identityRepository.findFirstByUid(eq("myuid"))).thenReturn(Optional.of(identityFound));
-        doThrow(new ResourceNotFoundException()).when(emailUpdateService).processEmailUpdatedRecentlyRequestForAgencyTokenUser(anyString(), anyString(), anyString(), anyString());
+        doThrow(new ResourceNotFoundException()).when(emailUpdateService).processEmailUpdatedRecentlyRequestForAgencyTokenUser(anyString(), anyString(), anyString(), any(Identity.class));
 
         mockMvc.perform(
                 post(ENTER_TOKEN_URL)
@@ -243,7 +243,7 @@ public class EmailUpdateControllerTest {
                 .andExpect(flash().attribute("status", "Incorrect token for this organisation"))
                 .andExpect(flash().attributeExists("emailUpdatedRecentlyEnterTokenForm"));
 
-        verify(emailUpdateService, times(1)).processEmailUpdatedRecentlyRequestForAgencyTokenUser(eq("mydomain"), eq("mytoken"), eq("myorganisation"), eq("myuid"));
+        verify(emailUpdateService, times(1)).processEmailUpdatedRecentlyRequestForAgencyTokenUser(eq("mydomain"), eq("mytoken"), eq("myorganisation"), eq(identityFound));
     }
 
     @Test
@@ -254,7 +254,7 @@ public class EmailUpdateControllerTest {
         when(csrsService.getOrganisationalUnitsFormatted()).thenReturn(organisations);
         Identity identityFound = new Identity();
         when(identityRepository.findFirstByUid(eq("myuid"))).thenReturn(Optional.of(identityFound));
-        doThrow(new RuntimeException()).when(emailUpdateService).processEmailUpdatedRecentlyRequestForAgencyTokenUser(anyString(), anyString(), anyString(), anyString());
+        doThrow(new RuntimeException()).when(emailUpdateService).processEmailUpdatedRecentlyRequestForAgencyTokenUser(anyString(), anyString(), anyString(), any(Identity.class));
 
         mockMvc.perform(
                 post(ENTER_TOKEN_URL)
@@ -267,7 +267,7 @@ public class EmailUpdateControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login"));
 
-        verify(emailUpdateService, times(1)).processEmailUpdatedRecentlyRequestForAgencyTokenUser(eq("mydomain"), eq("mytoken"), eq("myorganisation"), eq("myuid"));
+        verify(emailUpdateService, times(1)).processEmailUpdatedRecentlyRequestForAgencyTokenUser(eq("mydomain"), eq("mytoken"), eq("myorganisation"), eq(identityFound));
     }
 
 }
