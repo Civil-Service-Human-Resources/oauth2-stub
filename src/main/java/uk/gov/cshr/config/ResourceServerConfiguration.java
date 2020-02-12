@@ -35,7 +35,7 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
         http
                 .anonymous().disable()
                 .requestMatchers()
-                .antMatchers("/oauth/resolve", "/oauth/revoke", "/api/**", "/domain/isWhitelisted")
+                .antMatchers("/oauth/resolve", "/oauth/revoke", "/api/**", "/domain/**")
                 .and()
                 .authorizeRequests()
                 .requestMatchers(request -> serverPort != -1 && request.getLocalPort() != serverPort).denyAll()
