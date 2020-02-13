@@ -67,8 +67,12 @@ public class CsrsService {
         }
     }
 
+    /*
+    By default all RuntimeExceptions rollback transaction whereas checked exceptions don't.
+     */
     public void updateSpacesAvailable(String domain, String token, String organisation, boolean removeUser) {
-        try {
+        updateCsrs(domain, token, organisation, removeUser);
+        /*try {
              updateCsrs(domain, token, organisation, removeUser);
         } catch (HttpClientErrorException e) {
             log.warn("*****httpClientException");
@@ -94,7 +98,7 @@ public class CsrsService {
             UnableToAllocateAgencyTokenException exception = new UnableToAllocateAgencyTokenException(String.format("Unexpected Error: Unable to update AgencyToken %s ", token), e);
             log.error("An unexpected error occurred allocating agency token", exception);
             throw exception;
-        }
+        }*/
     }
 
     public String getOrgCode(String uid) {
@@ -117,7 +121,7 @@ public class CsrsService {
         return organisationalUnitDtos;
     }
 
-    private void updateCsrs(String domain, String token, String organisation, boolean removeUser) throws Exception {
+    private void updateCsrs(String domain, String token, String organisation, boolean removeUser) {
         AgencyTokenDTO requestDTO = buildAgencyTokenDTO(domain, token, organisation, removeUser);
         restTemplate.put(updateSpacesAvailableUrl, requestDTO);
     }

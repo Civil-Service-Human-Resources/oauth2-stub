@@ -8,6 +8,7 @@ import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import uk.gov.cshr.domain.Identity;
+import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.service.AgencyTokenService;
 import uk.gov.cshr.service.EmailUpdateService;
 import uk.gov.cshr.service.security.IdentityDetails;
@@ -17,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.Optional;
 
 @Slf4j
 public class CustomAuthenticationSuccessHandler
@@ -39,6 +41,9 @@ public class CustomAuthenticationSuccessHandler
 
     @Autowired
     private EmailUpdateService emailUpdateService;
+
+    @Autowired
+    private IdentityRepository identityRepository;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
@@ -70,6 +75,13 @@ public class CustomAuthenticationSuccessHandler
         // GET FLAG FROM IDENTITY REPO (NOT SPRING AUTH)
         IdentityDetails identityDetails = (IdentityDetails) authentication.getPrincipal();
         Identity identity = identityDetails.getIdentity();
+
+        Optional<Identity> testIdentityOptional = identityRepository.findFirstByUid(identity.getUid());
+        if(testIdentityOptional.isPresent()) {
+            Identity testIdentity = testIdentityOptional.get();
+            log.debug("test identity=" + testIdentity);
+        }
+
         boolean hasUserRecentlyUpdatedTheirEmail = identityService.getRecentlyUpdatedEmailFlag(identity);
         if(hasUserRecentlyUpdatedTheirEmail) {
             log.debug("users email has recently been updated");
