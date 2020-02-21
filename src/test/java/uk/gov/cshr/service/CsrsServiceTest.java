@@ -285,31 +285,6 @@ public class CsrsServiceTest {
         assertThat(actualValuesSentInRequest.getCode(), equalTo("mycode"));
     }
 
-    @Ignore
-    @Test
-    public void givenServiceIsDownAndAddUser_whenUpdateSpacesAvailable_thenThrowExternalServiceUnavailableException() {
-        // given
-        String domain = "mydomain";
-        String token = "token123";
-        String code = "mycode";
-        // expected
-        expectedException.expect(ExternalServiceUnavailableException.class);
-
-        // connect exception / service down
-        doThrow(new ConnectException()).when(restTemplate).put(anyString(), any(AgencyTokenDTO.class));
-
-        // when
-        csrsService.updateSpacesAvailable(domain, token, code, false);
-
-        // then
-        verify(restTemplate).put(eq(updateSpacesAvailableUrl), agencyTokenDTOArgumentCaptor.capture());
-        // check that the correct parameter is put into the correct field of the request DTO.
-        AgencyTokenDTO actualValuesSentInRequest = agencyTokenDTOArgumentCaptor.getValue();
-        assertThat(actualValuesSentInRequest.getDomain(), equalTo("mydomain"));
-        assertThat(actualValuesSentInRequest.getToken(), equalTo("token123"));
-        assertThat(actualValuesSentInRequest.getCode(), equalTo("mycode"));
-    }
-
     @Test
     public void givenAnTechnicalErrorAndAddUser_whenUpdateSpacesAvailable_thenThrowUnableToAllocateAgencyTokenException() {
         // given

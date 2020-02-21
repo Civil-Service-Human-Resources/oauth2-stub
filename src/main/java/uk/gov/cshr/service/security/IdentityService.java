@@ -141,8 +141,7 @@ public class IdentityService implements UserDetailsService {
 
         savedIdentity.setEmail(email);
         savedIdentity.setEmailRecentlyUpdated(true);
-      //  Identity updatedIdentity = identityRepository.save(savedIdentity);
-        Identity updatedIdentity = identityRepository.saveAndFlush(savedIdentity);
+        Identity updatedIdentity = identityRepository.save(savedIdentity);
         log.info("identity has been updated to have a recently updated email flag of: " + updatedIdentity.isEmailRecentlyUpdated());
     }
 
@@ -150,8 +149,7 @@ public class IdentityService implements UserDetailsService {
         Identity savedIdentity = identityRepository.findById(identity.getId())
                 .orElseThrow(() -> new IdentityNotFoundException("No such identity: " + identity.getId()));
         savedIdentity.setEmailRecentlyUpdated(false);
-        //Identity updatedIdentity = identityRepository.save(savedIdentity);
-        Identity updatedIdentity = identityRepository.saveAndFlush(savedIdentity);
+        Identity updatedIdentity = identityRepository.save(savedIdentity);
         log.info("identity has been updated to have a recently updated email flag of: " + updatedIdentity.isEmailRecentlyUpdated());
     }
 
