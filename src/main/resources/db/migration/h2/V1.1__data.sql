@@ -89,4 +89,9 @@ CREATE TABLE `email_update` (
   CONSTRAINT `fk_email_update_identity_id` FOREIGN KEY (`identity_id`) REFERENCES `identity` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+CREATE TABLE `oauth_code` (
+  `code` VARCHAR(255) PRIMARY KEY,
+  `authentication` BLOB
+);
+
 ALTER TABLE `invite` ADD COLUMN `is_authorised_invite` bit(1) DEFAULT TRUE;

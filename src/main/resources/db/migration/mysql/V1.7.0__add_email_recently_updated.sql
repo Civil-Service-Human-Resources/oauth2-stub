@@ -1,1 +1,0 @@
-ALTER TABLE `identity` ADD `email_recently_updated` bit(1) DEFAULT FALSE;
