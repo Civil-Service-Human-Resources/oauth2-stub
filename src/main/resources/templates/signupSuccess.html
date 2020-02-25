@@ -1,5 +1,5 @@
 <page th:replace="fragments/user-layout :: page(~{::title},~{::content})">
-    <title>Sign Up Complete</title>
+    <title>Sign up complete - Civil Service Learning</title>
 
     <content>
         <div class="container">
@@ -7,10 +7,11 @@
                 <h1 class="heading-xlarge">Password creation complete</h1>
                 <p class="font-medium">Your new password has been created</p>
             </div>
-            <div class="grid-row push-bottom">
+            <div class="grid-row">
                 <div class="column-two-thirds">
-                    <h2 class="govuk-heading-m">What happens next?</h2>
-                    <p class="govuk-body">You can now <a th:href="${lpgUiUrl}">sign into the Learning Platform for Government</a> with your new password.</p>
+                    <h1 class="heading-large">What happens next?</h1>
+                    <p>You can now <a th:href="${lpgUiUrl}">sign into the Learning Platform for Government</a> with your
+                        new password.</p>
                 </div>
             </div>
         </div>

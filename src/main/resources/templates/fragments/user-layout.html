@@ -1,11 +1,11 @@
-<html th:fragment="page(title,content)" lang="en"
-      xmlns:th="https://www.thymeleaf.org">
+<html xmlns:th="https://www.thymeleaf.org" th:fragment="page(title,content)"
+      lang="en">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title th:replace="${title}">Title</title>
+    <title th:replace="${titleFix}">Title</title>
     <link rel="stylesheet" type="text/css" th:href="@{/assets/css/main.css}" />
     <link rel="icon" type="image/x-icon" href="/assets/img/favicon.ico"/>
 </head>
