@@ -71,27 +71,19 @@ public class CustomAuthenticationSuccessHandler
     }
 
     protected String determineTargetUrl(Authentication authentication) {
-        String targetURL = lpgUiUrl;
         // GET FLAG FROM IDENTITY REPO (NOT SPRING AUTH)
         IdentityDetails identityDetails = (IdentityDetails) authentication.getPrincipal();
         Identity identity = identityDetails.getIdentity();
 
-        Optional<Identity> testIdentityOptional = identityRepository.findFirstByUid(identity.getUid());
-        if(testIdentityOptional.isPresent()) {
-            Identity testIdentity = testIdentityOptional.get();
-            log.debug("test identity=" + testIdentity);
-        }
-
-        boolean hasUserRecentlyUpdatedTheirEmail = identityService.getRecentlyUpdatedEmailFlag(identity);
-        if(hasUserRecentlyUpdatedTheirEmail) {
+        if(identityService.getRecentlyUpdatedEmailFlag(identity)) {
             log.debug("users email has recently been updated");
-            targetURL = workoutIfUserShouldUseAnAgencyToken(identity);
+            return getTargetUrl(identity);
         }
 
-        return targetURL;
+        return lpgUiUrl;
     }
 
-    private String workoutIfUserShouldUseAnAgencyToken(Identity identity) {
+    private String getTargetUrl(Identity identity) {
         String domain = identityService.getDomainFromEmailAddress(identity.getEmail());
         String uid = identity.getUid();
         if (agencyTokenService.isDomainWhiteListed(domain)) {

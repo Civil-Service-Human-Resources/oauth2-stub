@@ -18,19 +18,16 @@ public class DomainController {
 
     @GetMapping(value = "/domain/isWhitelisted/{domain}/")
     public ResponseEntity<String> isDomainWhitelisted(@PathVariable String domain) {
-        String dto = "false";
-        boolean isWhiteListed = false;
-
         try {
-            isWhiteListed = identityService.isWhitelistedDomain(domain);
+            boolean isWhiteListed = identityService.isWhitelistedDomain(domain);
+            if(isWhiteListed) {
+                return new ResponseEntity<String>("true", HttpStatus.OK);
+            } else {
+                return new ResponseEntity<String>("false", HttpStatus.OK);
+            }
         } catch (Exception e) {
-            return new ResponseEntity<String>(dto, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<String>("false", HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        if(isWhiteListed) {
-            return new ResponseEntity<String>("true", HttpStatus.OK);
-        }
-
-        return new ResponseEntity<String>(dto, HttpStatus.OK);
     }
 
 }

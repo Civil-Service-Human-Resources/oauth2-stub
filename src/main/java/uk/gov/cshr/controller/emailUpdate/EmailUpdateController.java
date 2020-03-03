@@ -23,9 +23,9 @@ import java.util.Optional;
 @RequestMapping("/emailUpdated")
 public class EmailUpdateController {
 
-    private static final String EMAIL_UPDATED_RECENTLY_ENTER_TOKEN_FORM = "emailUpdatedRecentlyEnterTokenForm";
+    private static final String EMAIL_UPDATED_RECENTLY_ENTER_TOKEN_FORM_TEMPLATE = "emailUpdatedRecentlyEnterTokenForm";
 
-    private static final String ENTER_TOKEN_SINCE_EMAIL_UPDATE_VIEW_NAME = "enterTokenSinceEmailUpdate";
+    private static final String ENTER_TOKEN_SINCE_EMAIL_UPDATE_VIEW_NAME_TEMPLATE = "enterTokenSinceEmailUpdate";
 
     private static final String STATUS_ATTRIBUTE = "status";
 
@@ -53,10 +53,10 @@ public class EmailUpdateController {
 
         log.info("User accessing token-based email updated screen");
 
-        if(model.containsAttribute(EMAIL_UPDATED_RECENTLY_ENTER_TOKEN_FORM)) {
+        if(model.containsAttribute(EMAIL_UPDATED_RECENTLY_ENTER_TOKEN_FORM_TEMPLATE)) {
             OrganisationalUnitDto[] organisations = csrsService.getOrganisationalUnitsFormatted();
             model.addAttribute("organisations", organisations);
-            return ENTER_TOKEN_SINCE_EMAIL_UPDATE_VIEW_NAME;
+            return ENTER_TOKEN_SINCE_EMAIL_UPDATE_VIEW_NAME_TEMPLATE;
         } else {
             String domain = (String) model.asMap().get("domain");
             String uid = (String) model.asMap().get("uid");
@@ -67,8 +67,8 @@ public class EmailUpdateController {
             EmailUpdatedRecentlyEnterTokenForm form = new EmailUpdatedRecentlyEnterTokenForm();
             form.setDomain(domain);
             form.setUid(uid);
-            model.addAttribute(EMAIL_UPDATED_RECENTLY_ENTER_TOKEN_FORM, form);
-            return ENTER_TOKEN_SINCE_EMAIL_UPDATE_VIEW_NAME;
+            model.addAttribute(EMAIL_UPDATED_RECENTLY_ENTER_TOKEN_FORM_TEMPLATE, form);
+            return ENTER_TOKEN_SINCE_EMAIL_UPDATE_VIEW_NAME_TEMPLATE;
         }
 
     }
@@ -85,8 +85,8 @@ public class EmailUpdateController {
         String uid = form.getUid();
 
         if (bindingResult.hasErrors()) {
-            model.addAttribute(EMAIL_UPDATED_RECENTLY_ENTER_TOKEN_FORM, form);
-            return ENTER_TOKEN_SINCE_EMAIL_UPDATE_VIEW_NAME;
+            model.addAttribute(EMAIL_UPDATED_RECENTLY_ENTER_TOKEN_FORM_TEMPLATE, form);
+            return ENTER_TOKEN_SINCE_EMAIL_UPDATE_VIEW_NAME_TEMPLATE;
         }
 
         try {
@@ -101,7 +101,7 @@ public class EmailUpdateController {
             }
         } catch (ResourceNotFoundException e) {
             redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Incorrect token for this organisation");
-            redirectAttributes.addFlashAttribute(EMAIL_UPDATED_RECENTLY_ENTER_TOKEN_FORM, form);
+            redirectAttributes.addFlashAttribute(EMAIL_UPDATED_RECENTLY_ENTER_TOKEN_FORM_TEMPLATE, form);
             return "redirect:/emailUpdated/enterToken";
         } catch (Exception e) {
             return "redirect:/login";
