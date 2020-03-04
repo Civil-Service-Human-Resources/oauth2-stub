@@ -1,7 +1,6 @@
 package uk.gov.cshr.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.exception.NotificationException;
@@ -14,7 +13,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
-@Profile("default")
 @Service
 @Transactional
 public class NotifyServiceImpl implements NotifyService {
