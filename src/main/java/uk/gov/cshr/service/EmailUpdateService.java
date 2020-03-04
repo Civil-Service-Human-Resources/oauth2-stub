@@ -82,10 +82,7 @@ public class EmailUpdateService {
             }
 
             AgencyToken agencyToken = csrsService.getAgencyTokenForDomainAndOrganisation(oldDomain, oldOrg)
-                    .orElseThrow(() -> {
-                        log.warn("users old agency token not found");
-                        throw new ResourceNotFoundException();
-                    });
+                    .orElseThrow(() -> new ResourceNotFoundException());
             csrsService.updateSpacesAvailable(oldDomain, agencyToken.getToken(), oldOrg, true);
 
         } else {
