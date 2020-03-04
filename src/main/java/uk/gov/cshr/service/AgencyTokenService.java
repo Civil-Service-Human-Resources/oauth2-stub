@@ -1,17 +1,19 @@
 package uk.gov.cshr.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.cshr.service.security.IdentityService;
 
 @Service
 public class AgencyTokenService {
 
-    @Autowired
     private IdentityService identityService;
 
-    @Autowired
     private CsrsService csrsService;
+
+    public AgencyTokenService(IdentityService identityService, CsrsService csrsService) {
+        this.identityService = identityService;
+        this.csrsService = csrsService;
+    }
 
     public boolean isDomainWhiteListed(String domain) {
         return identityService.isWhitelistedDomain(domain);

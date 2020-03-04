@@ -10,7 +10,6 @@ import uk.gov.cshr.dto.IdentityDTO;
 import java.util.List;
 import java.util.Optional;
 
-@Profile({"default"})
 @Repository
 public interface IdentityRepository extends JpaRepository<Identity, Long> {
 
