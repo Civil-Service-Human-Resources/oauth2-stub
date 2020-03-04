@@ -3,6 +3,7 @@ package uk.gov.cshr.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.domain.AgencyToken;
@@ -72,28 +73,21 @@ public class EmailUpdateService {
         boolean isWhitelistedPersonBeforeEmailChange = identityService.isWhitelistedDomain(oldDomain);
 
         // remove from old agency token quota
-
-        if(!isWhitelistedPersonBeforeEmailChange) {
+        if (!isWhitelistedPersonBeforeEmailChange) {
             // work out the token
             log.info("user used to be a token person, work out which token and remove them from that quota");
             String oldOrg = csrsService.getOrgCode(identity.getUid());
-            if(oldOrg !=null) {
+            if (oldOrg != null) {
                 log.info("old org code found is:" + oldOrg);
             }
 
-            Optional<AgencyToken> agencyToken = csrsService.getAgencyTokenForDomainAndOrganisation(oldDomain, oldOrg);
-            if (agencyToken.isPresent()) {
-                log.info("old agency token found");
-                AgencyToken at = agencyToken.get();
-                log.info("updating old agency token quota");
-                log.info("old domain: " + oldDomain);
-                log.info("old token: " + at.getToken());
-                log.info("old org: " + oldOrg);
-                csrsService.updateSpacesAvailable(oldDomain, at.getToken(), oldOrg, true);
-            } else {
-                log.warn("users old agency token not found");
-                throw new ResourceNotFoundException();
-            }
+            AgencyToken agencyToken = csrsService.getAgencyTokenForDomainAndOrganisation(oldDomain, oldOrg)
+                    .orElseThrow(() -> {
+                        log.warn("users old agency token not found");
+                        throw new ResourceNotFoundException();
+                    });
+            csrsService.updateSpacesAvailable(oldDomain, agencyToken.getToken(), oldOrg, true);
+
         } else {
             log.info("user used to be a whitelisted person, no agency token to update");
         }
@@ -105,13 +99,13 @@ public class EmailUpdateService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void processEmailUpdatedRecentlyRequestForWhiteListedDomainUser(Identity identity){
+    public void processEmailUpdatedRecentlyRequestForWhiteListedDomainUser(Identity identity) {
         identityService.resetRecentlyUpdatedEmailFlagToFalse(identity);
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void processEmailUpdatedRecentlyRequestForAgencyTokenUser(String newDomain, String newToken,
-                                                                     String newOrgCode, Identity identity){
+                                                                     String newOrgCode, Identity identity) {
         csrsService.updateSpacesAvailable(newDomain, newToken, newOrgCode, false);
         identityService.resetRecentlyUpdatedEmailFlagToFalse(identity);
     }

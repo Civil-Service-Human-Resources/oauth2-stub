@@ -19,8 +19,7 @@ public class DomainController {
     @GetMapping(value = "/domain/isWhitelisted/{domain}/")
     public ResponseEntity<String> isDomainWhitelisted(@PathVariable String domain) {
         try {
-            boolean isWhiteListed = identityService.isWhitelistedDomain(domain);
-            if(isWhiteListed) {
+            if(identityService.isWhitelistedDomain(domain)) {
                 return new ResponseEntity<String>("true", HttpStatus.OK);
             } else {
                 return new ResponseEntity<String>("false", HttpStatus.OK);
