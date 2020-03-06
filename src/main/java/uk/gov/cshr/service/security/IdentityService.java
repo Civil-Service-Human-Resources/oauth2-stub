@@ -92,6 +92,7 @@ public class IdentityService implements UserDetailsService {
         identity.setActive(true);
         identity.setDeletionNotificationSent(false);
         identity.setPassword(passwordEncoder.encode(password));
+        identity.setLocked(false);
         identityRepository.save(identity);
     }
 
