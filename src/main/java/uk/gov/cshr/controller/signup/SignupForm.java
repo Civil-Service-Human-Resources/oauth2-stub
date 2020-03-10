@@ -12,4 +12,6 @@ public class SignupForm {
     private String password;
     @NotBlank(message = "{validation.signup.password.NotBlank}")
     private String confirmPassword;
+    private String organisation;
+    private String token;
 }

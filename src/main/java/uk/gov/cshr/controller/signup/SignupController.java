@@ -1,5 +1,6 @@
 package uk.gov.cshr.controller.signup;
 
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,6 +14,10 @@ import uk.gov.cshr.domain.AgencyToken;
 import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.domain.InviteStatus;
 import uk.gov.cshr.domain.OrganisationalUnitDto;
+import uk.gov.cshr.exception.BadRequestException;
+import uk.gov.cshr.exception.NotEnoughSpaceAvailableException;
+import uk.gov.cshr.exception.ResourceNotFoundException;
+import uk.gov.cshr.exception.UnableToAllocateAgencyTokenException;
 import uk.gov.cshr.repository.InviteRepository;
 import uk.gov.cshr.service.CsrsService;
 import uk.gov.cshr.service.InviteService;
@@ -21,13 +26,16 @@ import uk.gov.service.notify.NotificationClientException;
 
 import javax.transaction.Transactional;
 import javax.validation.Valid;
+import java.util.Map;
 
+@Slf4j
 @Controller
 @RequestMapping("/signup")
 public class SignupController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SignupController.class);
     private static final String STATUS_ATTRIBUTE = "status";
+    private static final String ORGANISATION_FLASH_ATTRIBUTE = "organisation";
+    private static final String TOKEN_FLASH_ATTRIBUTE = "token";
 
     private final InviteService inviteService;
 
@@ -76,13 +84,13 @@ public class SignupController {
         final String email = form.getEmail();
 
         if (inviteRepository.existsByForEmailAndStatus(email, InviteStatus.PENDING)) {
-            LOGGER.info("{} has already been invited", email);
+            log.info("{} has already been invited", email);
             redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, email + " has already been invited");
             return "redirect:/signup/request";
         }
 
         if (identityService.existsByEmail(email)) {
-            LOGGER.info("{} is already a user", email);
+            log.info("{} is already a user", email);
             redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "User already exists with email address " + email);
             return "redirect:/signup/request";
         }
@@ -109,7 +117,7 @@ public class SignupController {
     public String signup(Model model,
                          @PathVariable(value = "code") String code) {
 
-        LOGGER.info("User accessing sign up screen with code {}", code);
+        log.info("User accessing sign up screen with code {}", code);
 
         if (inviteService.isInviteValid(code)) {
             Invite invite = inviteRepository.findByCode(code);
@@ -131,9 +139,10 @@ public class SignupController {
     public String signup(@PathVariable(value = "code") String code,
                          @ModelAttribute @Valid SignupForm form,
                          BindingResult bindingResult,
-                         Model model) {
+                         Model model,
+                         RedirectAttributes redirectAttributes) {
 
-        LOGGER.info("User attempting sign up with code {}", code);
+        log.info("User attempting sign up with code {}", code);
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("invite", inviteRepository.findByCode(code));
@@ -146,6 +155,34 @@ public class SignupController {
                 return "redirect:/signup/enterToken/" + code;
             }
 
+            if(isRequestFromEnterTokenPage(form)) {
+                // token quota to be updated at setting the password screen i.e. here
+                // which requires the token and the organisation
+                String organisationFromPreviousRequest = form.getOrganisation();
+                String tokenFromPreviousRequest = form.getToken();
+
+                    try {
+                        log.info("User submitted signup password form with org = {}, token = {}, domain = {}", form.getOrganisation(), form.getToken(), form.getOrganisation());
+                        log.info("Updating agency token quota");
+                        csrsService.updateSpacesAvailable(form.getOrganisation(), form.getToken(), code, false);
+                    } catch (ResourceNotFoundException e) {
+                        redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Incorrect token for this organisation");
+                        return "redirect:/signup/enterToken/" + code;
+                    } catch (NotEnoughSpaceAvailableException e) {
+                        redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Not enough spaces available on this token");
+                        return "redirect:/signup/enterToken/" + code;
+                    } catch (BadRequestException e) {
+                        log.error("An error updating agency token quota has occurred", e);
+                        return "redirect:/login";
+                    } catch (UnableToAllocateAgencyTokenException e) {
+                        log.error("An unexpected error updating agency token quota has occurred", e);
+                        return "redirect:/login";
+                    }
+
+            }
+
+
+            // for everyone
             identityService.createIdentityFromInviteCode(code, form.getPassword());
             inviteService.updateInviteByCode(code, InviteStatus.ACCEPTED);
 
@@ -161,7 +198,7 @@ public class SignupController {
     public String enterToken(Model model,
                              @PathVariable(value = "code") String code) {
 
-        LOGGER.info("User accessing token-based sign up screen");
+        log.info("User accessing token-based sign up screen");
 
         if (inviteService.isInviteValid(code)) {
             Invite invite = inviteRepository.findByCode(code);
@@ -181,13 +218,13 @@ public class SignupController {
     }
 
     @PostMapping(path = "/enterToken/{code}")
-    public String submitToken(Model model,
+    public String checkToken(Model model,
                               @PathVariable(value = "code") String code,
                               @ModelAttribute @Valid EnterTokenForm form,
                               BindingResult bindingResult,
                               RedirectAttributes redirectAttributes) {
 
-        LOGGER.info("User attempting token-based sign up");
+        log.info("User attempting token-based sign up");
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("enterTokenForm", form);
@@ -202,15 +239,16 @@ public class SignupController {
 
             return csrsService.getAgencyTokenForDomainTokenOrganisation(domain, form.getToken(), form.getOrganisation())
                     .map(agencyToken -> {
-                        LOGGER.info("User submitted Enter Token form with org = {}, token = {}, email = {}", form.getOrganisation(), form.getToken(), emailAddress);
+                        log.info("User submitted Enter Token form with org = {}, token = {}, email = {}", form.getOrganisation(), form.getToken(), emailAddress);
 
                         invite.setAuthorisedInvite(true);
                         inviteRepository.save(invite);
 
                         model.addAttribute("invite", invite);
 
-                        redirectAttributes.addFlashAttribute("organisation", form.getOrganisation());
-                        redirectAttributes.addFlashAttribute("token", form.getToken());
+                        // token quota to be updated at setting the password screen which requires the token and the organisation
+                        redirectAttributes.addFlashAttribute(ORGANISATION_FLASH_ATTRIBUTE, form.getOrganisation());
+                        redirectAttributes.addFlashAttribute(TOKEN_FLASH_ATTRIBUTE, form.getToken());
 
                         return "redirect:/signup/" + code;
                     }).orElseGet(() -> {
@@ -228,4 +266,12 @@ public class SignupController {
             binder.addValidators(signupFormValidator);
         }
     }
+
+    private boolean isRequestFromEnterTokenPage(SignupForm signupForm) {
+        if(signupForm.getOrganisation() == null && signupForm.getToken() == null) {
+            return false;
+        }
+        return true;
+    }
+
 }
