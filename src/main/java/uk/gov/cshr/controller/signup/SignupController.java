@@ -1,8 +1,6 @@
 package uk.gov.cshr.controller.signup;
 
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,7 +21,6 @@ import uk.gov.service.notify.NotificationClientException;
 
 import javax.transaction.Transactional;
 import javax.validation.Valid;
-import java.util.Map;
 
 @Slf4j
 @Controller
@@ -31,7 +28,7 @@ import java.util.Map;
 public class SignupController {
 
     private static final String STATUS_ATTRIBUTE = "status";
-    private static final String TOKEN_INFO_FLASH_ATTRIBUTE = "tokenInfo";
+    private static final String TOKEN_INFO_FLASH_ATTRIBUTE = "tokenRequest";
 
     private final InviteService inviteService;
 
@@ -123,23 +120,16 @@ public class SignupController {
             }
 
             model.addAttribute("invite", invite);
+            model.addAttribute("signupForm", new SignupForm());
             // add token info to form, so it binds
-            TokenRequest tokenRequest = (TokenRequest) model.asMap().get(TOKEN_INFO_FLASH_ATTRIBUTE);
-            SignupForm signupForm = new SignupForm();
-            signupForm.setTokenRequest(tokenRequest);
-            model.addAttribute("signupForm", signupForm);
-           // model.addAttribute("signupForm", new SignupForm());
-           // TokenRequest tokenRequest = (TokenRequest) model.asMap().get(TOKEN_INFO_FLASH_ATTRIBUTE);
-           // redirectAttributes.addFlashAttribute(TOKEN_INFO_FLASH_ATTRIBUTE, tokenRequest);
-            //model.addAttribute(TOKEN_INFO_FLASH_ATTRIBUTE, tokenRequest);
-
-
-            /*if(model.containsAttribute(TOKEN_INFO_FLASH_ATTRIBUTE)) {
-               // Map<String, ?> flashAttributes = redirectAttributes.getFlashAttributes();
-                TokenRequest tokenRequestFromPreviousRequest = (TokenRequest) model.asMap().get(TOKEN_INFO_FLASH_ATTRIBUTE);
-                redirectAttributes.addFlashAttribute(TOKEN_INFO_FLASH_ATTRIBUTE,
-                        addAgencyTokenInfo(tokenRequestFromPreviousRequest.getDomain(), tokenRequestFromPreviousRequest.getToken(), tokenRequestFromPreviousRequest.getOrg()));
-            }*/
+            if(model.containsAttribute(TOKEN_INFO_FLASH_ATTRIBUTE)) {
+                // ensure the object is there with the info from the previous request for agency token people
+                TokenRequest tokenRequest = (TokenRequest) model.asMap().get(TOKEN_INFO_FLASH_ATTRIBUTE);
+                model.addAttribute(TOKEN_INFO_FLASH_ATTRIBUTE, tokenRequest);
+            } else {
+                // ensure the object is there but empty for agency token people
+                model.addAttribute(TOKEN_INFO_FLASH_ATTRIBUTE, new TokenRequest());
+            }
 
             return "signup";
         } else {
@@ -151,7 +141,7 @@ public class SignupController {
     @Transactional
     public String signup(@PathVariable(value = "code") String code,
                          @ModelAttribute @Valid SignupForm form,
-                        /* @ModelAttribute TokenRequest tokenRequest,*/
+                         @ModelAttribute TokenRequest tokenRequest,
                          BindingResult bindingResult,
                          Model model,
                          RedirectAttributes redirectAttributes) {
@@ -169,19 +159,15 @@ public class SignupController {
                 return "redirect:/signup/enterToken/" + code;
             }
 
-           // if(redirectAttributes.getFlashAttributes().containsKey(TOKEN_INFO_FLASH_ATTRIBUTE)) {
-            if(model.containsAttribute(TOKEN_INFO_FLASH_ATTRIBUTE)) {
-               //Map<String, ?> flashAttributes = redirectAttributes.getFlashAttributes();
-                TokenRequest tokenRequestFromPreviousRequest = (TokenRequest) model.asMap().get(TOKEN_INFO_FLASH_ATTRIBUTE);
-
+            if(requestHasTokenData(tokenRequest)) {
                 try {
                     log.info("User submitted signup password form with domain = {}, token = {}, org = {}",
-                            tokenRequestFromPreviousRequest.getDomain(),
-                            tokenRequestFromPreviousRequest.getToken(),
-                            tokenRequestFromPreviousRequest.getOrg());
+                            tokenRequest.getDomain(),
+                            tokenRequest.getToken(),
+                            tokenRequest.getOrg());
                     log.info("Updating agency token quota");
-                    csrsService.updateSpacesAvailable(tokenRequestFromPreviousRequest.getDomain(), tokenRequestFromPreviousRequest.getToken(),
-                            tokenRequestFromPreviousRequest.getOrg(), false);
+                    csrsService.updateSpacesAvailable(tokenRequest.getDomain(), tokenRequest.getToken(),
+                            tokenRequest.getOrg(), false);
                 } catch (ResourceNotFoundException e) {
                     redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Incorrect token for this organisation");
                     return "redirect:/signup/enterToken/" + code;
@@ -288,6 +274,17 @@ public class SignupController {
         tokenRequest.setToken(token);
         tokenRequest.setOrg(org);
         return tokenRequest;
+    }
+
+    private boolean requestHasTokenData(TokenRequest tokenRequest) {
+        return hasData(tokenRequest.getDomain()) || hasData(tokenRequest.getToken()) || hasData(tokenRequest.getOrg());
+    }
+
+    private boolean hasData(String s) {
+        if(s != null && s.length() > 0) {
+            return true;
+        }
+        return false;
     }
 
 }
