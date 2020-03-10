@@ -10,10 +10,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import uk.gov.cshr.domain.AgencyToken;
-import uk.gov.cshr.domain.Invite;
-import uk.gov.cshr.domain.InviteStatus;
-import uk.gov.cshr.domain.OrganisationalUnitDto;
+import uk.gov.cshr.domain.*;
 import uk.gov.cshr.exception.BadRequestException;
 import uk.gov.cshr.exception.NotEnoughSpaceAvailableException;
 import uk.gov.cshr.exception.ResourceNotFoundException;
@@ -34,8 +31,7 @@ import java.util.Map;
 public class SignupController {
 
     private static final String STATUS_ATTRIBUTE = "status";
-    private static final String ORGANISATION_FLASH_ATTRIBUTE = "organisation";
-    private static final String TOKEN_FLASH_ATTRIBUTE = "token";
+    private static final String TOKEN_INFO_FLASH_ATTRIBUTE = "tokenInfo";
 
     private final InviteService inviteService;
 
@@ -115,7 +111,8 @@ public class SignupController {
 
     @GetMapping("/{code}")
     public String signup(Model model,
-                         @PathVariable(value = "code") String code) {
+                         @PathVariable(value = "code") String code,
+                         RedirectAttributes redirectAttributes) {
 
         log.info("User accessing sign up screen with code {}", code);
 
@@ -126,7 +123,23 @@ public class SignupController {
             }
 
             model.addAttribute("invite", invite);
-            model.addAttribute("signupForm", new SignupForm());
+            // add token info to form, so it binds
+            TokenRequest tokenRequest = (TokenRequest) model.asMap().get(TOKEN_INFO_FLASH_ATTRIBUTE);
+            SignupForm signupForm = new SignupForm();
+            signupForm.setTokenRequest(tokenRequest);
+            model.addAttribute("signupForm", signupForm);
+           // model.addAttribute("signupForm", new SignupForm());
+           // TokenRequest tokenRequest = (TokenRequest) model.asMap().get(TOKEN_INFO_FLASH_ATTRIBUTE);
+           // redirectAttributes.addFlashAttribute(TOKEN_INFO_FLASH_ATTRIBUTE, tokenRequest);
+            //model.addAttribute(TOKEN_INFO_FLASH_ATTRIBUTE, tokenRequest);
+
+
+            /*if(model.containsAttribute(TOKEN_INFO_FLASH_ATTRIBUTE)) {
+               // Map<String, ?> flashAttributes = redirectAttributes.getFlashAttributes();
+                TokenRequest tokenRequestFromPreviousRequest = (TokenRequest) model.asMap().get(TOKEN_INFO_FLASH_ATTRIBUTE);
+                redirectAttributes.addFlashAttribute(TOKEN_INFO_FLASH_ATTRIBUTE,
+                        addAgencyTokenInfo(tokenRequestFromPreviousRequest.getDomain(), tokenRequestFromPreviousRequest.getToken(), tokenRequestFromPreviousRequest.getOrg()));
+            }*/
 
             return "signup";
         } else {
@@ -138,6 +151,7 @@ public class SignupController {
     @Transactional
     public String signup(@PathVariable(value = "code") String code,
                          @ModelAttribute @Valid SignupForm form,
+                        /* @ModelAttribute TokenRequest tokenRequest,*/
                          BindingResult bindingResult,
                          Model model,
                          RedirectAttributes redirectAttributes) {
@@ -155,32 +169,33 @@ public class SignupController {
                 return "redirect:/signup/enterToken/" + code;
             }
 
-            if(isRequestFromEnterTokenPage(form)) {
-                // token quota to be updated at setting the password screen i.e. here
-                // which requires the token and the organisation
-                String organisationFromPreviousRequest = form.getOrganisation();
-                String tokenFromPreviousRequest = form.getToken();
+           // if(redirectAttributes.getFlashAttributes().containsKey(TOKEN_INFO_FLASH_ATTRIBUTE)) {
+            if(model.containsAttribute(TOKEN_INFO_FLASH_ATTRIBUTE)) {
+               //Map<String, ?> flashAttributes = redirectAttributes.getFlashAttributes();
+                TokenRequest tokenRequestFromPreviousRequest = (TokenRequest) model.asMap().get(TOKEN_INFO_FLASH_ATTRIBUTE);
 
-                    try {
-                        log.info("User submitted signup password form with org = {}, token = {}, domain = {}", form.getOrganisation(), form.getToken(), form.getOrganisation());
-                        log.info("Updating agency token quota");
-                        csrsService.updateSpacesAvailable(form.getOrganisation(), form.getToken(), code, false);
-                    } catch (ResourceNotFoundException e) {
-                        redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Incorrect token for this organisation");
-                        return "redirect:/signup/enterToken/" + code;
-                    } catch (NotEnoughSpaceAvailableException e) {
-                        redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Not enough spaces available on this token");
-                        return "redirect:/signup/enterToken/" + code;
-                    } catch (BadRequestException e) {
-                        log.error("An error updating agency token quota has occurred", e);
-                        return "redirect:/login";
-                    } catch (UnableToAllocateAgencyTokenException e) {
-                        log.error("An unexpected error updating agency token quota has occurred", e);
-                        return "redirect:/login";
-                    }
-
+                try {
+                    log.info("User submitted signup password form with domain = {}, token = {}, org = {}",
+                            tokenRequestFromPreviousRequest.getDomain(),
+                            tokenRequestFromPreviousRequest.getToken(),
+                            tokenRequestFromPreviousRequest.getOrg());
+                    log.info("Updating agency token quota");
+                    csrsService.updateSpacesAvailable(tokenRequestFromPreviousRequest.getDomain(), tokenRequestFromPreviousRequest.getToken(),
+                            tokenRequestFromPreviousRequest.getOrg(), false);
+                } catch (ResourceNotFoundException e) {
+                    redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Incorrect token for this organisation");
+                    return "redirect:/signup/enterToken/" + code;
+                } catch (NotEnoughSpaceAvailableException e) {
+                    redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Not enough spaces available on this token");
+                    return "redirect:/signup/enterToken/" + code;
+                } catch (BadRequestException e) {
+                    log.error("An error updating agency token quota has occurred", e);
+                    return "redirect:/login";
+                } catch (UnableToAllocateAgencyTokenException e) {
+                    log.error("An unexpected error updating agency token quota has occurred", e);
+                    return "redirect:/login";
+                }
             }
-
 
             // for everyone
             identityService.createIdentityFromInviteCode(code, form.getPassword());
@@ -247,8 +262,7 @@ public class SignupController {
                         model.addAttribute("invite", invite);
 
                         // token quota to be updated at setting the password screen which requires the token and the organisation
-                        redirectAttributes.addFlashAttribute(ORGANISATION_FLASH_ATTRIBUTE, form.getOrganisation());
-                        redirectAttributes.addFlashAttribute(TOKEN_FLASH_ATTRIBUTE, form.getToken());
+                        redirectAttributes.addFlashAttribute(TOKEN_INFO_FLASH_ATTRIBUTE, addAgencyTokenInfo(domain, form.getToken(), form.getOrganisation()));
 
                         return "redirect:/signup/" + code;
                     }).orElseGet(() -> {
@@ -267,11 +281,13 @@ public class SignupController {
         }
     }
 
-    private boolean isRequestFromEnterTokenPage(SignupForm signupForm) {
-        if(signupForm.getOrganisation() == null && signupForm.getToken() == null) {
-            return false;
-        }
-        return true;
+    private TokenRequest addAgencyTokenInfo(String domain, String token, String org) {
+        // this is required to store token information between requests.
+        TokenRequest tokenRequest = new TokenRequest();
+        tokenRequest.setDomain(domain);
+        tokenRequest.setToken(token);
+        tokenRequest.setOrg(org);
+        return tokenRequest;
     }
 
 }

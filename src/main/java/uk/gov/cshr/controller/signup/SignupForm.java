@@ -1,6 +1,7 @@
 package uk.gov.cshr.controller.signup;
 
 import lombok.Data;
+import uk.gov.cshr.domain.TokenRequest;
 import uk.gov.cshr.validation.annotation.FieldMatch;
 
 import javax.validation.constraints.NotBlank;
@@ -12,6 +13,5 @@ public class SignupForm {
     private String password;
     @NotBlank(message = "{validation.signup.password.NotBlank}")
     private String confirmPassword;
-    private String organisation;
-    private String token;
+    private TokenRequest tokenRequest;
 }

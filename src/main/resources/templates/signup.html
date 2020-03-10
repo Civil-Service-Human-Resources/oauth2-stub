@@ -55,8 +55,9 @@
                                    th:field="*{confirmPassword}" type="password"/>
                         </div>
 
-                        <input type="hidden" th:name="organisation" th:value="${organisation}"/>
-                        <input type="hidden" th:name="token" th:value="${token}"/>
+                        <!--<input type="hidden" th:name="organisation" th:value="${organisation}"/>
+                        <input type="hidden" th:name="token" th:value="${token}"/>-->
+                        <input type="hidden" th:name="tokenInfo" th:value="${tokenInfo}"/>
 
                         <input type="submit" class="button" value="Continue">
                         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
