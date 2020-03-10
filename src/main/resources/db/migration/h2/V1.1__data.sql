@@ -1,7 +1,7 @@
 
 INSERT INTO `client` (active, uid, password, redirect_uri)
-VALUES (true, '9fbd4ae2-2db3-44c7-9544-88e80255b56e', '$2a$10$AbxhLGtIx7yv8jhF0BePiOxnb1mlHHq/Ge4R3PxCL2wIsoEov1VaS', 'http://lpg.local.cshr.digital:3001/authenticate'),
-(true, 'f90a4080-e5e9-4a80-ace4-f738b4c9c30e', '$2a$10$AbxhLGtIx7yv8jhF0BePiOxnb1mlHHq/Ge4R3PxCL2wIsoEov1VaS', 'http://admin.local.cshr.digital:3003/authenticate'),
+VALUES (true, '9fbd4ae2-2db3-44c7-9544-88e80255b56e', '$2a$10$AbxhLGtIx7yv8jhF0BePiOxnb1mlHHq/Ge4R3PxCL2wIsoEov1VaS', 'http://localhost:3001/authenticate'),
+(true, 'f90a4080-e5e9-4a80-ace4-f738b4c9c30e', '$2a$10$AbxhLGtIx7yv8jhF0BePiOxnb1mlHHq/Ge4R3PxCL2wIsoEov1VaS', 'http://localhost:3003/authenticate'),
 (true, 'management', '$2a$10$AbxhLGtIx7yv8jhF0BePiOxnb1mlHHq/Ge4R3PxCL2wIsoEov1VaS', 'http://localhost:8081/mgmt/login');
 
 INSERT INTO `role` (name) VALUES
@@ -51,7 +51,7 @@ INSERT INTO `identity_role` (identity_id, role_id) VALUES
 ;
 
 INSERT INTO `client` (active, uid, password, redirect_uri)
-VALUES (true, 'a5881544-6159-4d2f-9b51-8c47ce97454d', '$2a$10$AbxhLGtIx7yv8jhF0BePiOxnb1mlHHq/Ge4R3PxCL2wIsoEov1VaS', 'http://lpg.local.cshr.digital:3005/authenticate');
+VALUES (true, 'a5881544-6159-4d2f-9b51-8c47ce97454d', '$2a$10$AbxhLGtIx7yv8jhF0BePiOxnb1mlHHq/Ge4R3PxCL2wIsoEov1VaS', 'http://localhost:3005/authenticate');
 
 INSERT INTO `role` (name) VALUES ('DOWNLOAD_BOOKING_FEED');
 
