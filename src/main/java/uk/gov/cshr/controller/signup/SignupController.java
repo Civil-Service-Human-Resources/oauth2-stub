@@ -1,14 +1,23 @@
 package uk.gov.cshr.controller.signup;
 
+import javax.transaction.Transactional;
+import javax.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import uk.gov.cshr.domain.*;
+import uk.gov.cshr.domain.AgencyToken;
+import uk.gov.cshr.domain.Invite;
+import uk.gov.cshr.domain.InviteStatus;
+import uk.gov.cshr.domain.OrganisationalUnitDto;
+import uk.gov.cshr.domain.TokenRequest;
 import uk.gov.cshr.exception.BadRequestException;
 import uk.gov.cshr.exception.NotEnoughSpaceAvailableException;
 import uk.gov.cshr.exception.ResourceNotFoundException;
@@ -18,9 +27,6 @@ import uk.gov.cshr.service.CsrsService;
 import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.security.IdentityService;
 import uk.gov.service.notify.NotificationClientException;
-
-import javax.transaction.Transactional;
-import javax.validation.Valid;
 
 @Slf4j
 @Controller
@@ -38,22 +44,18 @@ public class SignupController {
 
     private final InviteRepository inviteRepository;
 
-    private final SignupFormValidator signupFormValidator;
-
     private final String lpgUiUrl;
 
     public SignupController(InviteService inviteService,
                             IdentityService identityService,
                             CsrsService csrsService,
                             InviteRepository inviteRepository,
-                            SignupFormValidator signupFormValidator,
                             @Value("${lpg.uiUrl}") String lpgUiUrl) {
 
         this.inviteService = inviteService;
         this.identityService = identityService;
         this.csrsService = csrsService;
         this.inviteRepository = inviteRepository;
-        this.signupFormValidator = signupFormValidator;
         this.lpgUiUrl = lpgUiUrl;
     }
 
@@ -140,15 +142,16 @@ public class SignupController {
     @PostMapping("/{code}")
     @Transactional
     public String signup(@PathVariable(value = "code") String code,
-                         @ModelAttribute @Valid SignupForm form,
+                         @ModelAttribute @Valid SignupForm signupForm,
+                         BindingResult signUpFormBindingResult,
                          @ModelAttribute TokenRequest tokenRequest,
-                         BindingResult bindingResult,
+                         BindingResult tokenRequestBindingResult,
                          Model model,
                          RedirectAttributes redirectAttributes) {
 
         log.info("User attempting sign up with code {}", code);
 
-        if (bindingResult.hasErrors()) {
+        if (signUpFormBindingResult.hasErrors()) {
             model.addAttribute("invite", inviteRepository.findByCode(code));
             return "signup";
         }
@@ -184,7 +187,7 @@ public class SignupController {
             }
 
             // for everyone
-            identityService.createIdentityFromInviteCode(code, form.getPassword());
+            identityService.createIdentityFromInviteCode(code, signupForm.getPassword());
             inviteService.updateInviteByCode(code, InviteStatus.ACCEPTED);
 
             model.addAttribute("lpgUiUrl", lpgUiUrl);
@@ -257,13 +260,6 @@ public class SignupController {
                     });
         } else {
             return "redirect:/login";
-        }
-    }
-
-    @InitBinder
-    public void setupValidation(WebDataBinder binder) {
-        if (binder.getTarget() instanceof SignupForm) {
-            binder.addValidators(signupFormValidator);
         }
     }
 

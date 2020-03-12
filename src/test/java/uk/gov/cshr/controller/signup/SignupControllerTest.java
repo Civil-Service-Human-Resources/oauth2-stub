@@ -56,9 +56,6 @@ public class SignupControllerTest {
     @MockBean
     private InviteRepository inviteRepository;
 
-    @MockBean
-    private SignupFormValidator signupFormValidator;
-
     @Before
     public void overridePatternMappingFilterProxyFilter() throws IllegalAccessException {
         MockMVCFilterOverrider.overrideFilterOf(mockMvc, "PatternMappingFilterProxy" );
@@ -264,7 +261,6 @@ public class SignupControllerTest {
 
         when(inviteService.isInviteValid(code)).thenReturn(true);
         when(inviteRepository.findByCode(code)).thenReturn(invite);
-        when(signupFormValidator.supports(any())).thenReturn(true);
 
         mockMvc.perform(
                 get("/signup/" + code)
@@ -273,23 +269,21 @@ public class SignupControllerTest {
                 .andExpect(view().name("signup"));
     }
 
-//    @Test
-//    public void shouldNotPostIfPasswordsDifferent() throws Exception {
-//        String code = "abc123";
-//        String password = "password";
-//        String differentPassword = "differentPassword";
-//
-//        when(signupFormValidator.supports(any())).thenReturn(true);
-//
-//        mockMvc.perform(
-//                post("/signup/" + code)
-//                        .with(CsrfRequestPostProcessor.csrf())
-//                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-//                        .param("password", password)
-//                        .param("confirmPassword", differentPassword))
-//                .andExpect(status().is3xxRedirection())
-//                .andExpect(view().name("signup"));
-//    }
+    @Test
+    public void shouldNotPostIfPasswordsDifferent() throws Exception {
+        String code = "abc123";
+        String password = "Password1";
+        String differentPassword = "differentPassword1";
+
+        mockMvc.perform(
+                post("/signup/" + code)
+                        .with(CsrfRequestPostProcessor.csrf())
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("password", password)
+                        .param("confirmPassword", differentPassword))
+                .andExpect(status().isOk())
+                .andExpect(view().name("signup"));
+    }
 
     @Test 
     public void shouldRedirectToSignUpIfFormHasError() throws Exception {
@@ -297,7 +291,6 @@ public class SignupControllerTest {
         String password = "password";
 
         when(inviteService.isInviteValid(code)).thenReturn(false);
-        when(signupFormValidator.supports(any())).thenReturn(true);
         when(inviteRepository.findByCode(anyString())).thenReturn(new Invite());
 
         mockMvc.perform(
@@ -313,10 +306,9 @@ public class SignupControllerTest {
     @Test
     public void shouldRedirectToLoginIfInviteNotValid() throws Exception {
         String code = "abc123";
-        String password = "password";
+        String password = "Password1";
 
         when(inviteService.isInviteValid(code)).thenReturn(false);
-        when(signupFormValidator.supports(any())).thenReturn(true);
 
         mockMvc.perform(
                 post("/signup/" + code)
@@ -331,13 +323,12 @@ public class SignupControllerTest {
     @Test
     public void shouldRedirectToEnterTokenIfInviteNotAuthorised() throws Exception {
         String code = "abc123";
-        String password = "password";
+        String password = "Password1";
         Invite invite = new Invite();
         invite.setAuthorisedInvite(false);
 
         when(inviteService.isInviteValid(code)).thenReturn(true);
         when(inviteRepository.findByCode(code)).thenReturn(invite);
-        when(signupFormValidator.supports(any())).thenReturn(true);
 
         mockMvc.perform(
                 post("/signup/" + code)
@@ -352,13 +343,12 @@ public class SignupControllerTest {
     @Test
     public void shouldReturnSignupSuccessIfInviteAuthorised() throws Exception {
         String code = "abc123";
-        String password = "password";
+        String password = "Password1";
         Invite invite = new Invite();
         invite.setAuthorisedInvite(true);
 
         when(inviteService.isInviteValid(code)).thenReturn(true);
         when(inviteRepository.findByCode(code)).thenReturn(invite);
-        when(signupFormValidator.supports(any())).thenReturn(true);
 
         mockMvc.perform(
                 post("/signup/" + code)
