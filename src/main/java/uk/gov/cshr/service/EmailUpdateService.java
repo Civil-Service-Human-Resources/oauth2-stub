@@ -78,6 +78,9 @@ public class EmailUpdateService {
             log.info("user used to be a token person, work out which token and remove them from that quota");
             String oldOrg = csrsService.getOrgCode(identity.getUid());
             if (oldOrg != null) {
+                if(oldOrg.length() == 0) {
+                    throw new ResourceNotFoundException();
+                }
                 log.info("old org code found is:" + oldOrg);
             }
 

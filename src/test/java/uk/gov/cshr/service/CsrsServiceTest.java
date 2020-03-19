@@ -21,6 +21,7 @@ import uk.gov.cshr.domain.AgencyToken;
 import uk.gov.cshr.domain.OrganisationalUnitDto;
 import uk.gov.cshr.dto.AgencyTokenDTO;
 import uk.gov.cshr.exception.*;
+import uk.gov.cshr.utils.UrlEncodingUtils;
 
 import java.net.ConnectException;
 import java.util.Optional;
@@ -40,6 +41,9 @@ public class CsrsServiceTest {
     @Mock
     private RestTemplate restTemplate;
 
+    @Mock
+    private UrlEncodingUtils urlEncodingUtils;
+
     @Captor
     private ArgumentCaptor<AgencyTokenDTO> agencyTokenDTOArgumentCaptor;
 
@@ -50,6 +54,7 @@ public class CsrsServiceTest {
     private String updateSpacesAvailableUrl;
     private String getOrganisationUrl;
     private CsrsService csrsService;
+
 
     @Before
     public void setUp() {
@@ -71,6 +76,9 @@ public class CsrsServiceTest {
         ReflectionTestUtils.setField(csrsService, "organisationalUnitsFlatUrl", organisationalUnitsFlatUrl);
         ReflectionTestUtils.setField(csrsService, "updateSpacesAvailableUrl", updateSpacesAvailableUrl);
         ReflectionTestUtils.setField(csrsService, "getOrganisationUrl", getOrganisationUrl);
+        ReflectionTestUtils.setField(csrsService, "urlEncodingUtils", urlEncodingUtils);
+
+        when(urlEncodingUtils.encodeValue(anyString(), anyString(), anyMap())).thenReturn("NHSGLASGOW");
     }
 
     @Test

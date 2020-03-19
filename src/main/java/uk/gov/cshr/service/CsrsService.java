@@ -13,7 +13,6 @@ import uk.gov.cshr.domain.OrganisationalUnitDto;
 import uk.gov.cshr.dto.AgencyTokenDTO;
 import uk.gov.cshr.exception.*;
 
-import java.net.ConnectException;
 import java.util.Optional;
 
 @Slf4j
@@ -97,11 +96,19 @@ public class CsrsService {
     }
 
     public String getOrgCode(String uid) {
-        String url = String.format(getOrganisationUrl, uid);
+        // encode the param of the uid as it has dashes in it
         try {
+            String url = String.format(getOrganisationUrl, uid);
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
             return response.getBody();
+        } catch (HttpClientErrorException clientException) {
+            log.warn("client exception with status code " + clientException.getRawStatusCode(), clientException);
+            return "";
+        } catch (HttpServerErrorException serverException) {
+            log.warn("server exception with status code " + serverException.getRawStatusCode(), serverException);
+            return "";
         } catch (Exception e) {
+            log.warn("an unexpected error occurred", e);
             return "";
         }
     }

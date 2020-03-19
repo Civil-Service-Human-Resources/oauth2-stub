@@ -74,7 +74,7 @@ registry:
   agencyTokensByDomainAndOrganisationFormat: "${registry.serviceUrl}/agencyTokens?domain=%s&code=%s"
   organisationalUnitsFlatUrl: "${registry.serviceUrl}/organisationalUnits/flat"
   updateSpacesAvailableUrl: "${registry.serviceUrl}/agencyTokens"
-  getOrganisationUrl: "${registry.serviceUrl}/civilServants/org?uid=%s"
+  getOrganisationUrl: "${registry.serviceUrl}/civilServants/org/%s"
   updateOrganisationUrl: "${registry.serviceUrl}/civilServants/org"
 ---
 
