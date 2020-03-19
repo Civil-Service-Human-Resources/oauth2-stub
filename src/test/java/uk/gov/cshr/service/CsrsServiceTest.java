@@ -41,9 +41,6 @@ public class CsrsServiceTest {
     @Mock
     private RestTemplate restTemplate;
 
-    @Mock
-    private UrlEncodingUtils urlEncodingUtils;
-
     @Captor
     private ArgumentCaptor<AgencyTokenDTO> agencyTokenDTOArgumentCaptor;
 
@@ -76,9 +73,6 @@ public class CsrsServiceTest {
         ReflectionTestUtils.setField(csrsService, "organisationalUnitsFlatUrl", organisationalUnitsFlatUrl);
         ReflectionTestUtils.setField(csrsService, "updateSpacesAvailableUrl", updateSpacesAvailableUrl);
         ReflectionTestUtils.setField(csrsService, "getOrganisationUrl", getOrganisationUrl);
-        ReflectionTestUtils.setField(csrsService, "urlEncodingUtils", urlEncodingUtils);
-
-        when(urlEncodingUtils.encodeValue(anyString(), anyString(), anyMap())).thenReturn("NHSGLASGOW");
     }
 
     @Test
