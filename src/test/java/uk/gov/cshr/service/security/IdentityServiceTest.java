@@ -261,10 +261,6 @@ public class IdentityServiceTest {
         verify(identityRepository, times(1)).save(optionalIdentity.get());
         Identity actualSavedIdentity = identityArgumentCaptor.getValue();
         assertThat(actualSavedIdentity.isEmailRecentlyUpdated(), equalTo(true));
-        // ensure token flow was NOT executed
-        verify(csrsService, never()).getOrgCode(anyString());
-        verify(csrsService, never()).getAgencyTokenForDomainAndOrganisation(anyString(), anyString());
-        verify(csrsService, never()).updateSpacesAvailable(anyString(), anyString(), anyString(), anyBoolean());
     }
 
     @Test
@@ -286,8 +282,6 @@ public class IdentityServiceTest {
 
     @Test(expected = IdentityNotFoundException.class)
     public void givenAnNotFoundIdentity_resetRecentlyUpdatedEmailFlag_shouldThrowIdentityNotFoundException(){
-        // given
-//        when(identityRepository.findFirstByUid(anyString())).thenReturn(Optional.empty());
 
         // when
         identityService.resetRecentlyUpdatedEmailFlagToFalse(new Identity());

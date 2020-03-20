@@ -144,38 +144,11 @@ public class CsrsServiceTest {
     }
 
     @Test
-    public void givenAValidUID_whenGetOrgCode_thenShouldReturnSuccessfully() {
-        // given
-        String uid = "myuid";
-        when(restTemplate.getForEntity(String.format(getOrganisationUrl, uid), String.class)).thenReturn(new ResponseEntity<String>("co", HttpStatus.OK));
-
-        // when
-        String actual = csrsService.getOrgCode(uid);
-
-        // then
-        assertThat(actual, equalTo("co"));
-    }
-
-    @Test
-    public void givenAInvalidUID_whenGetOrgCode_thenShouldReturnEmptyString() {
-        // given
-        String uid = "myuid";
-        when(restTemplate.getForEntity(String.format(getOrganisationUrl, uid), String.class)).thenThrow(new RuntimeException());
-
-        // when
-        String actual = csrsService.getOrgCode(uid);
-
-        // then
-        assertThat(actual, equalTo(""));
-    }
-
-    @Test
     public void givenAValidAgencyTokenAndSpacesAvailableAndAddUser_whenUpdateSpacesAvailable_thenReduceSpacesByOne() {
         // given
         String domain = "mydomain";
         String token = "token123";
         String code = "mycode";
-//        doNothing().when(restTemplate).put(updateSpacesAvailableUrl, AgencyTokenDTO.class);
 
         // when
         csrsService.updateSpacesAvailable(domain, token, code, false);

@@ -1,5 +1,6 @@
 package uk.gov.cshr.service;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -12,14 +13,12 @@ import org.springframework.test.annotation.Commit;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.transaction.TestTransaction;
 import org.springframework.transaction.annotation.Transactional;
-import org.yaml.snakeyaml.events.Event;
 import uk.gov.cshr.domain.AgencyToken;
 import uk.gov.cshr.domain.EmailUpdate;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.exception.IdentityNotFoundException;
 import uk.gov.cshr.exception.InvalidCodeException;
-import uk.gov.cshr.exception.ResourceNotFoundException;
 import uk.gov.cshr.repository.EmailUpdateRepository;
 import uk.gov.cshr.service.security.IdentityService;
 
@@ -102,15 +101,14 @@ public class EmailUpdateServiceTest {
     }
 
     @Test
-    public void givenAValidIdentityAndAValidCodeAndAWhitelistedDomain_whenUpdateEmailAddress_shouldReturnSuccessfully(){
+    public void givenAValidIdentity_whenUpdateEmailAddress_shouldReturnSuccessfully(){
         // given
         EmailUpdate emailUpdate = new EmailUpdate();
         emailUpdate.setId(100l);
         emailUpdate.setEmail("myemail@mynewemail.com");
         Optional<EmailUpdate> optionalEmailUpdate = Optional.of(emailUpdate);
         when(emailUpdateRepository.findByIdentityAndCode(any(Identity.class), anyString())).thenReturn(optionalEmailUpdate);
-        when(identityService.getDomainFromEmailAddress(anyString())).thenReturn("myoldomain.com");
-        when(identityService.isWhitelistedDomain(anyString())).thenReturn(true);
+
         doNothing().when(identityService).updateEmailAddressAndEmailRecentlyUpdatedFlagToTrue(eq(IDENTITY), eq(emailUpdate.getEmail()));
         doNothing().when(emailUpdateRepository).delete(any(EmailUpdate.class));
 
@@ -119,8 +117,6 @@ public class EmailUpdateServiceTest {
 
         // then
         verify(emailUpdateRepository, times(1)).findByIdentityAndCode(eq(IDENTITY), eq("CO"));
-        verify(identityService, times(1)).getDomainFromEmailAddress(eq(IDENTITY.getEmail()));
-        verify(identityService, times(1)).isWhitelistedDomain(eq("myoldomain.com"));
         verify(identityService, times(1)).updateEmailAddressAndEmailRecentlyUpdatedFlagToTrue(eq(IDENTITY), eq(emailUpdate.getEmail()));
         verify(emailUpdateRepository, times(1)).delete(emailUpdateArgumentCaptor.capture());
 
@@ -139,76 +135,6 @@ public class EmailUpdateServiceTest {
 
         // then
         verify(emailUpdateRepository, times(1)).findByIdentityAndCode(eq(IDENTITY), eq("CO"));
-        verify(identityService, never()).getDomainFromEmailAddress(anyString());
-        verify(identityService, never()).isWhitelistedDomain(anyString());
-        verify(identityService, never()).updateEmailAddressAndEmailRecentlyUpdatedFlagToTrue(any(Identity.class), anyString());
-        verify(emailUpdateRepository, never()).delete(any(EmailUpdate.class));
-    }
-
-    @Test
-    public void givenAValidIdentityAndAValidCodeAndAnAgencyTokenUser_whenUpdateEmailAddress_shouldReturnSuccessfully(){
-        // given
-        EmailUpdate emailUpdate = new EmailUpdate();
-        emailUpdate.setId(100l);
-        emailUpdate.setEmail("myemail@mynewemail.com");
-        Optional<EmailUpdate> optionalEmailUpdate = Optional.of(emailUpdate);
-        when(emailUpdateRepository.findByIdentityAndCode(any(Identity.class), anyString())).thenReturn(optionalEmailUpdate);
-        when(identityService.getDomainFromEmailAddress(anyString())).thenReturn("myoldomain.com");
-        when(identityService.isWhitelistedDomain(anyString())).thenReturn(false);
-        // agency token scenario
-        when(csrsService.getOrgCode(any())).thenReturn("ab");
-        Optional<AgencyToken> optionalAgencyToken = Optional.of(buildAgencyToken());
-        when(csrsService.getAgencyTokenForDomainAndOrganisation(anyString(), anyString())).thenReturn(optionalAgencyToken);
-        doNothing().when(csrsService).updateSpacesAvailable(anyString(), anyString(), anyString(), anyBoolean());
-        // end of agency token scenario
-        doNothing().when(identityService).updateEmailAddressAndEmailRecentlyUpdatedFlagToTrue(eq(IDENTITY), eq(emailUpdate.getEmail()));
-        doNothing().when(emailUpdateRepository).delete(any(EmailUpdate.class));
-
-        // when
-        classUnderTest.updateEmailAddress(IDENTITY, "CO");
-
-        // then
-        verify(emailUpdateRepository, times(1)).findByIdentityAndCode(eq(IDENTITY), eq("CO"));
-        verify(identityService, times(1)).getDomainFromEmailAddress(eq(IDENTITY.getEmail()));
-        verify(identityService, times(1)).isWhitelistedDomain(eq("myoldomain.com"));
-        // agency token scenario
-        verify(csrsService).getAgencyTokenForDomainAndOrganisation(eq("myoldomain.com"), eq("ab"));
-        verify(csrsService).updateSpacesAvailable(eq("myoldomain.com"), eq("token123"), eq("ab"), eq(true));
-        // end of agency token scenario
-        verify(identityService, times(1)).updateEmailAddressAndEmailRecentlyUpdatedFlagToTrue(eq(IDENTITY), eq(emailUpdate.getEmail()));
-        verify(emailUpdateRepository, times(1)).delete(emailUpdateArgumentCaptor.capture());
-
-        EmailUpdate actualDeletedEmailUpdate = emailUpdateArgumentCaptor.getValue();
-        assertThat(actualDeletedEmailUpdate.getId(), equalTo(100l));
-    }
-
-    @Test (expected = ResourceNotFoundException.class)
-    public void givenAValidIdentityAndAValidCodeAndAnAgencyTokenUserAndNoAgencyToken_whenUpdateEmailAddress_shouldThrowResourceNotFoundException(){
-        // given
-        EmailUpdate emailUpdate = new EmailUpdate();
-        emailUpdate.setId(100l);
-        emailUpdate.setEmail("myemail@mynewemail.com");
-        Optional<EmailUpdate> optionalEmailUpdate = Optional.of(emailUpdate);
-        when(emailUpdateRepository.findByIdentityAndCode(any(Identity.class), anyString())).thenReturn(optionalEmailUpdate);
-        when(identityService.getDomainFromEmailAddress(anyString())).thenReturn("myoldomain.com");
-        when(identityService.isWhitelistedDomain(anyString())).thenReturn(false);
-        // agency token scenario
-        when(csrsService.getOrgCode(anyString())).thenReturn("ab");
-        when(csrsService.getAgencyTokenForDomainAndOrganisation(anyString(), anyString())).thenReturn(Optional.empty());
-        // end of agency token scenario
-
-        // when
-        classUnderTest.updateEmailAddress(IDENTITY, "CO");
-
-        // then
-        verify(emailUpdateRepository, times(1)).findByIdentityAndCode(eq(IDENTITY), eq("CO"));
-        verify(identityService, times(1)).getDomainFromEmailAddress(eq(IDENTITY.getEmail()));
-        verify(identityService, times(1)).isWhitelistedDomain(eq("myoldomain.com"));
-        // agency token scenario
-        verify(csrsService.getOrgCode(any()));
-        verify(csrsService).getAgencyTokenForDomainAndOrganisation(eq("myoldomain.com"), eq("ab"));
-        verify(csrsService, never()).updateSpacesAvailable(anyString(), anyString(), anyString(), anyBoolean());
-        // end of agency token scenario
         verify(identityService, never()).updateEmailAddressAndEmailRecentlyUpdatedFlagToTrue(any(Identity.class), anyString());
         verify(emailUpdateRepository, never()).delete(any(EmailUpdate.class));
     }
