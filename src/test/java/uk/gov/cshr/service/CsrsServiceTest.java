@@ -46,7 +46,6 @@ public class CsrsServiceTest {
     private String getOrganisationUrl;
     private CsrsService csrsService;
 
-
     @Before
     public void setUp() {
         agencyTokensFormat = "http://locahost:9002/agencyTokens?domain=%s&token=%s&code=%s";

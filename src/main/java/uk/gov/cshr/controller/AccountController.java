@@ -1,8 +1,6 @@
 package uk.gov.cshr.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -23,8 +21,6 @@ import javax.validation.Valid;
 @Controller
 @RequestMapping("/account")
 public class AccountController {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AccountController.class);
-
     private final IdentityService identityService;
     private final EmailUpdateService emailUpdateService;
     private final String lpgUiUrl;

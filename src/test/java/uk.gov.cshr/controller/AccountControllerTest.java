@@ -8,6 +8,7 @@ import org.mockito.Captor;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
@@ -67,6 +68,9 @@ public class AccountControllerTest {
 
     @Captor
     private ArgumentCaptor<Identity> identityArgumentCaptor;
+
+    @Value("${lpg.uiUrl}")
+    private String lpgUiUrl;
 
     @Before
     public void setup() {
@@ -206,8 +210,8 @@ public class AccountControllerTest {
     public void givenASuccessfulUpdateOfEmailAddress_whenEmailUpdated_shouldRedirectToEmailUpdatedView() throws Exception {
         // when
         mockMvc.perform(get("/account/emailUpdated"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("account/emailUpdated"));
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(lpgUiUrl+ "/sign-out"));
     }
 
     private Authentication prepareAuthentication(String userNameToAuthenticateWith) {
