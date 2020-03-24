@@ -3,6 +3,7 @@ package uk.gov.cshr.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -26,10 +27,12 @@ public class AccountController {
 
     private final IdentityService identityService;
     private final EmailUpdateService emailUpdateService;
+    private final String lpgUiUrl;
 
-    public AccountController(IdentityService identityService, EmailUpdateService emailUpdateService) {
+    public AccountController(IdentityService identityService, EmailUpdateService emailUpdateService, @Value("${lpg.uiUrl}") String lpgUiUrl) {
         this.identityService = identityService;
         this.emailUpdateService = emailUpdateService;
+        this.lpgUiUrl = lpgUiUrl;
     }
 
     @GetMapping("/password")
@@ -105,6 +108,6 @@ public class AccountController {
 
     @GetMapping("/emailUpdated")
     public String emailUpdated() {
-        return "account/emailUpdated";
+        return "redirect:" + lpgUiUrl + "/sign-out";
     }
 }
