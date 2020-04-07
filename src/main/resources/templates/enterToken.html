@@ -26,9 +26,9 @@
                         <div class="form-group" th:classappend="${#fields.hasErrors('organisation')} ? form-group-error : ''">
                             <label th:for="organisation" class="govuk-label">Organisation</label>
                             <span id="organisation-hint" class="form-hint">Start typing to find your organisation name</span>
-                            <select id="organisation" name="organisation">
+                            <select id="organisation" name="organisation" aria-labelledby="organisation">
                                 <option value=""></option>
-                                <option th:each="organisation : ${organisations}" th:value="${organisation.code}" th:text="${organisation.formattedName}"></option>
+                                <option th:label="${organisation.formattedName}" th:each="organisation : ${organisations}" th:value="${organisation.code}" th:text="${organisation.formattedName}"></option>
                             </select>
                         </div>
 
