@@ -57,6 +57,7 @@ public class AccountController {
 
     @GetMapping("/email")
     public String updateEmailForm(Model model, @ModelAttribute UpdateEmailForm form) {
+        model.addAttribute("lpgUiUrl", lpgUiUrl);
         model.addAttribute("updateEmailForm", form);
         return "account/updateEmail";
     }
