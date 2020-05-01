@@ -75,6 +75,12 @@ public class AccountController {
             return "redirect:/account/email?emailAlreadyTaken=true";
         }
 
+        if(!identityService.checkValidEmail(form.getEmail())) {
+            log.error("Email is neither whitelisted or for an agency token: {}", form.getEmail());
+            model.addAttribute("updateEmailForm", form);
+            return "redirect:/account/email?notValidEmailDomain=true";
+        }
+
         emailUpdateService.saveEmailUpdateAndNotify(((IdentityDetails) authentication.getPrincipal()).getIdentity(), form.getEmail());
 
         return "account/emailVerificationSent";

@@ -18,7 +18,6 @@ import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.exception.IdentityNotFoundException;
-import uk.gov.cshr.exception.ResourceNotFoundException;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.TokenRepository;
 import uk.gov.cshr.service.CsrsService;
@@ -166,6 +165,21 @@ public class IdentityService implements UserDetailsService {
 
     public String getDomainFromEmailAddress(String emailAddress) {
         return emailAddress.substring(emailAddress.indexOf('@') + 1);
+    }
+
+    public boolean checkValidEmail(String email) {
+        final String domain = getDomainFromEmailAddress(email);
+
+        if (isWhitelistedDomain(domain)) {
+            return true;
+        } else {
+            AgencyToken[] agencyTokensForDomain = csrsService.getAgencyTokensForDomain(domain);
+
+            if (agencyTokensForDomain.length > 0) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

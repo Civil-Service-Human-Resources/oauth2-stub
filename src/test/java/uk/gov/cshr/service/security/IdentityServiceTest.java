@@ -28,7 +28,7 @@ import java.util.Set;
 import static java.util.Collections.emptySet;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -300,6 +300,78 @@ public class IdentityServiceTest {
 
         // then
         verify(identityRepository, times(1)).save(optionalIdentity.get());
+    }
+
+    @Test
+    public void givenAValidIdentity_getEmailRecentlyUpdatedFlag_shouldReturnSuccessfully(){
+        // given
+        IDENTITY.setId(123L);
+        IDENTITY.setEmailRecentlyUpdated(true);
+        Optional<Identity> optionalIdentity = Optional.of(IDENTITY);
+        when(identityRepository.findById(anyLong())).thenReturn(optionalIdentity);
+
+        // when
+        boolean actual = identityService.getRecentlyUpdatedEmailFlag(IDENTITY);
+
+        // then
+        assertTrue(actual);
+        verify(identityRepository, times(1)).findById(eq(IDENTITY.getId()));
+    }
+
+    @Test(expected = IdentityNotFoundException.class)
+    public void givenAnInvalidIdentity_getEmailRecentlyUpdatedFlag_shouldThrowIdentityNotFoundException(){
+        // given
+
+        // when
+        boolean actual = identityService.getRecentlyUpdatedEmailFlag(IDENTITY);
+
+        // then
+        assertFalse(actual);
+        verify(identityRepository, never()).findById(anyLong());
+    }
+
+    @Test
+    public void givenAValidWhitelistedEmail_whenCheckValidEmail_shouldReturnTrue(){
+        // given
+        // whitelisted.gov.uk which is whitelisted
+
+        // when
+        boolean actual = identityService.checkValidEmail("someone@whitelisted.gov.uk");
+
+        // then
+        assertTrue(actual);
+        verifyZeroInteractions(csrsService);
+    }
+
+    @Test
+    public void givenAValidAgencyTokenEmail_whenCheckValidEmail_shouldReturnTrue(){
+        // given
+        // badger.gov.uk which has at least one agency tokens associated with it
+        AgencyToken[] agencyTokens = new AgencyToken[1];
+        agencyTokens[0] = buildAgencyToken();
+        when(csrsService.getAgencyTokensForDomain(anyString())).thenReturn(agencyTokens);
+
+        // when
+        boolean actual = identityService.checkValidEmail("someone@badger.gov.uk");
+
+        // then
+        assertTrue(actual);
+        verify(csrsService, times(1)).getAgencyTokensForDomain(eq("badger.gov.uk"));
+    }
+
+    @Test
+    public void givenANonValidAgencyTokenEmail_whenCheckValidEmail_shouldReturnFalse(){
+        // given
+        // bennevis.com which is not whitelisted and has no agency tokens associated with it
+        AgencyToken[] agencyTokens = new AgencyToken[0];
+        when(csrsService.getAgencyTokensForDomain(anyString())).thenReturn(agencyTokens);
+
+        // when
+        boolean actual = identityService.checkValidEmail("someone@bennevis.com");
+
+        // then
+        assertFalse(actual);
+        verify(csrsService, times(1)).getAgencyTokensForDomain(eq("bennevis.com"));
     }
 
     private AgencyToken buildAgencyToken() {
