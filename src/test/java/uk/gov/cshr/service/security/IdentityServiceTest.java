@@ -340,50 +340,6 @@ public class IdentityServiceTest {
         verify(identityRepository, never()).findById(anyLong());
     }
 
-    @Test
-    public void givenAValidWhitelistedEmail_whenCheckValidEmail_shouldReturnTrue(){
-        // given
-        // whitelisted.gov.uk which is whitelisted
-
-        // when
-        boolean actual = identityService.checkValidEmail("someone@whitelisted.gov.uk");
-
-        // then
-        assertTrue(actual);
-        verifyZeroInteractions(csrsService);
-    }
-
-    @Test
-    public void givenAValidAgencyTokenEmail_whenCheckValidEmail_shouldReturnTrue(){
-        // given
-        // badger.gov.uk which has at least one agency tokens associated with it
-        AgencyToken[] agencyTokens = new AgencyToken[1];
-        agencyTokens[0] = buildAgencyToken();
-        when(csrsService.getAgencyTokensForDomain(anyString())).thenReturn(agencyTokens);
-
-        // when
-        boolean actual = identityService.checkValidEmail("someone@badger.gov.uk");
-
-        // then
-        assertTrue(actual);
-        verify(csrsService, times(1)).getAgencyTokensForDomain(eq("badger.gov.uk"));
-    }
-
-    @Test
-    public void givenANonValidAgencyTokenEmail_whenCheckValidEmail_shouldReturnFalse(){
-        // given
-        // bennevis.com which is not whitelisted and has no agency tokens associated with it
-        AgencyToken[] agencyTokens = new AgencyToken[0];
-        when(csrsService.getAgencyTokensForDomain(anyString())).thenReturn(agencyTokens);
-
-        // when
-        boolean actual = identityService.checkValidEmail("someone@bennevis.com");
-
-        // then
-        assertFalse(actual);
-        verify(csrsService, times(1)).getAgencyTokensForDomain(eq("bennevis.com"));
-    }
-
     private AgencyToken buildAgencyToken() {
         AgencyToken at = new AgencyToken();
         at.setToken("token123");

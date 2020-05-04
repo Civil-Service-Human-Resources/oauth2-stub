@@ -201,16 +201,14 @@ public class AccountControllerTest {
         // then
         // server side error is displayed on form
         verify(identityService, times(1)).checkEmailExists(eq("basic@domain.com"));
-        verify(identityService, never()).checkValidEmail(anyString());
         verifyZeroInteractions(emailUpdateService);
     }
 
-    @Test
+   /* @Test
     public void givenAValidFormAndAnEmailThatIsNotValid_whenSendEmailVerification_shouldDisplayUnableToUseThisServiceError() throws Exception {
         // given
         Authentication authentication = prepareAuthentication(NORMAL_TEST_USER_UID);
         when(identityService.checkEmailExists(anyString())).thenReturn(false);
-        when(identityService.checkValidEmail(anyString())).thenReturn(false);
 
         // when
         mockMvc.perform(post(EMAIL_URL)
@@ -229,16 +227,14 @@ public class AccountControllerTest {
         // then
         // server side error is displayed on form
         verify(identityService, times(1)).checkEmailExists(eq("basic@domain.com"));
-        verify(identityService, times(1)).checkValidEmail(eq("basic@domain.com"));
         verifyZeroInteractions(emailUpdateService);
-    }
+    }*/
 
     @Test
     public void givenAValidFormAndEmailDoesntAlreadyExistAndIsAValidEmail_whenSendEmailVerification_shouldDisplayEmailVerificationSentScreen() throws Exception {
         // given
         Authentication authentication = prepareAuthentication(NORMAL_TEST_USER_UID);
         when(identityService.checkEmailExists(anyString())).thenReturn(false);
-        when(identityService.checkValidEmail(anyString())).thenReturn(true);
 
         // when
         mockMvc.perform(post(EMAIL_URL)
@@ -256,7 +252,6 @@ public class AccountControllerTest {
 
         // then
         verify(identityService, times(1)).checkEmailExists(eq("basic@domain.com"));
-        verify(identityService, times(1)).checkValidEmail(eq("basic@domain.com"));
         verify(emailUpdateService, times(1)).saveEmailUpdateAndNotify(identityArgumentCaptor.capture(), eq("basic@domain.com"));
         // check correct identity was processed
         Identity actualIdentityToUpdate = identityArgumentCaptor.getValue();

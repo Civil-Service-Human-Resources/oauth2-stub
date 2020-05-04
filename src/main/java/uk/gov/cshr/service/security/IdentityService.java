@@ -172,21 +172,6 @@ public class IdentityService implements UserDetailsService {
         return emailAddress.substring(emailAddress.indexOf('@') + 1);
     }
 
-    public boolean checkValidEmail(String email) {
-        final String domain = getDomainFromEmailAddress(email);
-
-        if (isWhitelistedDomain(domain)) {
-            return true;
-        } else {
-            AgencyToken[] agencyTokensForDomain = csrsService.getAgencyTokensForDomain(domain);
-
-            if (agencyTokensForDomain.length > 0) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public void updateSpringWithRecentlyEmailUpdatedFlag(HttpServletRequest request, boolean emailUpdatedFlag) {
         // update spring authentication and spring session
         Identity identityFromSpringAuth = springUserUtils.getIdentityFromSpringAuthentication();
