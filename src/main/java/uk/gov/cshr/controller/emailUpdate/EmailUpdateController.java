@@ -15,6 +15,7 @@ import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.service.CsrsService;
 import uk.gov.cshr.service.EmailUpdateService;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Optional;
 
@@ -77,7 +78,8 @@ public class EmailUpdateController {
     public String checkToken(Model model,
                               @ModelAttribute @Valid EmailUpdatedRecentlyEnterTokenForm form,
                               BindingResult bindingResult,
-                              RedirectAttributes redirectAttributes) {
+                              RedirectAttributes redirectAttributes,
+                              HttpServletRequest request) {
 
         log.info("User attempting token-based sign up since updating their email");
 
@@ -93,7 +95,7 @@ public class EmailUpdateController {
             Optional<Identity> optionalIdentity = identityRepository.findFirstByUid(uid);
             if(optionalIdentity.isPresent()) {
                 log.info("User checking Enter Token form with domain = {}, token = {}, org = {}", domain, form.getToken(), form.getOrganisation());
-                emailUpdateService.processEmailUpdatedRecentlyRequestForAgencyTokenUser(domain, form.getToken(), form.getOrganisation(), optionalIdentity.get());
+                emailUpdateService.processEmailUpdatedRecentlyRequestForAgencyTokenUser(domain, form.getToken(), form.getOrganisation(), optionalIdentity.get(), request);
                 return "redirect:" + lpgUiUrl;
             } else {
                 log.info("No identity found for uid {}", uid);

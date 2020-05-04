@@ -8,7 +8,6 @@ import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import uk.gov.cshr.domain.Identity;
-import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.service.AgencyTokenService;
 import uk.gov.cshr.service.EmailUpdateService;
 import uk.gov.cshr.service.security.IdentityDetails;
@@ -18,7 +17,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
-import java.util.Optional;
 
 @Slf4j
 public class CustomAuthenticationSuccessHandler
@@ -42,9 +40,6 @@ public class CustomAuthenticationSuccessHandler
     @Autowired
     private EmailUpdateService emailUpdateService;
 
-    @Autowired
-    private IdentityRepository identityRepository;
-
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response, Authentication authentication)
@@ -57,7 +52,7 @@ public class CustomAuthenticationSuccessHandler
                           HttpServletResponse response, Authentication authentication)
             throws IOException {
 
-        String targetUrl = determineTargetUrl(authentication);
+        String targetUrl = determineTargetUrl(authentication, request);
 
         if (response.isCommitted()) {
             log.debug(
@@ -70,28 +65,26 @@ public class CustomAuthenticationSuccessHandler
         redirectStrategy.sendRedirect(request, response, targetUrl);
     }
 
-    protected String determineTargetUrl(Authentication authentication) {
-        // GET FLAG FROM IDENTITY REPO (NOT SPRING AUTH)
+    protected String determineTargetUrl(Authentication authentication, HttpServletRequest request) {
         IdentityDetails identityDetails = (IdentityDetails) authentication.getPrincipal();
         Identity identity = identityDetails.getIdentity();
 
         if(identityService.getRecentlyUpdatedEmailFlag(identity)) {
-            log.debug("users email has recently been updated");
-            return getTargetUrl(identity);
+            log.debug("signing in for the first time since updating their email");
+            return processRecentlyUpdatedEmailUser(request, identity);
         }
 
         return lpgUiUrl;
     }
 
-    private String getTargetUrl(Identity identity) {
-        String domain = identityService.getDomainFromEmailAddress(identity.getEmail());
-        String uid = identity.getUid();
+    private String processRecentlyUpdatedEmailUser(HttpServletRequest request, Identity identity) {
+        String domain = getDomain(identity.getEmail());
         if (agencyTokenService.isDomainWhiteListed(domain)) {
-            emailUpdateService.processEmailUpdatedRecentlyRequestForWhiteListedDomainUser(identity);
+            emailUpdateService.processEmailUpdatedRecentlyRequestForWhiteListedDomainUser(request, identity);
             return lpgUiUrl;
         } else {
             if(agencyTokenService.isDomainAnAgencyTokenDomain(domain)) {
-                return "/redirectToEnterTokenPage/" + domain + "/" + uid;
+                return "/redirectToEnterTokenPage/" + domain + "/" + identity.getUid();
             } else {
                 return invalidDomainUrl;
             }
@@ -104,6 +97,10 @@ public class CustomAuthenticationSuccessHandler
             return;
         }
         session.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+    }
+
+    private String getDomain(String email) {
+        return identityService.getDomainFromEmailAddress(email);
     }
 
 }

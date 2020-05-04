@@ -43,16 +43,7 @@ public class RedirectControllerTest {
     }
 
     @Test
-    public void whenGoToUIHomePage_shouldRedirectToTheLPGUIHomePage() throws Exception {
-        mockMvc.perform(
-                get("/redirectToUIHomePage"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(lpgUiUrl))
-                .andExpect(model().size(0));
-    }
-
-    @Test
-    public void whenGoToEnterTokenPage_shouldRedirectToTheEnterTokenPage() throws Exception {
+    public void whenGoToEnterTokenPage_shouldRedirectToTheEmailUpdatedEnterTokenPage() throws Exception {
         String expectedRedirectToUrl = "/emailUpdated/enterToken";
 
         mockMvc.perform(

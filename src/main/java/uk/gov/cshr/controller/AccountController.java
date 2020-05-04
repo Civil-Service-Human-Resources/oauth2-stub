@@ -15,6 +15,7 @@ import uk.gov.cshr.service.EmailUpdateService;
 import uk.gov.cshr.service.security.IdentityDetails;
 import uk.gov.cshr.service.security.IdentityService;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 @Slf4j
@@ -87,7 +88,7 @@ public class AccountController {
     }
 
     @GetMapping("/email/verify/{code}")
-    public String verifyEmail(@PathVariable String code, Authentication authentication) {
+    public String verifyEmail(@PathVariable String code, Authentication authentication, HttpServletRequest request) {
         Identity identity = ((IdentityDetails) authentication.getPrincipal()).getIdentity();
 
         if(!emailUpdateService.verifyCode(identity, code)) {
@@ -97,7 +98,7 @@ public class AccountController {
 
         try {
             log.info("email code verified:  updating email address");
-            emailUpdateService.updateEmailAddress(identity, code);
+            emailUpdateService.updateEmailAddress(request, identity, code);
         } catch (ResourceNotFoundException e) {
             log.error("Unable to update email: {} {}", code, identity);
             return "redirect:/account/email?invalidEmail=true";

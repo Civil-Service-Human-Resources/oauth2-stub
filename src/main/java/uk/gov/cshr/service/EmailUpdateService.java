@@ -11,6 +11,7 @@ import uk.gov.cshr.exception.InvalidCodeException;
 import uk.gov.cshr.repository.EmailUpdateRepository;
 import uk.gov.cshr.service.security.IdentityService;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -61,27 +62,36 @@ public class EmailUpdateService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void updateEmailAddress(Identity identity, String code) {
+    public void updateEmailAddress(HttpServletRequest request, Identity identity, String code) {
         EmailUpdate emailUpdate = emailUpdateRepository.findByIdentityAndCode(identity, code)
                 .orElseThrow(() -> new InvalidCodeException(String.format("Code %s does not exist for identity %s", code, identity)));
 
         log.info("updating email address on users identity");
+        // update identity in the db
         identityService.updateEmailAddressAndEmailRecentlyUpdatedFlagToTrue(identity, emailUpdate.getEmail());
+        // update spring
+        identityService.updateSpringWithRecentlyEmailUpdatedFlag(request, true);
         log.info("deleting the email update config for this user");
         emailUpdateRepository.delete(emailUpdate);
         log.info("all ok");
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void processEmailUpdatedRecentlyRequestForWhiteListedDomainUser(Identity identity) {
+    public void processEmailUpdatedRecentlyRequestForWhiteListedDomainUser(HttpServletRequest request, Identity identity) {
+        // update identity in the db
         identityService.resetRecentlyUpdatedEmailFlagToFalse(identity);
+        // update spring
+        identityService.updateSpringWithRecentlyEmailUpdatedFlag(request, false);
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void processEmailUpdatedRecentlyRequestForAgencyTokenUser(String newDomain, String newToken,
-                                                                     String newOrgCode, Identity identity) {
+                                                                     String newOrgCode, Identity identity, HttpServletRequest request) {
         csrsService.updateSpacesAvailable(newDomain, newToken, newOrgCode, false);
+        // update identity in the db
         identityService.resetRecentlyUpdatedEmailFlagToFalse(identity);
+        // update spring
+        identityService.updateSpringWithRecentlyEmailUpdatedFlag(request, false);
     }
 
 }

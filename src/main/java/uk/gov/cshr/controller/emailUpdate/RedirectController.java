@@ -26,16 +26,12 @@ public class RedirectController {
         return new RedirectView("/logout");
     }
 
-    @RequestMapping("/redirectToUIHomePage")
-    public RedirectView goToUIHomePage(Model model) {
-        model.asMap().clear();
-        RedirectView redirectView = new RedirectView();
-        redirectView.setUrl(lpgUiUrl);
-        return redirectView;
-    }
-
     @RequestMapping("/redirectToEnterTokenPage/{domain}/{uid}")
     public RedirectView goToEnterTokenSinceEmailUpdatePage(Model model, RedirectAttributes redirectAttributes, @PathVariable String domain, @PathVariable String uid) {
+        /*
+         * This redirect is required in order to pass the domain and uid to the enter token page,
+         * so that the associated agency token validation is possible.
+         */
         redirectAttributes.addFlashAttribute("domain", domain);
         redirectAttributes.addFlashAttribute("uid", uid);
         RedirectView redirectView = new RedirectView();

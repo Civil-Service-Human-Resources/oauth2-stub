@@ -8,6 +8,7 @@ import org.mockito.Captor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
@@ -18,6 +19,7 @@ import uk.gov.cshr.repository.TokenRepository;
 import uk.gov.cshr.service.CsrsService;
 import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.NotifyService;
+import uk.gov.cshr.utils.SpringUserUtils;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -48,6 +50,8 @@ public class IdentityServiceTest {
 
     private static Identity IDENTITY = new Identity(UID, EMAIL, PASSWORD, ACTIVE, LOCKED, ROLES, Instant.now(), false, false);
 
+    private MockHttpServletRequest request;
+
     private IdentityService identityService;
 
     @Mock(name="identityRepository")
@@ -71,6 +75,9 @@ public class IdentityServiceTest {
     @Mock
     private CsrsService csrsService;
 
+    @Mock
+    private SpringUserUtils springUserUtils;
+
     @Captor
     private ArgumentCaptor<Identity> identityArgumentCaptor;
 
@@ -84,8 +91,11 @@ public class IdentityServiceTest {
                 tokenRepository,
                 notifyService,
                 csrsService,
+                springUserUtils,
                 whitelistedDomains
         );
+
+        request = new MockHttpServletRequest();
     }
 
     @Test

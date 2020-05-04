@@ -1,5 +1,6 @@
 package uk.gov.cshr.service;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.annotation.Commit;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.transaction.TestTransaction;
@@ -21,6 +23,7 @@ import uk.gov.cshr.exception.InvalidCodeException;
 import uk.gov.cshr.repository.EmailUpdateRepository;
 import uk.gov.cshr.service.security.IdentityService;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Optional;
@@ -45,6 +48,8 @@ public class EmailUpdateServiceTest {
     private static final Set<Role> ROLES = new HashSet();
 
     private static Identity IDENTITY = new Identity(UID, EMAIL, PASSWORD, ACTIVE, LOCKED, ROLES, Instant.now(), false, false);
+
+    private MockHttpServletRequest request;
 
     @MockBean
     private EmailUpdateRepository emailUpdateRepository;
@@ -72,6 +77,11 @@ public class EmailUpdateServiceTest {
 
     @Autowired
     private EmailUpdateService classUnderTest;
+
+    @Before
+    public void setUp() {
+        request = new MockHttpServletRequest();
+    }
 
     @Test
     public void givenAValidCodeForIdentity_whenVerifyCode_thenReturnsTrue() {
@@ -112,11 +122,12 @@ public class EmailUpdateServiceTest {
         doNothing().when(emailUpdateRepository).delete(any(EmailUpdate.class));
 
         // when
-        classUnderTest.updateEmailAddress(IDENTITY, "CO");
+        classUnderTest.updateEmailAddress(request, IDENTITY, "CO");
 
         // then
         verify(emailUpdateRepository, times(1)).findByIdentityAndCode(eq(IDENTITY), eq("CO"));
         verify(identityService, times(1)).updateEmailAddressAndEmailRecentlyUpdatedFlagToTrue(eq(IDENTITY), eq(emailUpdate.getEmail()));
+        verify(identityService, times(1)).updateSpringWithRecentlyEmailUpdatedFlag(any(HttpServletRequest.class), eq(true));
         verify(emailUpdateRepository, times(1)).delete(emailUpdateArgumentCaptor.capture());
 
         EmailUpdate actualDeletedEmailUpdate = emailUpdateArgumentCaptor.getValue();
@@ -130,11 +141,12 @@ public class EmailUpdateServiceTest {
         when(emailUpdateRepository.findByIdentityAndCode(any(Identity.class), anyString())).thenReturn(optionalEmailUpdate);
 
         // when
-        classUnderTest.updateEmailAddress(IDENTITY, "CO");
+        classUnderTest.updateEmailAddress(request, IDENTITY, "CO");
 
         // then
         verify(emailUpdateRepository, times(1)).findByIdentityAndCode(eq(IDENTITY), eq("CO"));
         verify(identityService, never()).updateEmailAddressAndEmailRecentlyUpdatedFlagToTrue(any(Identity.class), anyString());
+        verify(identityService, never()).updateSpringWithRecentlyEmailUpdatedFlag(any(HttpServletRequest.class), anyBoolean());
         verify(emailUpdateRepository, never()).delete(any(EmailUpdate.class));
     }
 
@@ -148,10 +160,11 @@ public class EmailUpdateServiceTest {
         doNothing().when(identityService).resetRecentlyUpdatedEmailFlagToFalse(any(Identity.class));
 
         // when
-        classUnderTest.processEmailUpdatedRecentlyRequestForWhiteListedDomainUser(IDENTITY);
+        classUnderTest.processEmailUpdatedRecentlyRequestForWhiteListedDomainUser(request, IDENTITY);
 
         // then
         verify(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq(IDENTITY));
+        verify(identityService, times(1)).updateSpringWithRecentlyEmailUpdatedFlag(any(HttpServletRequest.class), eq(false));
         assertTrue(TestTransaction.isActive());
         assertFalse(TestTransaction.isFlaggedForRollback());
     }
@@ -162,10 +175,11 @@ public class EmailUpdateServiceTest {
         doThrow(new RuntimeException()).when(identityService).resetRecentlyUpdatedEmailFlagToFalse(any(Identity.class));
 
         // when
-        classUnderTest.processEmailUpdatedRecentlyRequestForWhiteListedDomainUser(IDENTITY);
+        classUnderTest.processEmailUpdatedRecentlyRequestForWhiteListedDomainUser(request, IDENTITY);
 
         // then
         verify(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq(IDENTITY));
+        verify(identityService, never()).updateSpringWithRecentlyEmailUpdatedFlag(any(HttpServletRequest.class), anyBoolean());
         assertTrue(TestTransaction.isActive());
         assertTrue(TestTransaction.isFlaggedForRollback());
     }
@@ -176,10 +190,11 @@ public class EmailUpdateServiceTest {
         doThrow(new IdentityNotFoundException("abc")).when(identityService).resetRecentlyUpdatedEmailFlagToFalse(any(Identity.class));
 
         // when
-        classUnderTest.processEmailUpdatedRecentlyRequestForWhiteListedDomainUser(IDENTITY);
+        classUnderTest.processEmailUpdatedRecentlyRequestForWhiteListedDomainUser(request, IDENTITY);
 
         // then
         verify(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq(IDENTITY));
+        verify(identityService, never()).updateSpringWithRecentlyEmailUpdatedFlag(any(HttpServletRequest.class), anyBoolean());
         assertTrue(TestTransaction.isActive());
         assertTrue(TestTransaction.isFlaggedForRollback());
     }
@@ -195,11 +210,13 @@ public class EmailUpdateServiceTest {
         doNothing().when(csrsService).updateSpacesAvailable(anyString(), anyString(), anyString(), anyBoolean());
 
         // when
-        classUnderTest.processEmailUpdatedRecentlyRequestForAgencyTokenUser("mynewdomain", "mynewtoken", "myneworgcode", IDENTITY);
+        classUnderTest.processEmailUpdatedRecentlyRequestForAgencyTokenUser("mynewdomain", "mynewtoken", "myneworgcode", IDENTITY, request);
 
         // then
-        verify(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq(IDENTITY));
+
         verify(csrsService).updateSpacesAvailable(eq("mynewdomain"), eq("mynewtoken"), eq("myneworgcode"), eq(false));
+        verify(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq(IDENTITY));
+        verify(identityService, times(1)).updateSpringWithRecentlyEmailUpdatedFlag(any(HttpServletRequest.class), eq(false));
         assertTrue(TestTransaction.isActive());
         assertFalse(TestTransaction.isFlaggedForRollback());
     }
@@ -210,11 +227,12 @@ public class EmailUpdateServiceTest {
         doThrow(new RuntimeException()).when(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq(IDENTITY));
 
         // when
-        classUnderTest.processEmailUpdatedRecentlyRequestForAgencyTokenUser("mynewdomain", "mynewtoken", "myneworgcode", IDENTITY);
+        classUnderTest.processEmailUpdatedRecentlyRequestForAgencyTokenUser("mynewdomain", "mynewtoken", "myneworgcode", IDENTITY, request);
 
         // then
-        verify(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq(IDENTITY));
         verify(csrsService).updateSpacesAvailable(eq("mynewdomain"), eq("mynewtoken"), eq("myneworgcode"), eq(false));
+        verify(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq(IDENTITY));
+        verify(identityService, never()).updateSpringWithRecentlyEmailUpdatedFlag(any(HttpServletRequest.class), anyBoolean());
         assertTrue(TestTransaction.isActive());
         assertTrue(TestTransaction.isFlaggedForRollback());
     }
@@ -225,11 +243,12 @@ public class EmailUpdateServiceTest {
         doThrow(new IdentityNotFoundException("abc")).when(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq(IDENTITY));
 
         // when
-        classUnderTest.processEmailUpdatedRecentlyRequestForAgencyTokenUser("mynewdomain", "mynewtoken", "myneworgcode", IDENTITY);
+        classUnderTest.processEmailUpdatedRecentlyRequestForAgencyTokenUser("mynewdomain", "mynewtoken", "myneworgcode", IDENTITY, request);
 
         // then
-        verify(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq(IDENTITY));
         verify(csrsService, never()).updateSpacesAvailable(anyString(), anyString(), anyString(), anyBoolean());
+        verify(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq(IDENTITY));
+        verify(identityService, never()).updateSpringWithRecentlyEmailUpdatedFlag(any(HttpServletRequest.class), anyBoolean());
         assertTrue(TestTransaction.isActive());
         assertTrue(TestTransaction.isFlaggedForRollback());
     }
@@ -241,11 +260,12 @@ public class EmailUpdateServiceTest {
         doThrow(new RuntimeException()).when(csrsService).updateSpacesAvailable(anyString(), anyString(), anyString(), anyBoolean());
 
         // when
-        classUnderTest.processEmailUpdatedRecentlyRequestForAgencyTokenUser("mynewdomain", "mynewtoken", "myneworgcode", IDENTITY);
+        classUnderTest.processEmailUpdatedRecentlyRequestForAgencyTokenUser("mynewdomain", "mynewtoken", "myneworgcode", IDENTITY, request);
 
         // then
-        verify(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq(IDENTITY));
         verify(csrsService).updateSpacesAvailable(eq("mynewdomain"), eq("mynewtoken"), eq("myneworgcode"), eq(false));
+        verify(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq(IDENTITY));
+        verify(identityService, never()).updateSpringWithRecentlyEmailUpdatedFlag(any(HttpServletRequest.class), anyBoolean());
         assertTrue(TestTransaction.isActive());
         assertTrue(TestTransaction.isFlaggedForRollback());
     }
