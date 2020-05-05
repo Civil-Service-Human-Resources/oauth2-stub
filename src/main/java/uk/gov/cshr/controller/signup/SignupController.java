@@ -26,6 +26,7 @@ import uk.gov.cshr.repository.InviteRepository;
 import uk.gov.cshr.service.CsrsService;
 import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.security.IdentityService;
+import uk.gov.cshr.utils.ApplicationConstants;
 import uk.gov.service.notify.NotificationClientException;
 
 @Slf4j
@@ -33,7 +34,6 @@ import uk.gov.service.notify.NotificationClientException;
 @RequestMapping("/signup")
 public class SignupController {
 
-    private static final String STATUS_ATTRIBUTE = "status";
     private static final String TOKEN_INFO_FLASH_ATTRIBUTE = "tokenRequest";
 
     private final InviteService inviteService;
@@ -80,13 +80,13 @@ public class SignupController {
 
         if (inviteRepository.existsByForEmailAndStatus(email, InviteStatus.PENDING)) {
             log.info("{} has already been invited", email);
-            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, email + " has already been invited");
+            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, email + " has already been invited");
             return "redirect:/signup/request";
         }
 
         if (identityService.existsByEmail(email)) {
             log.info("{} is already a user", email);
-            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "User already exists with email address " + email);
+            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, "User already exists with email address " + email);
             return "redirect:/signup/request";
         }
 
@@ -102,7 +102,7 @@ public class SignupController {
                 inviteService.sendSelfSignupInvite(email, false);
                 return "inviteSent";
             } else {
-                redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Your organisation is unable to use this service. Please contact your line manager.");
+                redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, "Your organisation is unable to use this service. Please contact your line manager.");
                 return "redirect:/signup/request";
             }
         }
@@ -172,10 +172,10 @@ public class SignupController {
                     csrsService.updateSpacesAvailable(tokenRequest.getDomain(), tokenRequest.getToken(),
                             tokenRequest.getOrg(), false);
                 } catch (ResourceNotFoundException e) {
-                    redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Incorrect token for this organisation");
+                    redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.ENTER_TOKEN_ERROR_MESSAGE);
                     return "redirect:/signup/enterToken/" + code;
                 } catch (NotEnoughSpaceAvailableException e) {
-                    redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Not enough spaces available on this token");
+                    redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, "Not enough spaces available on this token");
                     return "redirect:/signup/enterToken/" + code;
                 } catch (BadRequestException e) {
                     log.error("An error updating agency token quota has occurred", e);
@@ -255,7 +255,7 @@ public class SignupController {
 
                         return "redirect:/signup/" + code;
                     }).orElseGet(() -> {
-                        redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Incorrect token for this organisation");
+                        redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.ENTER_TOKEN_ERROR_MESSAGE);
                         return "redirect:/signup/enterToken/" + code;
                     });
         } else {

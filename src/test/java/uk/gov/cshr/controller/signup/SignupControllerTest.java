@@ -20,13 +20,13 @@ import uk.gov.cshr.repository.InviteRepository;
 import uk.gov.cshr.service.CsrsService;
 import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.security.IdentityService;
+import uk.gov.cshr.utils.ApplicationConstants;
 import uk.gov.cshr.utils.CsrfRequestPostProcessor;
 import uk.gov.cshr.utils.MockMVCFilterOverrider;
 
 import java.util.Optional;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -495,7 +495,7 @@ public class SignupControllerTest {
                         .param("token", token))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/signup/enterToken/" + code))
-                .andExpect(flash().attribute(STATUS_ATTRIBUTE, "Incorrect token for this organisation"));
+                .andExpect(flash().attribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.ENTER_TOKEN_ERROR_MESSAGE));
     }
 
 }

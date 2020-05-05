@@ -19,6 +19,7 @@ import uk.gov.cshr.exception.ResourceNotFoundException;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.service.CsrsService;
 import uk.gov.cshr.service.EmailUpdateService;
+import uk.gov.cshr.utils.ApplicationConstants;
 import uk.gov.cshr.utils.CsrfRequestPostProcessor;
 import uk.gov.cshr.utils.MockMVCFilterOverrider;
 
@@ -241,7 +242,7 @@ public class EmailUpdateControllerTest {
         )
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/emailUpdated/enterToken"))
-                .andExpect(flash().attribute("status", "Incorrect token for this organisation"))
+                .andExpect(flash().attribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.ENTER_TOKEN_ERROR_MESSAGE))
                 .andExpect(flash().attributeExists("emailUpdatedRecentlyEnterTokenForm"));
 
         verify(emailUpdateService, times(1)).processEmailUpdatedRecentlyRequestForAgencyTokenUser(eq("mydomain"), eq("mytoken"), eq("myorganisation"), eq(identityFound), any(HttpServletRequest.class));

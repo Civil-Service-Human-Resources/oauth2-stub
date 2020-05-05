@@ -14,6 +14,7 @@ import uk.gov.cshr.exception.ResourceNotFoundException;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.service.CsrsService;
 import uk.gov.cshr.service.EmailUpdateService;
+import uk.gov.cshr.utils.ApplicationConstants;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -27,8 +28,6 @@ public class EmailUpdateController {
     private static final String EMAIL_UPDATED_RECENTLY_ENTER_TOKEN_FORM_TEMPLATE = "emailUpdatedRecentlyEnterTokenForm";
 
     private static final String ENTER_TOKEN_SINCE_EMAIL_UPDATE_VIEW_NAME_TEMPLATE = "enterTokenSinceEmailUpdate";
-
-    private static final String STATUS_ATTRIBUTE = "status";
 
     private final EmailUpdateService emailUpdateService;
 
@@ -102,7 +101,7 @@ public class EmailUpdateController {
                 return "redirect:/login";
             }
         } catch (ResourceNotFoundException e) {
-            redirectAttributes.addFlashAttribute(STATUS_ATTRIBUTE, "Incorrect token for this organisation");
+            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.ENTER_TOKEN_ERROR_MESSAGE);
             redirectAttributes.addFlashAttribute(EMAIL_UPDATED_RECENTLY_ENTER_TOKEN_FORM_TEMPLATE, form);
             return "redirect:/emailUpdated/enterToken";
         } catch (Exception e) {
