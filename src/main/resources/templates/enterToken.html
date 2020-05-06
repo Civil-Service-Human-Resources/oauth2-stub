@@ -18,7 +18,8 @@
 
                     <h1 class="heading-large">Create an account</h1>
                     <h2 class="heading-medium">Enter the token for your organisation</h2>
-                    <p class="lede">Your organisation requires you to supply a token in order to create an account.</p>
+                    <p class="lede">A token is a 10-character code that you can obtain from your line manager.</p>
+                    <p class="lede">Your organisation requires you to supply a token to create an account.</p>
 
                     <form method="post" class="push-bottom" th:object="${enterTokenForm}">
                         <input type="hidden" id="removeUser" name="removeUser" value="false">
@@ -34,7 +35,7 @@
 
                         <div class="form-group" th:classappend="${#fields.hasErrors('token')} ? form-group-error : ''">
                             <label th:for="token" class="govuk-label">Token</label>
-                            <span id="token-hint" class="form-hint">A token is a 10-character code which you can obtain from your line manager</span>
+                            <span id="token-hint" class="form-hint">Enter your 10-character organisation token.</span>
                             <input class="form-control form-control-2-3 width-10" id="token" type="text" th:field="*{token}">
                         </div>
 
