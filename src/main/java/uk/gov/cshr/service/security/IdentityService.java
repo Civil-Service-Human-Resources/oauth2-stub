@@ -179,4 +179,19 @@ public class IdentityService implements UserDetailsService {
         springUserUtils.updateSpringAuthenticationAndSpringSessionWithUpdatedIdentity(request, identityFromSpringAuth);
     }
 
+    public boolean checkValidEmail(String email) {
+        final String domain = getDomainFromEmailAddress(email);
+
+        if (isWhitelistedDomain(domain)) {
+            return true;
+        } else {
+            AgencyToken[] agencyTokensForDomain = csrsService.getAgencyTokensForDomain(domain);
+
+            if (agencyTokensForDomain.length > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }
