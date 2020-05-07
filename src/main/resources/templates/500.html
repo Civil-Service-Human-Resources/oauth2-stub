@@ -1,0 +1,20 @@
+<page th:replace="fragments/user-layout :: page(~{::title},~{::content})">
+  <title>
+    Error
+  </title>
+  <content>
+    <div class="govuk-width-container">
+      <main class="govuk-main-wrapper govuk-main-wrapper--l" id="main-content" role="main">
+        <div class="govuk-grid-row">
+          <div class="govuk-grid-column-two-thirds">
+            <h1 class="govuk-heading-xl">Sorry, there is a problem with the service</h1>
+            <p class="govuk-body">Try again later.</p>
+            <p class="govuk-body">
+              <a class="govuk-link" href="/login">Login again</a> to access the Civil services learning platform.
+            </p>
+          </div>
+        </div>
+      </main>
+    </div>
+  </content>
+</page>
