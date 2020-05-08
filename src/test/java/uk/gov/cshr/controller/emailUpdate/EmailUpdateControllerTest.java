@@ -3,12 +3,16 @@ package uk.gov.cshr.controller.emailUpdate;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.cshr.config.SpringSecurityTestConfig;
@@ -19,6 +23,7 @@ import uk.gov.cshr.exception.ResourceNotFoundException;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.service.CsrsService;
 import uk.gov.cshr.service.EmailUpdateService;
+import uk.gov.cshr.service.security.IdentityDetails;
 import uk.gov.cshr.utils.ApplicationConstants;
 import uk.gov.cshr.utils.CsrfRequestPostProcessor;
 import uk.gov.cshr.utils.MockMVCFilterOverrider;
@@ -74,6 +79,16 @@ public class EmailUpdateControllerTest {
         organisations = new OrganisationalUnitDto[1];
         organisations[0] = new OrganisationalUnitDto();
         when(csrsService.getOrganisationalUnitsFormatted()).thenReturn(organisations);
+
+        Authentication authentication = mock(Authentication.class);
+
+        Identity identity = new Identity("myuid", null, null, true, false, null, null, false, true);
+        IdentityDetails identityDetails = new IdentityDetails(identity);
+        when(authentication.getPrincipal()).thenReturn(identityDetails);
+
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
     }
 
     @Test
@@ -193,8 +208,6 @@ public class EmailUpdateControllerTest {
                 .andExpect(model().attributeExists("emailUpdatedRecentlyEnterTokenForm"))
                 .andExpect(model().errorCount(2))
                 .andExpect(model().attributeHasErrors("emailUpdatedRecentlyEnterTokenForm"))
-                //.andExpect(model().attributeHasFieldErrorCode("emailUpdatedRecentlyEnterTokenForm", "organisation", "Please confirm your new organisation"))
-               // .andExpect(model().attributeHasFieldErrorCode("emailUpdatedRecentlyEnterTokenForm", "token", "Please confirm your new token"))
                 .andExpect(view().name("enterTokenSinceEmailUpdate"));
 
         verify(emailUpdateService, never()).processEmailUpdatedRecentlyRequestForAgencyTokenUser(anyString(), anyString(), anyString(), any(Identity.class), any(HttpServletRequest.class));
@@ -240,10 +253,9 @@ public class EmailUpdateControllerTest {
                         .param("domain","mydomain")
                         .param("uid","myuid")
         )
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/emailUpdated/enterToken"))
-                .andExpect(flash().attribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.ENTER_TOKEN_ERROR_MESSAGE))
-                .andExpect(flash().attributeExists("emailUpdatedRecentlyEnterTokenForm"));
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("status", "Incorrect organisation or token"))
+                .andExpect(view().name("enterTokenSinceEmailUpdate"));
 
         verify(emailUpdateService, times(1)).processEmailUpdatedRecentlyRequestForAgencyTokenUser(eq("mydomain"), eq("mytoken"), eq("myorganisation"), eq(identityFound), any(HttpServletRequest.class));
     }

@@ -7,7 +7,6 @@
         <div class="container">
             <div class="grid-row">
                 <div class="column-two-thirds">
-
                     <div th:if="${status}" class="error-summary" role="alert"  aria-labelledby="error-summary-heading-example-1" tabindex="-1">
                         <h2 class="heading-medium error-summary-heading" id="error-summary-heading-example-2">There was
                             a problem</h2>
@@ -37,7 +36,6 @@
 
                         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                         <input type="hidden" id="domain" th:field="*{domain}"/>
-                        <input type="hidden" id="uid" th:field="*{uid}"/>
                         <input type="submit" class="button" value="Continue">
                     </form>
 
