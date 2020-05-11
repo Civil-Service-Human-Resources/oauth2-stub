@@ -1,15 +1,19 @@
 package uk.gov.cshr.controller;
 
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.boot.web.servlet.error.ErrorController;
+import uk.gov.cshr.controller.utils.ErrorPageMap;
+
 import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 @Controller
 public class CustomErrorController implements ErrorController {
+  private static final String GENERIC_ERROR = "/error";
 
   @RequestMapping("/error")
   public String handleError(HttpServletRequest request) {
@@ -17,21 +21,14 @@ public class CustomErrorController implements ErrorController {
 
     if (status != null) {
       Integer statusCode = Integer.valueOf(status.toString());
-
-      if (statusCode == HttpStatus.NOT_FOUND.value()) {
-        return "404";
-      }
-      else if (statusCode == HttpStatus.INTERNAL_SERVER_ERROR.value()) {
-        return "500";
-      }
+        return ErrorPageMap.ERROR_PAGES
+                .getOrDefault(statusCode, GENERIC_ERROR);
     }
-    return "error";
+    return GENERIC_ERROR;
   }
 
   @Override
   public String getErrorPath() {
-    return "/error";
+    return GENERIC_ERROR;
   }
-
-
 }
