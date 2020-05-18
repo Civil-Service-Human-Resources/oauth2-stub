@@ -16,6 +16,7 @@ import uk.gov.cshr.domain.*;
 import uk.gov.cshr.exception.IdentityNotFoundException;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.TokenRepository;
+import uk.gov.cshr.service.AgencyTokenCapacityService;
 import uk.gov.cshr.service.CsrsService;
 import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.NotifyService;
@@ -36,10 +37,6 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class IdentityServiceTest {
 
-    private final String updatePasswordEmailTemplateId = "template-id";
-    private final String[] whitelistedDomains = new String[]{"whitelisted.gov.uk"};
-    private final String orgCode = "AB";
-
     private static final String EMAIL = "test@example.com";
     private static final String CODE = "abc123";
     private static final String UID = "uid123";
@@ -47,9 +44,10 @@ public class IdentityServiceTest {
     private static final Boolean LOCKED = false;
     private static final String PASSWORD = "password";
     private static final Set<Role> ROLES = new HashSet();
-
     private static Identity IDENTITY = new Identity(UID, EMAIL, PASSWORD, ACTIVE, LOCKED, ROLES, Instant.now(), false, false);
-
+    private final String updatePasswordEmailTemplateId = "template-id";
+    private final String[] whitelistedDomains = new String[]{"whitelisted.gov.uk"};
+    private final String orgCode = "AB";
     private MockHttpServletRequest request;
 
     private IdentityService identityService;
@@ -76,6 +74,9 @@ public class IdentityServiceTest {
     private CsrsService csrsService;
 
     @Mock
+    private AgencyTokenCapacityService agencyTokenCapacityService;
+
+    @Mock
     private SpringUserUtils springUserUtils;
 
     @Captor
@@ -92,7 +93,8 @@ public class IdentityServiceTest {
                 notifyService,
                 csrsService,
                 springUserUtils,
-                whitelistedDomains
+                whitelistedDomains,
+                agencyTokenCapacityService
         );
 
         request = new MockHttpServletRequest();
@@ -142,7 +144,7 @@ public class IdentityServiceTest {
     }
 
     @Test
-    public void createIdentityFromInviteCode() {
+    public void createIdentityFromInviteCodeWithoutAgency() {
         final String code = "123abc";
         final String email = "test@example.com";
         Role role = new Role();
@@ -156,13 +158,15 @@ public class IdentityServiceTest {
         invite.setForEmail(email);
         invite.setForRoles(roles);
 
+        TokenRequest tokenRequest = new TokenRequest();
+
         when(inviteService.findByCode(code)).thenReturn(invite);
 
         when(passwordEncoder.encode("password")).thenReturn("password");
 
         identityService.setInviteService(inviteService);
 
-        identityService.createIdentityFromInviteCode(code, "password");
+        identityService.createIdentityFromInviteCode(code, "password", tokenRequest);
 
         ArgumentCaptor<Identity> inviteArgumentCaptor = ArgumentCaptor.forClass(Identity.class);
 
@@ -172,6 +176,53 @@ public class IdentityServiceTest {
         assertThat(identity.getRoles().contains(role), equalTo(true));
         assertThat(identity.getPassword(), equalTo("password"));
         assertThat(identity.getEmail(), equalTo("test@example.com"));
+        assertThat(identity.getAgencyTokenUid(), equalTo(null));
+    }
+
+    @Test
+    public void createIdentityFromInviteCodeWithAgency() {
+        final String code = "123abc";
+        final String email = "test@example.com";
+        Role role = new Role();
+        role.setName("USER");
+
+        Set<Role> roles = new HashSet<>();
+        roles.add(role);
+
+        Invite invite = new Invite();
+        invite.setCode(code);
+        invite.setForEmail(email);
+        invite.setForRoles(roles);
+
+        TokenRequest tokenRequest = new TokenRequest();
+        String tokenDomain = "example.com";
+        String tokenCode = "co";
+        String tokenToken = "token123";
+        tokenRequest.setDomain(tokenDomain);
+        tokenRequest.setOrg(tokenCode);
+        tokenRequest.setToken(tokenToken);
+
+        String uid = "UID";
+        AgencyToken agencyToken = new AgencyToken();
+        agencyToken.setUid(uid);
+
+        when(inviteService.findByCode(code)).thenReturn(invite);
+        when(csrsService.getAgencyTokenForDomainTokenOrganisation(tokenDomain, tokenToken, tokenCode)).thenReturn(Optional.of(agencyToken));
+        when(passwordEncoder.encode("password")).thenReturn("password");
+        when(agencyTokenCapacityService.hasSpaceAvailable(agencyToken)).thenReturn(true);
+        identityService.setInviteService(inviteService);
+
+        identityService.createIdentityFromInviteCode(code, "password", tokenRequest);
+
+        ArgumentCaptor<Identity> inviteArgumentCaptor = ArgumentCaptor.forClass(Identity.class);
+
+        verify(identityRepository).save(inviteArgumentCaptor.capture());
+
+        Identity identity = inviteArgumentCaptor.getValue();
+        assertThat(identity.getRoles().contains(role), equalTo(true));
+        assertThat(identity.getPassword(), equalTo("password"));
+        assertThat(identity.getEmail(), equalTo("test@example.com"));
+        assertThat(identity.getAgencyTokenUid(), equalTo(uid));
     }
 
     @Test
@@ -386,9 +437,6 @@ public class IdentityServiceTest {
 
     private AgencyToken buildAgencyToken() {
         AgencyToken at = new AgencyToken();
-        at.setToken("token123");
-        at.setCapacity(100);
-        at.setCapacityUsed(11);
         return at;
     }
 }

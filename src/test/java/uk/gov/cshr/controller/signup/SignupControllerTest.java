@@ -12,11 +12,10 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import uk.gov.cshr.domain.AgencyToken;
-import uk.gov.cshr.domain.Invite;
-import uk.gov.cshr.domain.InviteStatus;
-import uk.gov.cshr.domain.OrganisationalUnitDto;
+import uk.gov.cshr.domain.*;
+import uk.gov.cshr.exception.UnableToAllocateAgencyTokenException;
 import uk.gov.cshr.repository.InviteRepository;
+import uk.gov.cshr.service.AgencyTokenCapacityService;
 import uk.gov.cshr.service.CsrsService;
 import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.security.IdentityService;
@@ -28,7 +27,7 @@ import java.util.Optional;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.powermock.api.mockito.PowerMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -56,6 +55,9 @@ public class SignupControllerTest {
     @MockBean
     private InviteRepository inviteRepository;
 
+    @MockBean
+    private AgencyTokenCapacityService agencyTokenCapacityService;
+
     @Before
     public void overridePatternMappingFilterProxyFilter() throws IllegalAccessException {
         MockMVCFilterOverrider.overrideFilterOf(mockMvc, "PatternMappingFilterProxy" );
@@ -73,7 +75,7 @@ public class SignupControllerTest {
     }
 
     @Test
-    public void shouldConfirmInviteSent() throws Exception {
+    public void shouldConfirmInviteSentIfWhitelistedDomain() throws Exception {
         String email = "user@domain.com";
         String domain = "domain.com";
 
@@ -150,41 +152,15 @@ public class SignupControllerTest {
     }
 
     @Test
-    public void shouldConfirmInviteSentIfWhitelistedEmail() throws Exception {
-        String email = "user@domain.com";
-        String domain = "domain.com";
-
-        when(inviteRepository.existsByForEmailAndStatus(email, InviteStatus.PENDING)).thenReturn(false);
-        when(identityService.existsByEmail(email)).thenReturn(false);
-        when(identityService.getDomainFromEmailAddress(email)).thenReturn(domain);
-        when(identityService.isWhitelistedDomain(domain)).thenReturn(true);
-
-        mockMvc.perform(
-                post("/signup/request")
-                        .with(CsrfRequestPostProcessor.csrf())
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-                        .param("email", email)
-                        .param("confirmEmail", email))
-                .andExpect(status().isOk())
-                .andExpect(view().name("inviteSent"))
-                .andExpect(content().string(containsString("We've sent you an email")))
-                .andExpect(content().string(containsString("What happens next")))
-                .andExpect(content().string(containsString("We have sent you an email with a link to <strong>continue creating your account</strong>.")));
-
-        Mockito.verify(inviteService).sendSelfSignupInvite(email, true);
-    }
-
-    @Test
     public void shouldConfirmInviteSentIfAgencyTokenEmail() throws Exception {
         String email = "user@domain.com";
         String domain = "domain.com";
-        AgencyToken[] agencyTokens = new AgencyToken[]{new AgencyToken()};
 
         when(inviteRepository.existsByForEmailAndStatus(email, InviteStatus.PENDING)).thenReturn(false);
         when(identityService.existsByEmail(email)).thenReturn(false);
         when(identityService.getDomainFromEmailAddress(email)).thenReturn(domain);
         when(identityService.isWhitelistedDomain(domain)).thenReturn(false);
-        when(csrsService.getAgencyTokensForDomain(domain)).thenReturn(agencyTokens);
+        when(csrsService.isDomainInAgency(domain)).thenReturn(true);
 
         mockMvc.perform(
                 post("/signup/request")
@@ -205,13 +181,12 @@ public class SignupControllerTest {
     public void shouldNotSendInviteIfNotWhitelistedAndNotAgencyTokenEmail() throws Exception {
         String email = "user@domain.com";
         String domain = "domain.com";
-        AgencyToken[] agencyTokens = new AgencyToken[]{};
 
         when(inviteRepository.existsByForEmailAndStatus(email, InviteStatus.PENDING)).thenReturn(false);
         when(identityService.existsByEmail(email)).thenReturn(false);
         when(identityService.getDomainFromEmailAddress(email)).thenReturn(domain);
         when(identityService.isWhitelistedDomain(domain)).thenReturn(false);
-        when(csrsService.getAgencyTokensForDomain(domain)).thenReturn(agencyTokens);
+        when(csrsService.isDomainInAgency(domain)).thenReturn(false);
 
         mockMvc.perform(
                 post("/signup/request")
@@ -346,18 +321,45 @@ public class SignupControllerTest {
         String password = "Password1";
         Invite invite = new Invite();
         invite.setAuthorisedInvite(true);
+        TokenRequest tokenRequest = new TokenRequest();
 
         when(inviteService.isInviteValid(code)).thenReturn(true);
         when(inviteRepository.findByCode(code)).thenReturn(invite);
+        doNothing().when(identityService).createIdentityFromInviteCode(code, password, tokenRequest);
+        doNothing().when(inviteService).updateInviteByCode(code, InviteStatus.ACCEPTED);
 
         mockMvc.perform(
                 post("/signup/" + code)
                         .with(CsrfRequestPostProcessor.csrf())
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
                         .param("password", password)
-                        .param("confirmPassword", password))
+                        .param("confirmPassword", password)
+                        .flashAttr("exampleEntity", tokenRequest))
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(view().name("signupSuccess"));
+    }
+
+    @Test
+    public void shouldRedirectToPasswordSignupIfExceptionThrown() throws Exception {
+        String code = "abc123";
+        String password = "Password1";
+        Invite invite = new Invite();
+        invite.setAuthorisedInvite(true);
+        TokenRequest tokenRequest = new TokenRequest();
+
+        when(inviteService.isInviteValid(code)).thenReturn(true);
+        when(inviteRepository.findByCode(code)).thenReturn(invite);
+        doThrow(new UnableToAllocateAgencyTokenException("Error")).when(identityService).createIdentityFromInviteCode(code, password, tokenRequest);
+
+        mockMvc.perform(
+                post("/signup/" + code)
+                        .with(CsrfRequestPostProcessor.csrf())
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("password", password)
+                        .param("confirmPassword", password)
+                        .flashAttr("exampleEntity", tokenRequest))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/signup/" + code));
     }
 
     @Test
@@ -439,7 +441,7 @@ public class SignupControllerTest {
     }
 
     @Test
-    public void shouldRedirectToSignupIfInviteValidAndAgencyTokenHasCapacity() throws Exception {
+    public void shouldRedirectToSignupIfInviteValidAndAgencyTokenHasSpaceAvailable() throws Exception {
         String code = "abc123";
         String organisation = "org";
         String token = "token123";
@@ -452,13 +454,13 @@ public class SignupControllerTest {
 
         AgencyToken agencyToken = new AgencyToken();
         agencyToken.setCapacity(10);
-        agencyToken.setCapacityUsed(5);
         Optional<AgencyToken> optionalAgencyToken = Optional.of(agencyToken);
 
         when(inviteService.isInviteValid(code)).thenReturn(true);
         when(inviteRepository.findByCode(code)).thenReturn(invite);
         when(identityService.getDomainFromEmailAddress(email)).thenReturn(domain);
         when(csrsService.getAgencyTokenForDomainTokenOrganisation(domain, token, organisation)).thenReturn(optionalAgencyToken);
+        when(agencyTokenCapacityService.hasSpaceAvailable(agencyToken)).thenReturn(true);
 
         mockMvc.perform(
                 post("/signup/enterToken/" + code)
@@ -471,7 +473,7 @@ public class SignupControllerTest {
     }
 
     @Test
-    public void shouldRedirectToTokenWithErroIfInviteValidAndAgencyTokenDoesNotHaveCapacity() throws Exception {
+    public void shouldRedirectToTokenWithErrorIfInviteValidAndAgencyTokenDoesNotHaveSpaceAvailable() throws Exception {
         String code = "abc123";
         String organisation = "org";
         String token = "token123";
@@ -484,13 +486,13 @@ public class SignupControllerTest {
 
         AgencyToken agencyToken = new AgencyToken();
         agencyToken.setCapacity(10);
-        agencyToken.setCapacityUsed(10);
         Optional<AgencyToken> optionalAgencyToken = Optional.of(agencyToken);
 
         when(inviteService.isInviteValid(code)).thenReturn(true);
         when(inviteRepository.findByCode(code)).thenReturn(invite);
         when(identityService.getDomainFromEmailAddress(email)).thenReturn(domain);
         when(csrsService.getAgencyTokenForDomainTokenOrganisation(domain, token, organisation)).thenReturn(optionalAgencyToken);
+        when(agencyTokenCapacityService.hasSpaceAvailable(agencyToken)).thenReturn(false);
 
         mockMvc.perform(
                 post("/signup/enterToken/" + code)

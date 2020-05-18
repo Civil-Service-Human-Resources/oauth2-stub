@@ -83,6 +83,7 @@ dependencies {
 
     compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.3'
 
+
     // https://github.com/alphagov/notifications-java-client
     compile('uk.gov.service.notify:notifications-java-client:3.9.1-RELEASE')
 
@@ -95,6 +96,8 @@ dependencies {
     testCompile 'org.powermock:powermock-module-junit4:1.7.4'
 
     testCompile 'org.mockito:mockito-core:2.8.47'
+
+    testCompile 'com.google.code.gson:gson:2.8.2'
 }
 
 compileJava.dependsOn(processResources)

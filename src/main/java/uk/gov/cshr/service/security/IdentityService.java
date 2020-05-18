@@ -13,13 +13,13 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.cshr.domain.AgencyToken;
-import uk.gov.cshr.domain.Identity;
-import uk.gov.cshr.domain.Invite;
-import uk.gov.cshr.domain.Role;
+import uk.gov.cshr.domain.*;
 import uk.gov.cshr.exception.IdentityNotFoundException;
+import uk.gov.cshr.exception.ResourceNotFoundException;
+import uk.gov.cshr.exception.UnableToAllocateAgencyTokenException;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.TokenRepository;
+import uk.gov.cshr.service.AgencyTokenCapacityService;
 import uk.gov.cshr.service.CsrsService;
 import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.NotifyService;
@@ -39,16 +39,15 @@ public class IdentityService implements UserDetailsService {
     private final String updatePasswordEmailTemplateId;
 
     private final IdentityRepository identityRepository;
-
-    private InviteService inviteService;
-
     private final PasswordEncoder passwordEncoder;
     private final TokenServices tokenServices;
     private final TokenRepository tokenRepository;
     private final NotifyService notifyService;
     private final CsrsService csrsService;
     private final SpringUserUtils springUserUtils;
+    private InviteService inviteService;
     private String[] whitelistedDomains;
+    private AgencyTokenCapacityService agencyTokenCapacityService;
 
     public IdentityService(@Value("${govNotify.template.passwordUpdate}") String updatePasswordEmailTemplateId,
                            IdentityRepository identityRepository,
@@ -58,7 +57,7 @@ public class IdentityService implements UserDetailsService {
                            @Qualifier("notifyServiceImpl") NotifyService notifyService,
                            CsrsService csrsService,
                            SpringUserUtils springUserUtils,
-                           @Value("${invite.whitelist.domains}") String[] whitelistedDomains) {
+                           @Value("${invite.whitelist.domains}") String[] whitelistedDomains, AgencyTokenCapacityService agencyTokenCapacityService) {
         this.updatePasswordEmailTemplateId = updatePasswordEmailTemplateId;
         this.identityRepository = identityRepository;
         this.passwordEncoder = passwordEncoder;
@@ -68,6 +67,7 @@ public class IdentityService implements UserDetailsService {
         this.csrsService = csrsService;
         this.springUserUtils = springUserUtils;
         this.whitelistedDomains = whitelistedDomains;
+        this.agencyTokenCapacityService = agencyTokenCapacityService;
     }
 
     @Autowired
@@ -89,14 +89,43 @@ public class IdentityService implements UserDetailsService {
         return identityRepository.existsByEmail(email);
     }
 
-    public void createIdentityFromInviteCode(String code, String password) {
+    @Transactional(noRollbackFor = UnableToAllocateAgencyTokenException.class)
+    public void createIdentityFromInviteCode(String code, String password, TokenRequest tokenRequest) {
         Invite invite = inviteService.findByCode(code);
 
         Set<Role> newRoles = new HashSet<>(invite.getForRoles());
-        Identity identity = new Identity(UUID.randomUUID().toString(), invite.getForEmail(), passwordEncoder.encode(password), true, false, newRoles, Instant.now(), false, false);
+
+        String agencyTokenUid = null;
+        if (requestHasTokenData(tokenRequest)) {
+            Optional<AgencyToken> agencyTokenForDomainTokenOrganisation = csrsService.getAgencyTokenForDomainTokenOrganisation(tokenRequest.getDomain(), tokenRequest.getToken(), tokenRequest.getOrg());
+
+            agencyTokenUid = agencyTokenForDomainTokenOrganisation
+                    .map(agencyToken -> {
+                        if (agencyTokenCapacityService.hasSpaceAvailable(agencyToken)) {
+                            return agencyToken.getUid();
+                        } else {
+                            throw new UnableToAllocateAgencyTokenException("Agency token uid " + agencyToken.getUid() + " has no spaces available. Identity not created");
+                        }
+                    })
+                    .orElseThrow(ResourceNotFoundException::new);
+
+            log.info("Identity request has agency uid = {}", agencyTokenUid);
+        }
+
+        Identity identity = new Identity(UUID.randomUUID().toString(),
+                invite.getForEmail(),
+                passwordEncoder.encode(password),
+                true,
+                false,
+                newRoles,
+                Instant.now(),
+                false,
+                false,
+                agencyTokenUid);
+
         identityRepository.save(identity);
 
-        LOGGER.info("New identity {} successfully created", identity.getEmail());
+        LOGGER.debug("New identity email = {} successfully created", identity.getEmail());
     }
 
     public void updatePassword(Identity identity, String password) {
@@ -194,4 +223,13 @@ public class IdentityService implements UserDetailsService {
         return false;
     }
 
+    private boolean requestHasTokenData(TokenRequest tokenRequest) {
+        return hasData(tokenRequest.getDomain())
+                && hasData(tokenRequest.getToken())
+                && hasData(tokenRequest.getOrg());
+    }
+
+    private boolean hasData(String s) {
+        return s != null && s.length() > 0;
+    }
 }

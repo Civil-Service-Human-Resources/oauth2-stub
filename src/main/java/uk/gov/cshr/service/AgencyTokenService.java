@@ -1,8 +1,10 @@
 package uk.gov.cshr.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.cshr.service.security.IdentityService;
 
+@Slf4j
 @Service
 public class AgencyTokenService {
 
@@ -20,7 +22,7 @@ public class AgencyTokenService {
     }
 
     public boolean isDomainAnAgencyTokenDomain(String domain) {
-       return numAgencyTokens(domain) > 0 ? true : false;
+        return numAgencyTokens(domain) > 0 ? true : false;
     }
 
     private int numAgencyTokens(String domain) {

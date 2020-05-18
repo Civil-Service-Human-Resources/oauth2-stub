@@ -5,11 +5,21 @@
         <div class="container">
             <div class="grid-row">
                 <div class="column-two-thirds">
+                    <a href="/login" class="link-back">Back</a>
                     <div th:if="${#fields.hasErrors('${signupForm.*}')}" class="error-summary" role="alert" aria-labelledby="error-summary-heading-example-1" tabindex="-1">
                         <h2 class="heading-medium error-summary-heading" id="error-summary-heading-example-1">There was a problem with your password</h2>
                         <ul class="error-summary-list">
                             <li th:if="${#fields.hasErrors('${signupForm.password}')}"><a href="#password" th:errors="${signupForm.password}">Password is invalid</a></li>
                             <li th:if="${#fields.hasErrors('${signupForm.*}')}"><a href="#passwordConfirm" th:errors="${signupForm}">Passwords do not match</a></li>
+                        </ul>
+                    </div>
+
+                    <div th:if="${status}" class="error-summary" role="alert"
+                         aria-labelledby="error-summary-heading-example-1" tabindex="-1">
+                        <h2 class="heading-medium error-summary-heading" id="error-summary-heading-example-2">There was
+                            a problem</h2>
+                        <ul class="error-summary-list">
+                            <li><a href="#token" th:text="${status}">status ...</a></li>
                         </ul>
                     </div>
 

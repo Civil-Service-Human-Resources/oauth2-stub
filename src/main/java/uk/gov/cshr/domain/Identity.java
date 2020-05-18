@@ -41,6 +41,9 @@ public class Identity implements Serializable {
     @Column
     private boolean emailRecentlyUpdated;
 
+    @Column
+    private String agencyTokenUid;
+
     public Identity() {
     }
 
@@ -54,6 +57,19 @@ public class Identity implements Serializable {
         this.lastLoggedIn = lastLoggedIn;
         this.deletionNotificationSent = deletionNotificationSent;
         this.emailRecentlyUpdated = emailRecentlyUpdated;
+    }
+
+    public Identity(String uid, String email, String password, boolean active, boolean locked, Set<Role> roles, Instant lastLoggedIn, boolean deletionNotificationSent, boolean emailRecentlyUpdated, String agencyTokenUid) {
+        this.uid = uid;
+        this.email = email;
+        this.password = password;
+        this.active = active;
+        this.roles = roles;
+        this.locked = locked;
+        this.lastLoggedIn = lastLoggedIn;
+        this.deletionNotificationSent = deletionNotificationSent;
+        this.emailRecentlyUpdated = emailRecentlyUpdated;
+        this.agencyTokenUid = agencyTokenUid;
     }
 
     public boolean isActive() {
@@ -86,6 +102,10 @@ public class Identity implements Serializable {
 
     public String getEmail() {
         return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public Long getId() {
@@ -128,8 +148,12 @@ public class Identity implements Serializable {
         this.emailRecentlyUpdated = emailRecentlyUpdated;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public String getAgencyTokenUid() {
+        return agencyTokenUid;
+    }
+
+    public void setAgencyTokenUid(String agencyTokenUid) {
+        this.agencyTokenUid = agencyTokenUid;
     }
 
     @Override

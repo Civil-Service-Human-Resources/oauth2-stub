@@ -21,6 +21,8 @@ public interface IdentityRepository extends JpaRepository<Identity, Long> {
         Optional<Identity> findFirstByUid(String uid);
 
         @Query("select new uk.gov.cshr.dto.IdentityDTO(i.email, i.uid) " +
-        "from Identity i")
+                "from Identity i")
         List<IdentityDTO> findAllNormalised();
-        }
+
+        Long countByAgencyTokenUid(String uid);
+}

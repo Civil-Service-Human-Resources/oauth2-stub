@@ -3,7 +3,7 @@ package uk.gov.cshr.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -11,7 +11,10 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.cshr.domain.AgencyToken;
 import uk.gov.cshr.domain.OrganisationalUnitDto;
 import uk.gov.cshr.dto.AgencyTokenDTO;
-import uk.gov.cshr.exception.*;
+import uk.gov.cshr.exception.BadRequestException;
+import uk.gov.cshr.exception.NotEnoughSpaceAvailableException;
+import uk.gov.cshr.exception.ResourceNotFoundException;
+import uk.gov.cshr.exception.UnableToAllocateAgencyTokenException;
 
 import java.util.Optional;
 
@@ -40,6 +43,15 @@ public class CsrsService {
         this.organisationalUnitsFlatUrl = organisationalUnitsFlatUrl;
         this.updateSpacesAvailableUrl = updateSpacesAvailableUrl;
         this.getOrganisationUrl = getOrganisationUrl;
+    }
+
+    public Boolean isDomainInAgency(String domain) {
+        try {
+            return restTemplate.getForObject(String.format(agencyTokensByDomainFormat, domain), Boolean.class);
+        } catch (HttpClientErrorException e) {
+            log.error("An error occurred checking if domain in agency", e);
+            return false;
+        }
     }
 
     public AgencyToken[] getAgencyTokensForDomain(String domain) {

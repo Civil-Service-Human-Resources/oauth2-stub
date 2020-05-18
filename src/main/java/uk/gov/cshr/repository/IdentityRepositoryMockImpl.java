@@ -43,6 +43,11 @@ public class IdentityRepositoryMockImpl implements IdentityRepository {
     }
 
     @Override
+    public Long countByAgencyTokenUid(String name) {
+        return null;
+    }
+
+    @Override
     public List<Identity> findAll() {
         return null;
     }

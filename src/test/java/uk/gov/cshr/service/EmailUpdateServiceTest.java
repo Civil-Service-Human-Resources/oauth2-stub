@@ -272,9 +272,6 @@ public class EmailUpdateServiceTest {
 
     private AgencyToken buildAgencyToken() {
         AgencyToken at = new AgencyToken();
-        at.setToken("token123");
-        at.setCapacity(100);
-        at.setCapacityUsed(11);
         return at;
     }
 }
