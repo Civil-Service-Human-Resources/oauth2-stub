@@ -16,14 +16,6 @@ public class LoginController {
   @Value("${lpg.uiUrl}")
   private String lpgUiUrl;
 
-  /**
-   *
-   * @param request
-   * @param response
-   * @return
-   * @throws IOException
-   * Login interface.
-   */
   @RequestMapping("/login")
   public String login(HttpServletRequest request, HttpServletResponse response) throws IOException {
     DefaultSavedRequest dsr =
@@ -34,11 +26,6 @@ public class LoginController {
     return "login";
   }
 
-  /**
-   *
-   * @return
-   * A method to redirect management api logins
-   */
   @RequestMapping("/management/login")
   public String managementLogin() {
     return "management-login";
