@@ -1,13 +1,11 @@
 package uk.gov.cshr.config;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import uk.gov.cshr.service.security.WebSecurityExpressionHandler;
@@ -32,11 +30,10 @@ public class UserSecurityConfig extends WebSecurityConfigurerAdapter {
                 .requestMatcher(forPort(serverPort))
                 .authorizeRequests()
                 .antMatchers("/management/**").denyAll()
-                .antMatchers("/login", "/enterToken/**", "/emailUpdated/**", "/oauth/logout", "/webjars/**", "/assets/**", "/signup/**", "/reset/**", "/account/passwordUpdated", "/domain/**").permitAll()
+                .antMatchers("/login", "/enterToken/**", "/email/updated/**", "/oauth/logout", "/webjars/**", "/assets/**", "/signup/**", "/reset/**", "/account/passwordUpdated", "/domain/**").permitAll()
                 .anyRequest().authenticated().and()
                 .formLogin()
                 .loginPage("/login").defaultSuccessUrl(lpgUiUrl)
-                .successHandler(myAuthenticationSuccessHandler())
                 .failureHandler(new CustomAuthenticationFailureHandler())
                 .and()
                 .logout()
@@ -56,10 +53,5 @@ public class UserSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(WebSecurity web) {
         web.expressionHandler(new WebSecurityExpressionHandler());
-    }
-
-    @Bean
-    public AuthenticationSuccessHandler myAuthenticationSuccessHandler(){
-        return new CustomAuthenticationSuccessHandler();
     }
 }

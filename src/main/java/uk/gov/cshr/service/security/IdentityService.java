@@ -168,13 +168,34 @@ public class IdentityService implements UserDetailsService {
         return identityRepository.save(identity);
     }
 
-    public void updateEmailAddressAndEmailRecentlyUpdatedFlagToTrue(Identity identity, String email) {
+    public void updateEmailAddressWhereNewEmailIsAgency(Identity identity, String email, AgencyToken newAgencyToken) {
         Identity savedIdentity = identityRepository.findById(identity.getId())
                 .orElseThrow(() -> new IdentityNotFoundException("No such identity: " + identity.getId()));
+
+        if (newAgencyToken.getUid() != null) {
+            log.debug("Updating agency token for user: oldAgencyToken = {}, newAgencyToken = {}", identity.getAgencyTokenUid(), newAgencyToken.getUid());
+            savedIdentity.setAgencyTokenUid(newAgencyToken.getUid());
+        }
 
         savedIdentity.setEmail(email);
         savedIdentity.setEmailRecentlyUpdated(true);
         Identity updatedIdentity = identityRepository.save(savedIdentity);
+        log.info("Identity has been updated to have a recently updated email flag of: " + updatedIdentity.isEmailRecentlyUpdated());
+    }
+
+    public void updateEmailAddressWhereNewEmailIsNotAgency(Identity identity, String email) {
+        Identity savedIdentity = identityRepository.findById(identity.getId())
+                .orElseThrow(() -> new IdentityNotFoundException("No such identity: " + identity.getId()));
+
+        if (identity.getAgencyTokenUid() != null) {
+            log.debug("Setting old agencyTokenUid to null as user is no longer associated to it: {}", identity.getAgencyTokenUid());
+            savedIdentity.setAgencyTokenUid(null);
+        }
+
+        savedIdentity.setEmail(email);
+        savedIdentity.setEmailRecentlyUpdated(true);
+        Identity updatedIdentity = identityRepository.save(savedIdentity);
+
         log.info("identity has been updated to have a recently updated email flag of: " + updatedIdentity.isEmailRecentlyUpdated());
     }
 
@@ -211,16 +232,7 @@ public class IdentityService implements UserDetailsService {
     public boolean checkValidEmail(String email) {
         final String domain = getDomainFromEmailAddress(email);
 
-        if (isWhitelistedDomain(domain)) {
-            return true;
-        } else {
-            AgencyToken[] agencyTokensForDomain = csrsService.getAgencyTokensForDomain(domain);
-
-            if (agencyTokensForDomain.length > 0) {
-                return true;
-            }
-        }
-        return false;
+        return (isWhitelistedDomain(domain) || csrsService.isDomainInAgency(domain));
     }
 
     private boolean requestHasTokenData(TokenRequest tokenRequest) {

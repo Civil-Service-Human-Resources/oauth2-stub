@@ -66,4 +66,18 @@ public class AgencyTokenServiceTest {
 
         assertFalse(actual);
     }
+
+    @Test
+    public void shouldReturnTrueIfDomainInAgency() {
+        when(csrsService.isDomainInAgency(DOMAIN)).thenReturn(true);
+
+        assertTrue(agencyTokenService.isDomainInAgencyToken(DOMAIN));
+    }
+
+    @Test
+    public void shouldReturnFalseIfDomainInAgency() {
+        when(csrsService.isDomainInAgency(DOMAIN)).thenReturn(false);
+
+        assertFalse(agencyTokenService.isDomainInAgencyToken(DOMAIN));
+    }
 }

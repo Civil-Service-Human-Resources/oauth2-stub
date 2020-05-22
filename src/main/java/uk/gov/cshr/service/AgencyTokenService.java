@@ -28,4 +28,8 @@ public class AgencyTokenService {
     private int numAgencyTokens(String domain) {
         return csrsService.getAgencyTokensForDomain(domain).length;
     }
+
+    public boolean isDomainInAgencyToken(String domain) {
+        return csrsService.isDomainInAgency(domain);
+    }
 }

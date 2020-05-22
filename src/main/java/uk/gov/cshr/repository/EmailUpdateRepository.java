@@ -11,4 +11,8 @@ import java.util.Optional;
 public interface EmailUpdateRepository extends JpaRepository<EmailUpdate, Long> {
 
     Optional<EmailUpdate> findByIdentityAndCode(Identity identity, String code);
+
+    Optional<EmailUpdate> findByCode(String code);
+
+    boolean existsByIdentityAndCode(Identity identity, String code);
 }

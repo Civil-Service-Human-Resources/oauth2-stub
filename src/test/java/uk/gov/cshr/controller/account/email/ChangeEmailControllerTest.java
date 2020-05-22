@@ -1,4 +1,4 @@
-package uk.gov.cshr.controller;
+package uk.gov.cshr.controller.account.email;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -17,8 +17,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.cshr.config.SpringSecurityTestConfig;
+import uk.gov.cshr.domain.EmailUpdate;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.exception.ResourceNotFoundException;
+import uk.gov.cshr.service.AgencyTokenService;
 import uk.gov.cshr.service.EmailUpdateService;
 import uk.gov.cshr.service.security.IdentityDetails;
 import uk.gov.cshr.service.security.IdentityService;
@@ -30,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -40,19 +43,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(SpringSecurityTestConfig.class)
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class AccountControllerTest {
-
-    private static final String NORMAL_TEST_USER_UID = "uid";
+public class ChangeEmailControllerTest {
 
     private static final String UPDATE_EMAIL_FORM_TEMPLATE = "updateEmailForm";
-
     private static final String UPDATE_EMAIL_VIEW_NAME_TEMPLATE = "account/updateEmail";
 
-    private static final String EMAIL_URL = "/account/email";
+    private static final String EMAIL_PATH = "/account/email";
+    private static final String VERIFY_EMAIL_PATH = "/account/email/verify/";
+    private static final String VERIFY_EMAIL_AGENCY_PATH = "/account/email/verify/agency/";
 
-    private static final String VERIFY_EMAIL_URL = "/account/email/verify/1234567891234567";
-
-    private static final String EXPECTED_CODE = "1234567891234567";
+    private static final String UID = "uid";
+    private static final String VERIFY_CODE = "ZBnX9unEnnOcgMmCJ6rI3H2LUQFs2xsiMNj2Ejou";
+    private static final String DOMAIN = "example.com";
 
     @Value("${lpg.uiUrl}")
     private String lpgUiUrl;
@@ -69,25 +71,29 @@ public class AccountControllerTest {
     @MockBean
     private EmailUpdateService emailUpdateService;
 
+    @MockBean
+    private AgencyTokenService agencyTokenService;
+
     @Captor
     private ArgumentCaptor<Identity> identityArgumentCaptor;
 
-    private AccountController classUnderTest;
+    private ChangeEmailController changeEmailController;
 
     @Before
     public void setup() throws IllegalAccessException {
-        MockMVCFilterOverrider.overrideFilterOf(mockMvc, "PatternMappingFilterProxy" );
+        MockMVCFilterOverrider.overrideFilterOf(mockMvc, "PatternMappingFilterProxy");
 
-        classUnderTest = new AccountController(
+        changeEmailController = new ChangeEmailController(
                 identityService,
                 emailUpdateService,
+                agencyTokenService,
                 lpgUiUrl);
     }
 
     @Test
     public void givenARequestToChangeYourEmail_whenUpdateEmailForm_shouldDisplayForm() throws Exception {
         mockMvc.perform(
-                get(EMAIL_URL)
+                get(EMAIL_PATH)
                         .with(CsrfRequestPostProcessor.csrf()))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists(UPDATE_EMAIL_FORM_TEMPLATE))
@@ -97,14 +103,12 @@ public class AccountControllerTest {
 
     @Test
     public void givenAnEmptyForm_whenSendEmailVerification_shouldDisplayFieldValidationErrors() throws Exception {
-        // given
-        Authentication authentication = prepareAuthentication(NORMAL_TEST_USER_UID);
+        Authentication authentication = prepareAuthentication(UID);
 
-        // when
-        mockMvc.perform(post(EMAIL_URL)
+        mockMvc.perform(post(EMAIL_PATH)
                 .with(CsrfRequestPostProcessor.csrf())
-                .param("email","")
-                .param("confirm","")
+                .param("email", "")
+                .param("confirm", "")
                 .with(request1 -> {
                             request1.setUserPrincipal(authentication);
                             return request1;
@@ -118,22 +122,18 @@ public class AccountControllerTest {
                 .andExpect(model().attributeExists(UPDATE_EMAIL_FORM_TEMPLATE))
                 .andExpect(view().name(UPDATE_EMAIL_VIEW_NAME_TEMPLATE));
 
-        // then
-        // error is displayed on form and no service logic is executed
         verifyZeroInteractions(identityService);
         verifyZeroInteractions(emailUpdateService);
     }
 
     @Test
     public void givenAnInvalidForm_whenSendEmailVerification_shouldDisplayFieldValidationErrors() throws Exception {
-        // given
-        Authentication authentication = prepareAuthentication(NORMAL_TEST_USER_UID);
+        Authentication authentication = prepareAuthentication(UID);
 
-        // when
-        mockMvc.perform(post(EMAIL_URL)
+        mockMvc.perform(post(EMAIL_PATH)
                 .with(CsrfRequestPostProcessor.csrf())
-                .param("email","someone")
-                .param("confirm","someone")
+                .param("email", "someone")
+                .param("confirm", "someone")
                 .with(request1 -> {
                             request1.setUserPrincipal(authentication);
                             return request1;
@@ -145,22 +145,18 @@ public class AccountControllerTest {
                 .andExpect(model().attributeExists(UPDATE_EMAIL_FORM_TEMPLATE))
                 .andExpect(view().name(UPDATE_EMAIL_VIEW_NAME_TEMPLATE));
 
-        // then
-        // error is displayed on form and no service logic is executed
         verifyZeroInteractions(identityService);
         verifyZeroInteractions(emailUpdateService);
     }
 
     @Test
     public void givenNonMatchingForm_whenSendEmailVerification_shouldDisplayFieldValidationErrors() throws Exception {
-        // given
-        Authentication authentication = prepareAuthentication(NORMAL_TEST_USER_UID);
+        Authentication authentication = prepareAuthentication(UID);
 
-        // when
-        mockMvc.perform(post(EMAIL_URL)
+        mockMvc.perform(post(EMAIL_PATH)
                 .with(CsrfRequestPostProcessor.csrf())
-                .param("email","basic@domain.com")
-                .param("confirm","someone")
+                .param("email", "basic@domain.com")
+                .param("confirm", "someone")
                 .with(request1 -> {
                             request1.setUserPrincipal(authentication);
                             return request1;
@@ -172,23 +168,19 @@ public class AccountControllerTest {
                 .andExpect(model().attributeExists(UPDATE_EMAIL_FORM_TEMPLATE))
                 .andExpect(view().name(UPDATE_EMAIL_VIEW_NAME_TEMPLATE));
 
-        // then
-        // error is displayed on form and no service logic is executed
         verifyZeroInteractions(identityService);
         verifyZeroInteractions(emailUpdateService);
     }
 
     @Test
     public void givenAValidFormAndAnEmailThatAlreadyExists_whenSendEmailVerification_shouldDisplayEmailAlreadyExistsError() throws Exception {
-        // given
-        Authentication authentication = prepareAuthentication(NORMAL_TEST_USER_UID);
+        Authentication authentication = prepareAuthentication(UID);
         when(identityService.checkEmailExists(anyString())).thenReturn(true);
 
-        // when
-        mockMvc.perform(post(EMAIL_URL)
+        mockMvc.perform(post(EMAIL_PATH)
                 .with(CsrfRequestPostProcessor.csrf())
-                .param("email","basic@domain.com")
-                .param("confirm","basic@domain.com")
+                .param("email", "basic@domain.com")
+                .param("confirm", "basic@domain.com")
                 .with(request1 -> {
                             request1.setUserPrincipal(authentication);
                             return request1;
@@ -198,8 +190,6 @@ public class AccountControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/account/email?emailAlreadyTaken=true"));
 
-        // then
-        // server side error is displayed on form
         verify(identityService, times(1)).checkEmailExists(eq("basic@domain.com"));
         verify(identityService, never()).checkValidEmail(anyString());
         verifyZeroInteractions(emailUpdateService);
@@ -207,15 +197,13 @@ public class AccountControllerTest {
 
     @Test
     public void givenAValidFormAndAnEmailThatIsNotValid_whenSendEmailVerification_shouldDisplayUnableToUseThisServiceError() throws Exception {
-        // given
-        Authentication authentication = prepareAuthentication(NORMAL_TEST_USER_UID);
+        Authentication authentication = prepareAuthentication(UID);
         when(identityService.checkEmailExists(anyString())).thenReturn(false);
 
-        // when
-        mockMvc.perform(post(EMAIL_URL)
+        mockMvc.perform(post(EMAIL_PATH)
                 .with(CsrfRequestPostProcessor.csrf())
-                .param("email","basic@domain.com")
-                .param("confirm","basic@domain.com")
+                .param("email", "basic@domain.com")
+                .param("confirm", "basic@domain.com")
                 .with(request1 -> {
                             request1.setUserPrincipal(authentication);
                             return request1;
@@ -225,8 +213,6 @@ public class AccountControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/account/email?notValidEmailDomain=true"));
 
-        // then
-        // server side error is displayed on form
         verify(identityService, times(1)).checkEmailExists(eq("basic@domain.com"));
         verify(identityService, times(1)).checkValidEmail(eq("basic@domain.com"));
         verifyZeroInteractions(emailUpdateService);
@@ -234,16 +220,14 @@ public class AccountControllerTest {
 
     @Test
     public void givenAValidFormAndEmailDoesntAlreadyExistAndIsAValidEmail_whenSendEmailVerification_shouldDisplayEmailVerificationSentScreen() throws Exception {
-        // given
-        Authentication authentication = prepareAuthentication(NORMAL_TEST_USER_UID);
+        Authentication authentication = prepareAuthentication(UID);
         when(identityService.checkEmailExists(anyString())).thenReturn(false);
         when(identityService.checkValidEmail(anyString())).thenReturn(true);
 
-        // when
-        mockMvc.perform(post(EMAIL_URL)
+        mockMvc.perform(post(EMAIL_PATH)
                 .with(CsrfRequestPostProcessor.csrf())
-                .param("email","basic@domain.com")
-                .param("confirm","basic@domain.com")
+                .param("email", "basic@domain.com")
+                .param("confirm", "basic@domain.com")
                 .with(request1 -> {
                             request1.setUserPrincipal(authentication);
                             return request1;
@@ -253,17 +237,17 @@ public class AccountControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("account/emailVerificationSent"));
 
-        // then
         verify(identityService, times(1)).checkEmailExists(eq("basic@domain.com"));
         verify(identityService, times(1)).checkValidEmail(eq("basic@domain.com"));
         verify(emailUpdateService, times(1)).saveEmailUpdateAndNotify(identityArgumentCaptor.capture(), eq("basic@domain.com"));
-        // check correct identity was processed
+
         Identity actualIdentityToUpdate = identityArgumentCaptor.getValue();
         assertThat(actualIdentityToUpdate.getEmail()).isEqualTo("basic@domain.com");
     }
 
+
     @Test
-    public void givenAValidCode_whenUpdateEmail_shouldUpdateEmailAddressAndRedirectToEmailUpdatedPage() throws Exception {
+    public void shouldRedirectToEmailUpdateIfNewEmailIsWhitelistedButNotAgency() throws Exception {
         /*
          *  SpringSecurityTestConfig sets up 2 users, uid and specialuid.  See @Import(SpringSecurityTestConfig.class)
          *
@@ -278,41 +262,108 @@ public class AccountControllerTest {
          *         i.e. Authentication must be set in the request......
          */
 
-        // given
-        Authentication authentication = prepareAuthentication(NORMAL_TEST_USER_UID);
-        when(emailUpdateService.verifyCode(any(Identity.class), anyString())).thenReturn(true);
-        // expected data to be sent for updating
+        Authentication authentication = prepareAuthentication(UID);
+
         IdentityDetails identityDetails = (IdentityDetails) authentication.getPrincipal();
         Identity identity = identityDetails.getIdentity();
         String expectedUIDToBeUpdated = identity.getUid();
         String expectedEmailToBeUpdated = identity.getEmail();
 
-        // when
-        mockMvc.perform(get(VERIFY_EMAIL_URL)
+        EmailUpdate emailUpdate = new EmailUpdate();
+        emailUpdate.setCode(VERIFY_CODE);
+        emailUpdate.setEmail(identity.getEmail());
+
+        when(emailUpdateService.verifyEmailUpdateExists(identity, VERIFY_CODE)).thenReturn(true);
+        when(emailUpdateService.getEmailUpdate(identity, VERIFY_CODE)).thenReturn(emailUpdate);
+        when(identityService.getDomainFromEmailAddress(identity.getEmail())).thenReturn(DOMAIN);
+
+        when(identityService.isWhitelistedDomain(DOMAIN)).thenReturn(true);
+        when(agencyTokenService.isDomainInAgencyToken(DOMAIN)).thenReturn(false);
+
+        doNothing().when(emailUpdateService).updateEmailAddress(any(HttpServletRequest.class), identityArgumentCaptor.capture(), eq(emailUpdate));
+
+        mockMvc.perform(get(VERIFY_EMAIL_PATH + VERIFY_CODE)
                 .with(request1 -> {
                             request1.setUserPrincipal(authentication);
                             return request1;
                         }
                 ))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/account/emailUpdated"))
+                .andExpect(redirectedUrl("/account/email/updated"))
                 .andDo(print());
 
-        // then
-        verify(emailUpdateService, times(1)).updateEmailAddress(any(HttpServletRequest.class), identityArgumentCaptor.capture(), eq(EXPECTED_CODE));
         Identity actualIdentityToUpdate = identityArgumentCaptor.getValue();
         assertThat(actualIdentityToUpdate.getUid()).isEqualTo(expectedUIDToBeUpdated);
         assertThat(actualIdentityToUpdate.getEmail()).isEqualTo(expectedEmailToBeUpdated);
     }
 
     @Test
-    public void givenAInvalidCode_whenUpdateEmail_shouldRedirectToUpdateEmailPageWithAnInvalidCodeError() throws Exception {
-        // given
-        Authentication authentication = prepareAuthentication(NORMAL_TEST_USER_UID);
-        when(emailUpdateService.verifyCode(any(Identity.class), anyString())).thenReturn(false);
+    public void shouldRedirectToEmailUpdateIfNewEmailIsNotWhitelistedButIsAgency() throws Exception {
+        Authentication authentication = prepareAuthentication(UID);
 
-        // when
-        mockMvc.perform(get(VERIFY_EMAIL_URL)
+        IdentityDetails identityDetails = (IdentityDetails) authentication.getPrincipal();
+        Identity identity = identityDetails.getIdentity();
+
+        EmailUpdate emailUpdate = new EmailUpdate();
+        emailUpdate.setCode(VERIFY_CODE);
+        emailUpdate.setEmail(identity.getEmail());
+
+        when(emailUpdateService.verifyEmailUpdateExists(identity, VERIFY_CODE)).thenReturn(true);
+        when(emailUpdateService.getEmailUpdate(identity, VERIFY_CODE)).thenReturn(emailUpdate);
+        when(identityService.getDomainFromEmailAddress(identity.getEmail())).thenReturn(DOMAIN);
+
+        when(identityService.isWhitelistedDomain(DOMAIN)).thenReturn(false);
+        when(agencyTokenService.isDomainInAgencyToken(DOMAIN)).thenReturn(true);
+
+        doNothing().when(emailUpdateService).updateEmailAddress(any(HttpServletRequest.class), identityArgumentCaptor.capture(), eq(emailUpdate));
+
+        mockMvc.perform(get(VERIFY_EMAIL_PATH + VERIFY_CODE)
+                .with(request1 -> {
+                            request1.setUserPrincipal(authentication);
+                            return request1;
+                        }
+                ))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(VERIFY_EMAIL_AGENCY_PATH + VERIFY_CODE))
+                .andDo(print());
+    }
+
+    @Test
+    public void shouldRedirectToErrorOccuredIfNewEmailIsNotWhitelistedAndNotAgency() throws Exception {
+        Authentication authentication = prepareAuthentication(UID);
+
+        IdentityDetails identityDetails = (IdentityDetails) authentication.getPrincipal();
+        Identity identity = identityDetails.getIdentity();
+
+        EmailUpdate emailUpdate = new EmailUpdate();
+        emailUpdate.setCode(VERIFY_CODE);
+        emailUpdate.setEmail(identity.getEmail());
+
+        when(emailUpdateService.verifyEmailUpdateExists(identity, VERIFY_CODE)).thenReturn(true);
+        when(emailUpdateService.getEmailUpdate(identity, VERIFY_CODE)).thenReturn(emailUpdate);
+        when(identityService.getDomainFromEmailAddress(identity.getEmail())).thenReturn(DOMAIN);
+
+        when(identityService.isWhitelistedDomain(DOMAIN)).thenReturn(false);
+        when(agencyTokenService.isDomainInAgencyToken(DOMAIN)).thenReturn(false);
+
+        mockMvc.perform(get(VERIFY_EMAIL_PATH + VERIFY_CODE)
+                .with(request1 -> {
+                            request1.setUserPrincipal(authentication);
+                            return request1;
+                        }
+                ))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/account/email?errorOccurred=true"))
+                .andDo(print());
+    }
+
+
+    @Test
+    public void givenAInvalidCode_whenUpdateEmail_shouldRedirectToUpdateEmailPageWithAnInvalidCodeError() throws Exception {
+        Authentication authentication = prepareAuthentication(UID);
+        when(emailUpdateService.verifyEmailUpdateExists(any(Identity.class), anyString())).thenReturn(false);
+
+        mockMvc.perform(get(VERIFY_EMAIL_PATH + VERIFY_CODE)
                 .with(request1 -> {
                             request1.setUserPrincipal(authentication);
                             return request1;
@@ -322,24 +373,32 @@ public class AccountControllerTest {
                 .andExpect(redirectedUrl("/account/email?invalidCode=true"))
                 .andDo(print());
 
-        // then
-        verify(emailUpdateService, never()).updateEmailAddress(any(HttpServletRequest.class), any(Identity.class), anyString());
+        verify(emailUpdateService, never()).updateEmailAddress(any(HttpServletRequest.class), any(Identity.class), any(EmailUpdate.class));
     }
 
     @Test
     public void givenAValidCodeAndNonExistentIdentity_whenUpdateEmail_shouldRedirectToUpdateEmailPageWithAnInvalidEmailError() throws Exception {
-        // given
-        Authentication authentication = prepareAuthentication(NORMAL_TEST_USER_UID);
-        when(emailUpdateService.verifyCode(any(Identity.class), anyString())).thenReturn(true);
-        doThrow(new ResourceNotFoundException()).when(emailUpdateService).updateEmailAddress(any(HttpServletRequest.class), any(Identity.class), anyString());
-        // expected data to be sent for updating
+        Authentication authentication = prepareAuthentication(UID);
+
         IdentityDetails identityDetails = (IdentityDetails) authentication.getPrincipal();
         Identity identity = identityDetails.getIdentity();
         String expectedUIDToBeUpdated = identity.getUid();
         String expectedEmailToBeUpdated = identity.getEmail();
 
-        // when
-        mockMvc.perform(get(VERIFY_EMAIL_URL)
+        EmailUpdate emailUpdate = new EmailUpdate();
+        emailUpdate.setCode(VERIFY_CODE);
+        emailUpdate.setEmail(identity.getEmail());
+
+        when(emailUpdateService.verifyEmailUpdateExists(identity, VERIFY_CODE)).thenReturn(true);
+        when(emailUpdateService.getEmailUpdate(identity, VERIFY_CODE)).thenReturn(emailUpdate);
+        when(identityService.getDomainFromEmailAddress(identity.getEmail())).thenReturn(DOMAIN);
+
+        when(identityService.isWhitelistedDomain(DOMAIN)).thenReturn(true);
+        when(agencyTokenService.isDomainInAgencyToken(DOMAIN)).thenReturn(true);
+
+        doThrow(new ResourceNotFoundException()).when(emailUpdateService).updateEmailAddress(any(HttpServletRequest.class), any(Identity.class), any(EmailUpdate.class));
+
+        mockMvc.perform(get(VERIFY_EMAIL_PATH + VERIFY_CODE)
                 .with(request1 -> {
                             request1.setUserPrincipal(authentication);
                             return request1;
@@ -349,8 +408,7 @@ public class AccountControllerTest {
                 .andExpect(redirectedUrl("/account/email?invalidEmail=true"))
                 .andDo(print());
 
-        // then
-        verify(emailUpdateService, times(1)).updateEmailAddress(any(HttpServletRequest.class), identityArgumentCaptor.capture(), eq(EXPECTED_CODE));
+        verify(emailUpdateService, times(1)).updateEmailAddress(any(HttpServletRequest.class), identityArgumentCaptor.capture(), eq(emailUpdate));
         Identity actualIdentityToUpdate = identityArgumentCaptor.getValue();
         assertThat(actualIdentityToUpdate.getUid()).isEqualTo(expectedUIDToBeUpdated);
         assertThat(actualIdentityToUpdate.getEmail()).isEqualTo(expectedEmailToBeUpdated);
@@ -358,18 +416,27 @@ public class AccountControllerTest {
 
     @Test
     public void givenAValidCodeAndATechnicalErrorWhenUpdating_whenUpdateEmail_shouldRedirectToUpdateEmailPageWithAnErrorOccurredError() throws Exception {
-        // given
-        Authentication authentication = prepareAuthentication(NORMAL_TEST_USER_UID);
-        when(emailUpdateService.verifyCode(any(Identity.class), anyString())).thenReturn(true);
-        doThrow(new RuntimeException()).when(emailUpdateService).updateEmailAddress(any(HttpServletRequest.class), any(Identity.class), anyString());
-        // expected data to be sent for updating
+        Authentication authentication = prepareAuthentication(UID);
+
         IdentityDetails identityDetails = (IdentityDetails) authentication.getPrincipal();
         Identity identity = identityDetails.getIdentity();
         String expectedUIDToBeUpdated = identity.getUid();
         String expectedEmailToBeUpdated = identity.getEmail();
 
-        // when
-        mockMvc.perform(get(VERIFY_EMAIL_URL)
+        EmailUpdate emailUpdate = new EmailUpdate();
+        emailUpdate.setCode(VERIFY_CODE);
+        emailUpdate.setEmail(identity.getEmail());
+
+        when(emailUpdateService.verifyEmailUpdateExists(identity, VERIFY_CODE)).thenReturn(true);
+        when(emailUpdateService.getEmailUpdate(identity, VERIFY_CODE)).thenReturn(emailUpdate);
+        when(identityService.getDomainFromEmailAddress(identity.getEmail())).thenReturn(DOMAIN);
+
+        when(identityService.isWhitelistedDomain(DOMAIN)).thenReturn(true);
+        when(agencyTokenService.isDomainInAgencyToken(DOMAIN)).thenReturn(true);
+
+        doThrow(new RuntimeException()).when(emailUpdateService).updateEmailAddress(any(HttpServletRequest.class), any(Identity.class), any(EmailUpdate.class));
+
+        mockMvc.perform(get(VERIFY_EMAIL_PATH + VERIFY_CODE)
                 .with(request1 -> {
                             request1.setUserPrincipal(authentication);
                             return request1;
@@ -379,8 +446,8 @@ public class AccountControllerTest {
                 .andExpect(redirectedUrl("/account/email?errorOccurred=true"))
                 .andDo(print());
 
-        // then
-        verify(emailUpdateService, times(1)).updateEmailAddress(any(HttpServletRequest.class), identityArgumentCaptor.capture(), eq(EXPECTED_CODE));
+        verify(emailUpdateService, times(1)).updateEmailAddress(any(HttpServletRequest.class), identityArgumentCaptor.capture(), eq(emailUpdate));
+
         Identity actualIdentityToUpdate = identityArgumentCaptor.getValue();
         assertThat(actualIdentityToUpdate.getUid()).isEqualTo(expectedUIDToBeUpdated);
         assertThat(actualIdentityToUpdate.getEmail()).isEqualTo(expectedEmailToBeUpdated);
@@ -388,15 +455,13 @@ public class AccountControllerTest {
 
     @Test
     public void givenASuccessfulUpdateOfEmailAddress_whenEmailUpdated_shouldRedirectToEmailUpdatedView() throws Exception {
-        // when
-        mockMvc.perform(get("/account/emailUpdated"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(lpgUiUrl+ "/sign-out"));
+        mockMvc.perform(get("/account/email/updated"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("account/emailUpdated"));
     }
 
     private Authentication prepareAuthentication(String userNameToAuthenticateWith) {
         IdentityDetails identityDetails = (IdentityDetails) userDetailsService.loadUserByUsername(userNameToAuthenticateWith);
         return new UsernamePasswordAuthenticationToken(identityDetails, identityDetails.getPassword(), identityDetails.getAuthorities());
     }
-
 }

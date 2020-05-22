@@ -315,7 +315,7 @@ public class IdentityServiceTest {
         identityParam.setId(new Long(123l));
 
         // when
-        identityService.updateEmailAddressAndEmailRecentlyUpdatedFlagToTrue(identityParam, "mynewemail@whitelisted.gov.uk");
+        identityService.updateEmailAddressWhereNewEmailIsNotAgency(identityParam, "mynewemail@whitelisted.gov.uk");
 
         // then
         verify(identityRepository, times(1)).findById(anyLong());
@@ -406,33 +406,29 @@ public class IdentityServiceTest {
 
     @Test
     public void givenAValidAgencyTokenEmail_whenCheckValidEmail_shouldReturnTrue(){
-        // given
-        // badger.gov.uk which has at least one agency tokens associated with it
-        AgencyToken[] agencyTokens = new AgencyToken[1];
-        agencyTokens[0] = buildAgencyToken();
-        when(csrsService.getAgencyTokensForDomain(anyString())).thenReturn(agencyTokens);
+        String email = "someone@badger.gov.uk";
+        String domain = "badger.gov.uk";
 
-        // when
-        boolean actual = identityService.checkValidEmail("someone@badger.gov.uk");
+        when(csrsService.isDomainInAgency(domain)).thenReturn(true);
+
+        boolean actual = identityService.checkValidEmail(email);
 
         // then
         assertTrue(actual);
-        verify(csrsService, times(1)).getAgencyTokensForDomain(eq("badger.gov.uk"));
+        verify(csrsService, times(1)).isDomainInAgency(eq("badger.gov.uk"));
     }
 
     @Test
     public void givenANonValidAgencyTokenEmail_whenCheckValidEmail_shouldReturnFalse(){
-        // given
-        // bennevis.com which is not whitelisted and has no agency tokens associated with it
-        AgencyToken[] agencyTokens = new AgencyToken[0];
-        when(csrsService.getAgencyTokensForDomain(anyString())).thenReturn(agencyTokens);
+        String email = "someone@bennevis.com";
+        String domain = "bennevis.com";
 
-        // when
-        boolean actual = identityService.checkValidEmail("someone@bennevis.com");
+        when(csrsService.isDomainInAgency(domain)).thenReturn(false);
 
-        // then
+        boolean actual = identityService.checkValidEmail(email);
+
         assertFalse(actual);
-        verify(csrsService, times(1)).getAgencyTokensForDomain(eq("bennevis.com"));
+        verify(csrsService, times(1)).isDomainInAgency(eq("bennevis.com"));
     }
 
     private AgencyToken buildAgencyToken() {
