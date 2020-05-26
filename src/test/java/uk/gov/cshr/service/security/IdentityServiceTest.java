@@ -315,13 +315,38 @@ public class IdentityServiceTest {
         identityParam.setId(new Long(123l));
 
         // when
-        identityService.updateEmailAddressWhereNewEmailIsNotAgency(identityParam, "mynewemail@whitelisted.gov.uk");
+        identityService.updateEmailAddress(identityParam, "mynewemail@whitelisted.gov.uk", null);
 
         // then
         verify(identityRepository, times(1)).findById(anyLong());
         verify(identityRepository, times(1)).save(optionalIdentity.get());
         Identity actualSavedIdentity = identityArgumentCaptor.getValue();
         assertThat(actualSavedIdentity.isEmailRecentlyUpdated(), equalTo(true));
+        assertThat(actualSavedIdentity.getAgencyTokenUid(), equalTo(null));
+    }
+
+    @Test
+    public void givenAValidIdentityWithAnAgencyDomain_whenUpdateEmailAddress_shouldReturnSuccessfully() {
+        // given
+        Optional<Identity> optionalIdentity = Optional.of(IDENTITY);
+        when(identityRepository.findById(anyLong())).thenReturn(optionalIdentity);
+        when(identityRepository.save(identityArgumentCaptor.capture())).thenReturn(new Identity());
+
+        Identity identityParam = new Identity();
+        identityParam.setId(new Long(123l));
+
+        AgencyToken agencyToken = new AgencyToken();
+        agencyToken.setUid(UID);
+
+        // when
+        identityService.updateEmailAddress(identityParam, "mynewemail@whitelisted.gov.uk", agencyToken);
+
+        // then
+        verify(identityRepository, times(1)).findById(anyLong());
+        verify(identityRepository, times(1)).save(optionalIdentity.get());
+        Identity actualSavedIdentity = identityArgumentCaptor.getValue();
+        assertThat(actualSavedIdentity.isEmailRecentlyUpdated(), equalTo(true));
+        assertThat(actualSavedIdentity.getAgencyTokenUid(), equalTo(UID));
     }
 
     @Test

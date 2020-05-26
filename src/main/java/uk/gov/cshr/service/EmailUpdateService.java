@@ -67,19 +67,7 @@ public class EmailUpdateService {
 
     @Transactional(rollbackFor = Exception.class)
     public void updateEmailAddress(HttpServletRequest request, Identity identity, EmailUpdate emailUpdate) {
-        String newEmail = emailUpdate.getEmail();
-
-        log.debug("Updating email address for: oldEmail = {}, newEmail = {}", identity.getEmail(), newEmail);
-
-        identityService.updateEmailAddressWhereNewEmailIsNotAgency(identity, newEmail);
-
-        identityService.updateSpringWithRecentlyEmailUpdatedFlag(request, true);
-
-        emailUpdateRepository.delete(emailUpdate);
-
-        log.debug("Email address {} has been updated to {} successfully", identity.getEmail(), newEmail);
-
-        log.debug("Deleting emailUpdateObject: {}", emailUpdate.toString());
+        updateEmailAddress(request, identity, emailUpdate, null);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -88,7 +76,7 @@ public class EmailUpdateService {
 
         log.debug("Updating email address for: oldEmail = {}, newEmail = {}", identity.getEmail(), newEmail);
 
-        identityService.updateEmailAddressWhereNewEmailIsAgency(identity, newEmail, agencyToken);
+        identityService.updateEmailAddress(identity, newEmail, agencyToken);
 
         identityService.updateSpringWithRecentlyEmailUpdatedFlag(request, true);
 

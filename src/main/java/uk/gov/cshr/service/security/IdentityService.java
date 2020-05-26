@@ -168,35 +168,22 @@ public class IdentityService implements UserDetailsService {
         return identityRepository.save(identity);
     }
 
-    public void updateEmailAddressWhereNewEmailIsAgency(Identity identity, String email, AgencyToken newAgencyToken) {
+    public void updateEmailAddress(Identity identity, String email, AgencyToken newAgencyToken) {
         Identity savedIdentity = identityRepository.findById(identity.getId())
                 .orElseThrow(() -> new IdentityNotFoundException("No such identity: " + identity.getId()));
 
-        if (newAgencyToken.getUid() != null) {
+        if (newAgencyToken != null && newAgencyToken.getUid() != null) {
             log.debug("Updating agency token for user: oldAgencyToken = {}, newAgencyToken = {}", identity.getAgencyTokenUid(), newAgencyToken.getUid());
             savedIdentity.setAgencyTokenUid(newAgencyToken.getUid());
-        }
-
-        savedIdentity.setEmail(email);
-        savedIdentity.setEmailRecentlyUpdated(true);
-        Identity updatedIdentity = identityRepository.save(savedIdentity);
-        log.info("Identity has been updated to have a recently updated email flag of: " + updatedIdentity.isEmailRecentlyUpdated());
-    }
-
-    public void updateEmailAddressWhereNewEmailIsNotAgency(Identity identity, String email) {
-        Identity savedIdentity = identityRepository.findById(identity.getId())
-                .orElseThrow(() -> new IdentityNotFoundException("No such identity: " + identity.getId()));
-
-        if (identity.getAgencyTokenUid() != null) {
-            log.debug("Setting old agencyTokenUid to null as user is no longer associated to it: {}", identity.getAgencyTokenUid());
+        } else {
+            log.debug("Setting existing agency token UID to null");
             savedIdentity.setAgencyTokenUid(null);
         }
 
         savedIdentity.setEmail(email);
         savedIdentity.setEmailRecentlyUpdated(true);
         Identity updatedIdentity = identityRepository.save(savedIdentity);
-
-        log.info("identity has been updated to have a recently updated email flag of: " + updatedIdentity.isEmailRecentlyUpdated());
+        log.info("Identity has been updated to have a recently updated email flag of: " + updatedIdentity.isEmailRecentlyUpdated());
     }
 
     public void resetRecentlyUpdatedEmailFlagToFalse(Identity identity) {

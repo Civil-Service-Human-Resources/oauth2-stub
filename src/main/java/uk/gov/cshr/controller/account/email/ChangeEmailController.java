@@ -104,6 +104,8 @@ public class ChangeEmailController {
         String newDomain = identityService.getDomainFromEmailAddress(emailUpdate.getEmail());
 
         log.debug("Attempting update email verification with domain: {}", newDomain);
+
+
         if (isWhitelisted(newDomain)) {
             log.debug("New email is whitelisted: oldEmail = {}, newEmail = {}", identity.getEmail(), emailUpdate.getEmail());
             try {

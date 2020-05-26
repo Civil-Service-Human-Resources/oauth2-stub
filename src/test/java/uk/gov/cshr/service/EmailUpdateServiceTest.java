@@ -125,13 +125,13 @@ public class EmailUpdateServiceTest {
 
         when(identityService.getDomainFromEmailAddress(NEW_EMAIL_ADDRESS)).thenReturn(NEW_DOMAIN);
 
-        doNothing().when(identityService).updateEmailAddressWhereNewEmailIsNotAgency(eq(IDENTITY), eq(emailUpdate.getEmail()));
+        doNothing().when(identityService).updateEmailAddress(eq(IDENTITY), eq(emailUpdate.getEmail()), isNull());
         doNothing().when(identityService).updateSpringWithRecentlyEmailUpdatedFlag(any(HttpServletRequest.class), eq(true));
         doNothing().when(emailUpdateRepository).delete(any(EmailUpdate.class));
 
         emailUpdateService.updateEmailAddress(request, IDENTITY, emailUpdate);
 
-        verify(identityService, times(1)).updateEmailAddressWhereNewEmailIsNotAgency(identityArgumentCaptor.capture(), eq(emailUpdate.getEmail()));
+        verify(identityService, times(1)).updateEmailAddress(identityArgumentCaptor.capture(), eq(emailUpdate.getEmail()), isNull());
         verify(identityService, times(1)).updateSpringWithRecentlyEmailUpdatedFlag(any(HttpServletRequest.class), eq(true));
         verify(emailUpdateRepository, times(1)).delete(emailUpdateArgumentCaptor.capture());
 
@@ -140,7 +140,34 @@ public class EmailUpdateServiceTest {
 
         Identity identity = identityArgumentCaptor.getValue();
         assertThat(identity.getUid(), equalTo(UID));
-        assertThat(identity.getAgencyTokenUid(), equalTo(null));
+    }
+
+    @Test
+    public void givenAValidIdentity_whenNewDomainIsAgency_shouldReturnSuccessfully() throws Exception {
+        EmailUpdate emailUpdate = new EmailUpdate();
+        emailUpdate.setId(100l);
+        emailUpdate.setEmail(NEW_EMAIL_ADDRESS);
+
+        AgencyToken agencyToken = new AgencyToken();
+        agencyToken.setUid(UID);
+
+        when(identityService.getDomainFromEmailAddress(NEW_EMAIL_ADDRESS)).thenReturn(NEW_DOMAIN);
+
+        doNothing().when(identityService).updateEmailAddress(eq(IDENTITY), eq(emailUpdate.getEmail()), eq(agencyToken));
+        doNothing().when(identityService).updateSpringWithRecentlyEmailUpdatedFlag(any(HttpServletRequest.class), eq(true));
+        doNothing().when(emailUpdateRepository).delete(any(EmailUpdate.class));
+
+        emailUpdateService.updateEmailAddress(request, IDENTITY, emailUpdate, agencyToken);
+
+        verify(identityService, times(1)).updateEmailAddress(identityArgumentCaptor.capture(), eq(emailUpdate.getEmail()), eq(agencyToken));
+        verify(identityService, times(1)).updateSpringWithRecentlyEmailUpdatedFlag(any(HttpServletRequest.class), eq(true));
+        verify(emailUpdateRepository, times(1)).delete(emailUpdateArgumentCaptor.capture());
+
+        EmailUpdate actualDeletedEmailUpdate = emailUpdateArgumentCaptor.getValue();
+        assertThat(actualDeletedEmailUpdate.getId(), equalTo(100l));
+
+        Identity identity = identityArgumentCaptor.getValue();
+        assertThat(identity.getUid(), equalTo(UID));
     }
 
     // TODO: 21/05/2020 Test throwing the exception  
