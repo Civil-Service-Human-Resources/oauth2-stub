@@ -31,8 +31,11 @@ public class ClientDetails implements org.springframework.security.oauth2.provid
 
     private Client client;
 
-    public ClientDetails(Client client) {
+    private Integer accessTokenValiditySeconds;
+
+    public ClientDetails(Client client, Integer accessTokenValiditySeconds) {
         this.client = client;
+        this.accessTokenValiditySeconds = accessTokenValiditySeconds;
     }
 
     @Override
@@ -86,7 +89,7 @@ public class ClientDetails implements org.springframework.security.oauth2.provid
 
     @Override
     public Integer getAccessTokenValiditySeconds() {
-        return null;
+        return accessTokenValiditySeconds;
     }
 
     @Override

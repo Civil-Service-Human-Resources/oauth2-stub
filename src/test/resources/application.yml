@@ -29,6 +29,7 @@ logging:
     org.apache.http: WARN
 
 accessToken:
+  jwtKey: ${jwt_key}
   validityInSeconds: ${ACCESS_TOKEN_VALIDITY:86400}
 
 govNotify:
