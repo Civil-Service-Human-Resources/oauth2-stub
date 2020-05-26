@@ -130,6 +130,8 @@ public class AgencyTokenVerificationController {
 
             return REDIRECT_ENTER_TOKEN + form.getCode();
         } catch (Exception e) {
+            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.CHANGE_EMAIL_ERROR_MESSAGE);
+
             return "redirect:/login";
         }
     }

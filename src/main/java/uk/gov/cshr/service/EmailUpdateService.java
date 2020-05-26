@@ -78,6 +78,7 @@ public class EmailUpdateService {
 
         identityService.updateEmailAddress(identity, newEmail, agencyToken);
 
+        // TODO: 26/05/2020 do we need flag, can we delete
         identityService.updateSpringWithRecentlyEmailUpdatedFlag(request, true);
 
         emailUpdateRepository.delete(emailUpdate);

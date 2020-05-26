@@ -35,6 +35,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Optional;
 
 import static org.mockito.Mockito.*;
+import static org.powermock.api.mockito.PowerMockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -55,6 +56,12 @@ public class AgencyTokenVerificationControllerTest {
     private static final String ORGANISATION = "co";
     private static final String AGENCY_TOKEN_UID = "675fd21d-03f9-4922-a2ff-c19186270b04";
     private static final String EMAIL = "test@example.com";
+
+    private static final String ENTER_TOKEN_SINCE_EMAIL_UPDATE_VIEW_NAME_TEMPLATE = "enterTokenSinceEmailUpdate";
+    private static final String EMAIL_UPDATED_RECENTLY_ENTER_TOKEN_FORM_TEMPLATE = "emailUpdatedRecentlyEnterTokenForm";
+    private static final String LOGIN_URL = "/login";
+    private static final String EMAIL_ERROR_TEXT = "There was a problem with changing your email, please try again later";
+    private static final String NO_SPACE_AVAIL_TEXT = "No spaces available for this token. Please contact your line manager";
 
     @Autowired
     private MockMvc mockMvc;
@@ -194,7 +201,7 @@ public class AgencyTokenVerificationControllerTest {
                         .param("uid", IDENTITY_UID)
         )
                 .andExpect(status().is3xxRedirection())
-                .andExpect(flash().attribute("status", "No spaces available for this token. Please contact your line manager"))
+                .andExpect(flash().attribute("status", NO_SPACE_AVAIL_TEXT))
                 .andExpect(redirectedUrl(VERIFY_TOKEN_URL + CODE));
     }
 
@@ -204,10 +211,15 @@ public class AgencyTokenVerificationControllerTest {
         agencyToken.setUid(AGENCY_TOKEN_UID);
 
         when(csrsService.getAgencyTokenForDomainTokenOrganisation(DOMAIN, TOKEN, ORGANISATION)).thenReturn(Optional.of(agencyToken));
-        when(agencyTokenCapacityService.hasSpaceAvailable(agencyToken)).thenReturn(false);
+        when(agencyTokenCapacityService.hasSpaceAvailable(agencyToken)).thenReturn(true);
+
+        EmailUpdate emailUpdate = new EmailUpdate();
+        emailUpdate.setEmail(EMAIL);
 
         Identity identity = new Identity();
-        when(emailUpdateService.getEmailUpdate(identity, CODE)).thenThrow(new ResourceNotFoundException());
+        when(emailUpdateService.getEmailUpdate(any(Identity.class), eq(CODE))).thenReturn(emailUpdate);
+
+        doThrow(new ResourceNotFoundException()).when(emailUpdateService).updateEmailAddress(any(HttpServletRequest.class), any(Identity.class), any(EmailUpdate.class), any(AgencyToken.class));
 
         mockMvc.perform(
                 post(VERIFY_TOKEN_URL + CODE)
@@ -218,7 +230,7 @@ public class AgencyTokenVerificationControllerTest {
                         .param("uid", IDENTITY_UID)
         )
                 .andExpect(status().is3xxRedirection())
-                .andExpect(flash().attribute("status", "There was a problem with changing your email, please try again later"))
+                .andExpect(flash().attribute("status", EMAIL_ERROR_TEXT))
                 .andExpect(redirectedUrl(VERIFY_TOKEN_URL + CODE));
     }
 
@@ -242,7 +254,36 @@ public class AgencyTokenVerificationControllerTest {
                         .param("uid", IDENTITY_UID)
         )
                 .andExpect(status().is3xxRedirection())
-                .andExpect(flash().attribute("status", "No spaces available for this token. Please contact your line manager"))
+                .andExpect(flash().attribute("status", NO_SPACE_AVAIL_TEXT))
                 .andExpect(redirectedUrl(VERIFY_TOKEN_URL + CODE));
+    }
+
+    @Test
+    public void shouldRedirectToLoginIfExceptionOccurs() throws Exception {
+        AgencyToken agencyToken = new AgencyToken();
+        agencyToken.setUid(AGENCY_TOKEN_UID);
+
+        when(csrsService.getAgencyTokenForDomainTokenOrganisation(DOMAIN, TOKEN, ORGANISATION)).thenReturn(Optional.of(agencyToken));
+        when(agencyTokenCapacityService.hasSpaceAvailable(agencyToken)).thenReturn(true);
+
+        EmailUpdate emailUpdate = new EmailUpdate();
+        emailUpdate.setEmail(EMAIL);
+
+        Identity identity = new Identity();
+
+        when(emailUpdateService.getEmailUpdate(any(Identity.class), eq(CODE))).thenReturn(emailUpdate);
+        doThrow(new NullPointerException()).when(emailUpdateService).updateEmailAddress(any(HttpServletRequest.class), any(Identity.class), any(EmailUpdate.class), any(AgencyToken.class));
+
+        mockMvc.perform(
+                post(VERIFY_TOKEN_URL + CODE)
+                        .with(CsrfRequestPostProcessor.csrf())
+                        .param("organisation", ORGANISATION)
+                        .param("token", TOKEN)
+                        .param("domain", DOMAIN)
+                        .param("uid", IDENTITY_UID)
+        )
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attribute("status", EMAIL_ERROR_TEXT))
+                .andExpect(redirectedUrl(LOGIN_URL));
     }
 }
