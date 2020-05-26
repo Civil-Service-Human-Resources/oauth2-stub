@@ -107,6 +107,8 @@ public class AgencyTokenVerificationController {
 
             if (!agencyTokenCapacityService.hasSpaceAvailable(agencyToken)) {
                 log.info("Agency token uid = {}, capacity = {}, has no spaces available. User {} unable to signup");
+                redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.NO_SPACES_AVAILABLE_ERROR_MESSAGE);
+
                 return REDIRECT_ENTER_TOKEN + code;
             }
 
@@ -120,13 +122,13 @@ public class AgencyTokenVerificationController {
 
             return REDIRECT_ACCOUNT_EMAIL_UPDATED;
         } catch (ResourceNotFoundException e) {
-            buildGenericErrorModel(model, form);
-            return ENTER_TOKEN_SINCE_EMAIL_UPDATE_VIEW_NAME_TEMPLATE;
+            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.CHANGE_EMAIL_ERROR_MESSAGE);
+
+            return REDIRECT_ENTER_TOKEN + form.getCode();
         } catch (NotEnoughSpaceAvailableException e) {
-            model.addAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.NO_SPACES_AVAILABLE_ERROR_MESSAGE);
-            model.addAttribute(EMAIL_UPDATED_RECENTLY_ENTER_TOKEN_FORM_TEMPLATE, form);
-            addOrganisationsToModel(model);
-            return ENTER_TOKEN_SINCE_EMAIL_UPDATE_VIEW_NAME_TEMPLATE;
+            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.NO_SPACES_AVAILABLE_ERROR_MESSAGE);
+
+            return REDIRECT_ENTER_TOKEN + form.getCode();
         } catch (Exception e) {
             return "redirect:/login";
         }

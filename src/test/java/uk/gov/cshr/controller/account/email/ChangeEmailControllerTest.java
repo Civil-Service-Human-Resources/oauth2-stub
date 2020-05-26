@@ -324,6 +324,7 @@ public class ChangeEmailControllerTest {
                         }
                 ))
                 .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attribute("email", identity.getEmail()))
                 .andExpect(redirectedUrl(VERIFY_EMAIL_AGENCY_PATH + VERIFY_CODE))
                 .andDo(print());
     }

@@ -21,6 +21,8 @@ import uk.gov.cshr.domain.AgencyToken;
 import uk.gov.cshr.domain.EmailUpdate;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.OrganisationalUnitDto;
+import uk.gov.cshr.exception.NotEnoughSpaceAvailableException;
+import uk.gov.cshr.exception.ResourceNotFoundException;
 import uk.gov.cshr.service.AgencyTokenCapacityService;
 import uk.gov.cshr.service.CsrsService;
 import uk.gov.cshr.service.EmailUpdateService;
@@ -192,6 +194,55 @@ public class AgencyTokenVerificationControllerTest {
                         .param("uid", IDENTITY_UID)
         )
                 .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attribute("status", "No spaces available for this token. Please contact your line manager"))
+                .andExpect(redirectedUrl(VERIFY_TOKEN_URL + CODE));
+    }
+
+    @Test
+    public void shouldRedirectToEnterTokenIfResourceNotFound() throws Exception {
+        AgencyToken agencyToken = new AgencyToken();
+        agencyToken.setUid(AGENCY_TOKEN_UID);
+
+        when(csrsService.getAgencyTokenForDomainTokenOrganisation(DOMAIN, TOKEN, ORGANISATION)).thenReturn(Optional.of(agencyToken));
+        when(agencyTokenCapacityService.hasSpaceAvailable(agencyToken)).thenReturn(false);
+
+        Identity identity = new Identity();
+        when(emailUpdateService.getEmailUpdate(identity, CODE)).thenThrow(new ResourceNotFoundException());
+
+        mockMvc.perform(
+                post(VERIFY_TOKEN_URL + CODE)
+                        .with(CsrfRequestPostProcessor.csrf())
+                        .param("organisation", ORGANISATION)
+                        .param("token", TOKEN)
+                        .param("domain", DOMAIN)
+                        .param("uid", IDENTITY_UID)
+        )
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attribute("status", "There was a problem with changing your email, please try again later"))
+                .andExpect(redirectedUrl(VERIFY_TOKEN_URL + CODE));
+    }
+
+    @Test
+    public void shouldRedirectToEnterTokenIfNoSpaceAvailable() throws Exception {
+        AgencyToken agencyToken = new AgencyToken();
+        agencyToken.setUid(AGENCY_TOKEN_UID);
+
+        when(csrsService.getAgencyTokenForDomainTokenOrganisation(DOMAIN, TOKEN, ORGANISATION)).thenReturn(Optional.of(agencyToken));
+        when(agencyTokenCapacityService.hasSpaceAvailable(agencyToken)).thenReturn(false);
+
+        Identity identity = new Identity();
+        when(emailUpdateService.getEmailUpdate(identity, CODE)).thenThrow(new NotEnoughSpaceAvailableException("No space available"));
+
+        mockMvc.perform(
+                post(VERIFY_TOKEN_URL + CODE)
+                        .with(CsrfRequestPostProcessor.csrf())
+                        .param("organisation", ORGANISATION)
+                        .param("token", TOKEN)
+                        .param("domain", DOMAIN)
+                        .param("uid", IDENTITY_UID)
+        )
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attribute("status", "No spaces available for this token. Please contact your line manager"))
                 .andExpect(redirectedUrl(VERIFY_TOKEN_URL + CODE));
     }
 }
