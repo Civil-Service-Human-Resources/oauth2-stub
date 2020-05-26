@@ -35,7 +35,6 @@ import java.util.Optional;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @AutoConfigureMockMvc
@@ -115,8 +114,7 @@ public class AgencyTokenVerificationControllerTest {
                 .andExpect(model().attribute("email", EMAIL))
                 .andExpect(model().attribute("code", CODE))
                 .andExpect(model().attributeExists("emailUpdatedRecentlyEnterTokenForm"))
-                .andExpect(view().name("enterTokenSinceEmailUpdate"))
-                .andDo(print());
+                .andExpect(view().name("enterTokenSinceEmailUpdate"));
 
         verify(identityService, times(1)).getDomainFromEmailAddress(EMAIL);
     }
@@ -142,8 +140,7 @@ public class AgencyTokenVerificationControllerTest {
                 .andExpect(model().attribute("uid", IDENTITY_UID))
                 .andExpect(model().attribute("code", CODE))
                 .andExpect(model().attributeExists("emailUpdatedRecentlyEnterTokenForm"))
-                .andExpect(view().name("enterTokenSinceEmailUpdate"))
-                .andDo(print());
+                .andExpect(view().name("enterTokenSinceEmailUpdate"));
     }
 
     @Test

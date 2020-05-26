@@ -10,15 +10,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.test.annotation.Commit;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.transaction.TestTransaction;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.domain.AgencyToken;
 import uk.gov.cshr.domain.EmailUpdate;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Role;
-import uk.gov.cshr.exception.IdentityNotFoundException;
 import uk.gov.cshr.repository.EmailUpdateRepository;
 import uk.gov.cshr.service.security.IdentityService;
 
@@ -170,127 +167,6 @@ public class EmailUpdateServiceTest {
         assertThat(identity.getUid(), equalTo(UID));
     }
 
-    // TODO: 21/05/2020 Test throwing the exception  
-    /*
-        Normally, transactions in tests are flagged for rollback when they start. However, if the method has a @Commit annotation, they start flagged for commit instead:
-     */
-    @Commit
-    @Test
-    public void givenAValidUIDAndAWhitelistedUser_whenProcessEmailUpdatedRecentlyRequestForWhiteListedDomainUser_shouldReturnSuccessfullyAndCommitTransaction(){
-        // given
-        doNothing().when(identityService).resetRecentlyUpdatedEmailFlagToFalse(any(Identity.class));
-
-        // when
-        emailUpdateService.processEmailUpdatedRecentlyRequestForWhiteListedDomainUser(request, IDENTITY);
-
-        // then
-        verify(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq(IDENTITY));
-        verify(identityService, times(1)).updateSpringWithRecentlyEmailUpdatedFlag(any(HttpServletRequest.class), eq(false));
-        assertTrue(TestTransaction.isActive());
-        assertFalse(TestTransaction.isFlaggedForRollback());
-    }
-
-    @Test (expected = RuntimeException.class)
-    public void givenAValidUIDAndAWhitelistedUserAndTechnicalErrorOccurs_whenProcessEmailUpdatedRecentlyRequestForWhiteListedDomainUser_shouldThrowExceptionAndRollbackTransaction(){
-        // given
-        doThrow(new RuntimeException()).when(identityService).resetRecentlyUpdatedEmailFlagToFalse(any(Identity.class));
-
-        // when
-        emailUpdateService.processEmailUpdatedRecentlyRequestForWhiteListedDomainUser(request, IDENTITY);
-
-        // then
-        verify(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq(IDENTITY));
-        verify(identityService, never()).updateSpringWithRecentlyEmailUpdatedFlag(any(HttpServletRequest.class), anyBoolean());
-        assertTrue(TestTransaction.isActive());
-        assertTrue(TestTransaction.isFlaggedForRollback());
-    }
-
-    @Test (expected = IdentityNotFoundException.class)
-    public void givenAValidUIDAndAWhitelistedUserAndIdentityNotFoundErrorOccurs_whenProcessEmailUpdatedRecentlyRequestForWhiteListedDomainUser_shouldThrowIdentityNotFoundExceptionAndRollbackTransaction(){
-        // given
-        doThrow(new IdentityNotFoundException("abc")).when(identityService).resetRecentlyUpdatedEmailFlagToFalse(any(Identity.class));
-
-        // when
-        emailUpdateService.processEmailUpdatedRecentlyRequestForWhiteListedDomainUser(request, IDENTITY);
-
-        // then
-        verify(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq(IDENTITY));
-        verify(identityService, never()).updateSpringWithRecentlyEmailUpdatedFlag(any(HttpServletRequest.class), anyBoolean());
-        assertTrue(TestTransaction.isActive());
-        assertTrue(TestTransaction.isFlaggedForRollback());
-    }
-
-    /*
-        Normally, transactions in tests are flagged for rollback when they start. However, if the method has a @Commit annotation, they start flagged for commit instead:
-     */
-    @Commit
-    @Test
-    public void givenAValidUIDAndAnAgencyTokenUser_whenprocessEmailUpdatedRecentlyRequestForAgencyTokenUser_shouldReturnSuccessfullyAndCommitTransaction(){
-        // given
-        doNothing().when(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq(IDENTITY));
-        doNothing().when(csrsService).updateSpacesAvailable(anyString(), anyString(), anyString(), anyBoolean());
-
-        // when
-        emailUpdateService.processEmailUpdatedRecentlyRequestForAgencyTokenUser("mynewdomain", "mynewtoken", "myneworgcode", IDENTITY, request);
-
-        // then
-
-        verify(csrsService).updateSpacesAvailable(eq("mynewdomain"), eq("mynewtoken"), eq("myneworgcode"), eq(false));
-        verify(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq(IDENTITY));
-        verify(identityService, times(1)).updateSpringWithRecentlyEmailUpdatedFlag(any(HttpServletRequest.class), eq(false));
-        assertTrue(TestTransaction.isActive());
-        assertFalse(TestTransaction.isFlaggedForRollback());
-    }
-
-    @Test (expected = RuntimeException.class)
-    public void givenAValidUIDAndAnAgencyTokenAndTechnicalErrorOccurs_processEmailUpdatedRecentlyRequestForAgencyTokenUser_shouldThrowExceptionAndRollbackTransaction(){
-        // given
-        doThrow(new RuntimeException()).when(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq(IDENTITY));
-
-        // when
-        emailUpdateService.processEmailUpdatedRecentlyRequestForAgencyTokenUser("mynewdomain", "mynewtoken", "myneworgcode", IDENTITY, request);
-
-        // then
-        verify(csrsService).updateSpacesAvailable(eq("mynewdomain"), eq("mynewtoken"), eq("myneworgcode"), eq(false));
-        verify(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq(IDENTITY));
-        verify(identityService, never()).updateSpringWithRecentlyEmailUpdatedFlag(any(HttpServletRequest.class), anyBoolean());
-        assertTrue(TestTransaction.isActive());
-        assertTrue(TestTransaction.isFlaggedForRollback());
-    }
-
-    @Test (expected = IdentityNotFoundException.class)
-    public void givenAValidUIDAndAnAgencyTokenUserAndIdentityNotFoundErrorOccurs_processEmailUpdatedRecentlyRequestForAgencyTokenUser_shouldThrowIdentityNotFoundExceptionAndRollbackTransaction(){
-        // given
-        doThrow(new IdentityNotFoundException("abc")).when(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq(IDENTITY));
-
-        // when
-        emailUpdateService.processEmailUpdatedRecentlyRequestForAgencyTokenUser("mynewdomain", "mynewtoken", "myneworgcode", IDENTITY, request);
-
-        // then
-        verify(csrsService, never()).updateSpacesAvailable(anyString(), anyString(), anyString(), anyBoolean());
-        verify(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq(IDENTITY));
-        verify(identityService, never()).updateSpringWithRecentlyEmailUpdatedFlag(any(HttpServletRequest.class), anyBoolean());
-        assertTrue(TestTransaction.isActive());
-        assertTrue(TestTransaction.isFlaggedForRollback());
-    }
-
-    @Test (expected = RuntimeException.class)
-    public void givenAValidUIDAndAnAgencyTokenUserAndTechnicalErrorOccurs_processEmailUpdatedRecentlyRequestForAgencyTokenUser_shouldThrowExceptionAndRollbackTransaction(){
-        // given
-        doNothing().when(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq(IDENTITY));
-        doThrow(new RuntimeException()).when(csrsService).updateSpacesAvailable(anyString(), anyString(), anyString(), anyBoolean());
-
-        // when
-        emailUpdateService.processEmailUpdatedRecentlyRequestForAgencyTokenUser("mynewdomain", "mynewtoken", "myneworgcode", IDENTITY, request);
-
-        // then
-        verify(csrsService).updateSpacesAvailable(eq("mynewdomain"), eq("mynewtoken"), eq("myneworgcode"), eq(false));
-        verify(identityService).resetRecentlyUpdatedEmailFlagToFalse(eq(IDENTITY));
-        verify(identityService, never()).updateSpringWithRecentlyEmailUpdatedFlag(any(HttpServletRequest.class), anyBoolean());
-        assertTrue(TestTransaction.isActive());
-        assertTrue(TestTransaction.isFlaggedForRollback());
-    }
-
     @Test
     public void shouldGetEmailUpdate() {
         EmailUpdate emailUpdate = new EmailUpdate();
@@ -298,10 +174,5 @@ public class EmailUpdateServiceTest {
         when(emailUpdateRepository.findByIdentityAndCode(any(Identity.class), anyString())).thenReturn(Optional.of(emailUpdate));
 
         assertEquals(emailUpdateService.getEmailUpdate(IDENTITY, CODE), emailUpdate);
-    }
-
-    private AgencyToken buildAgencyToken() {
-        AgencyToken at = new AgencyToken();
-        return at;
     }
 }

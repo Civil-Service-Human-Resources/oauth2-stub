@@ -87,26 +87,6 @@ public class EmailUpdateService {
         log.debug("Deleting emailUpdateObject: {}", emailUpdate.toString());
     }
 
-    // TODO: 24/05/2020 DELETE
-    @Transactional(rollbackFor = Exception.class)
-    public void processEmailUpdatedRecentlyRequestForWhiteListedDomainUser(HttpServletRequest request, Identity identity) {
-        // update identity in the db
-        identityService.resetRecentlyUpdatedEmailFlagToFalse(identity);
-        // update spring
-        identityService.updateSpringWithRecentlyEmailUpdatedFlag(request, false);
-    }
-
-    // TODO: 24/05/2020 DELETE
-    @Transactional(rollbackFor = Exception.class)
-    public void processEmailUpdatedRecentlyRequestForAgencyTokenUser(String newDomain, String newToken,
-                                                                     String newOrgCode, Identity identity, HttpServletRequest request) {
-        csrsService.updateSpacesAvailable(newDomain, newToken, newOrgCode, false);
-        // update identity in the db
-        identityService.resetRecentlyUpdatedEmailFlagToFalse(identity);
-        // update spring
-        identityService.updateSpringWithRecentlyEmailUpdatedFlag(request, false);
-    }
-
     public EmailUpdate getEmailUpdate(Identity identity, String code) {
         return emailUpdateRepository.findByIdentityAndCode(identity, code)
                 .orElseThrow(ResourceNotFoundException::new);

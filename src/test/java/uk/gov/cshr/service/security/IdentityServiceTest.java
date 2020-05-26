@@ -304,6 +304,16 @@ public class IdentityServiceTest {
         verify(notifyService).notify(email, updatePasswordEmailTemplateId);
     }
 
+    @Test(expected = IdentityNotFoundException.class)
+    public void identityRepositoryShouldThrowExceptionIfNotFound() {
+        when(identityRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        Identity identityParam = new Identity();
+        identityParam.setId(new Long(123l));
+
+        identityService.updateEmailAddress(identityParam, "mynewemail@whitelisted.gov.uk", null);
+    }
+
     @Test
     public void givenAValidIdentityWithAWhitelistedDomain_whenUpdateEmailAddress_shouldReturnSuccessfully(){
         // given
@@ -454,10 +464,5 @@ public class IdentityServiceTest {
 
         assertFalse(actual);
         verify(csrsService, times(1)).isDomainInAgency(eq("bennevis.com"));
-    }
-
-    private AgencyToken buildAgencyToken() {
-        AgencyToken at = new AgencyToken();
-        return at;
     }
 }
