@@ -31,7 +31,6 @@ import uk.gov.cshr.service.security.IdentityService;
 import uk.gov.cshr.utils.CsrfRequestPostProcessor;
 import uk.gov.cshr.utils.MockMVCFilterOverrider;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Optional;
 
 import static org.mockito.Mockito.*;
@@ -165,7 +164,7 @@ public class AgencyTokenVerificationControllerTest {
         Identity identity = new Identity();
         identity.setEmail(EMAIL);
         when(emailUpdateService.getEmailUpdate(any(Identity.class), eq(CODE))).thenReturn(emailUpdate);
-        doNothing().when(emailUpdateService).updateEmailAddress(any(HttpServletRequest.class), eq(identity), eq(emailUpdate), eq(agencyToken));
+        doNothing().when(emailUpdateService).updateEmailAddress(eq(identity), eq(emailUpdate), eq(agencyToken));
 
         mockMvc.perform(
                 post(VERIFY_TOKEN_URL + CODE)
@@ -190,7 +189,7 @@ public class AgencyTokenVerificationControllerTest {
         EmailUpdate emailUpdate = new EmailUpdate();
         Identity identity = new Identity();
         when(emailUpdateService.getEmailUpdate(identity, CODE)).thenReturn(emailUpdate);
-        doNothing().when(emailUpdateService).updateEmailAddress(any(HttpServletRequest.class), eq(identity), eq(emailUpdate), eq(agencyToken));
+        doNothing().when(emailUpdateService).updateEmailAddress(eq(identity), eq(emailUpdate), eq(agencyToken));
 
         mockMvc.perform(
                 post(VERIFY_TOKEN_URL + CODE)
@@ -219,7 +218,7 @@ public class AgencyTokenVerificationControllerTest {
         Identity identity = new Identity();
         when(emailUpdateService.getEmailUpdate(any(Identity.class), eq(CODE))).thenReturn(emailUpdate);
 
-        doThrow(new ResourceNotFoundException()).when(emailUpdateService).updateEmailAddress(any(HttpServletRequest.class), any(Identity.class), any(EmailUpdate.class), any(AgencyToken.class));
+        doThrow(new ResourceNotFoundException()).when(emailUpdateService).updateEmailAddress(any(Identity.class), any(EmailUpdate.class), any(AgencyToken.class));
 
         mockMvc.perform(
                 post(VERIFY_TOKEN_URL + CODE)
@@ -272,7 +271,7 @@ public class AgencyTokenVerificationControllerTest {
         Identity identity = new Identity();
 
         when(emailUpdateService.getEmailUpdate(any(Identity.class), eq(CODE))).thenReturn(emailUpdate);
-        doThrow(new NullPointerException()).when(emailUpdateService).updateEmailAddress(any(HttpServletRequest.class), any(Identity.class), any(EmailUpdate.class), any(AgencyToken.class));
+        doThrow(new NullPointerException()).when(emailUpdateService).updateEmailAddress(any(Identity.class), any(EmailUpdate.class), any(AgencyToken.class));
 
         mockMvc.perform(
                 post(VERIFY_TOKEN_URL + CODE)

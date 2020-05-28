@@ -27,8 +27,6 @@ import uk.gov.cshr.service.security.IdentityService;
 import uk.gov.cshr.utils.CsrfRequestPostProcessor;
 import uk.gov.cshr.utils.MockMVCFilterOverrider;
 
-import javax.servlet.http.HttpServletRequest;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -280,7 +278,7 @@ public class ChangeEmailControllerTest {
         when(identityService.isWhitelistedDomain(DOMAIN)).thenReturn(true);
         when(agencyTokenService.isDomainInAgencyToken(DOMAIN)).thenReturn(false);
 
-        doNothing().when(emailUpdateService).updateEmailAddress(any(HttpServletRequest.class), identityArgumentCaptor.capture(), eq(emailUpdate));
+        doNothing().when(emailUpdateService).updateEmailAddress(identityArgumentCaptor.capture(), eq(emailUpdate));
 
         mockMvc.perform(get(VERIFY_EMAIL_PATH + VERIFY_CODE)
                 .with(request1 -> {
@@ -315,7 +313,7 @@ public class ChangeEmailControllerTest {
         when(identityService.isWhitelistedDomain(DOMAIN)).thenReturn(false);
         when(agencyTokenService.isDomainInAgencyToken(DOMAIN)).thenReturn(true);
 
-        doNothing().when(emailUpdateService).updateEmailAddress(any(HttpServletRequest.class), identityArgumentCaptor.capture(), eq(emailUpdate));
+        doNothing().when(emailUpdateService).updateEmailAddress(identityArgumentCaptor.capture(), eq(emailUpdate));
 
         mockMvc.perform(get(VERIFY_EMAIL_PATH + VERIFY_CODE)
                 .with(request1 -> {
@@ -374,7 +372,7 @@ public class ChangeEmailControllerTest {
                 .andExpect(redirectedUrl("/account/email?invalidCode=true"))
                 .andDo(print());
 
-        verify(emailUpdateService, never()).updateEmailAddress(any(HttpServletRequest.class), any(Identity.class), any(EmailUpdate.class));
+        verify(emailUpdateService, never()).updateEmailAddress(any(Identity.class), any(EmailUpdate.class));
     }
 
     @Test
@@ -397,7 +395,7 @@ public class ChangeEmailControllerTest {
         when(identityService.isWhitelistedDomain(DOMAIN)).thenReturn(true);
         when(agencyTokenService.isDomainInAgencyToken(DOMAIN)).thenReturn(true);
 
-        doThrow(new ResourceNotFoundException()).when(emailUpdateService).updateEmailAddress(any(HttpServletRequest.class), any(Identity.class), any(EmailUpdate.class));
+        doThrow(new ResourceNotFoundException()).when(emailUpdateService).updateEmailAddress(any(Identity.class), any(EmailUpdate.class));
 
         mockMvc.perform(get(VERIFY_EMAIL_PATH + VERIFY_CODE)
                 .with(request1 -> {
@@ -409,7 +407,7 @@ public class ChangeEmailControllerTest {
                 .andExpect(redirectedUrl("/account/email?invalidEmail=true"))
                 .andDo(print());
 
-        verify(emailUpdateService, times(1)).updateEmailAddress(any(HttpServletRequest.class), identityArgumentCaptor.capture(), eq(emailUpdate));
+        verify(emailUpdateService, times(1)).updateEmailAddress(identityArgumentCaptor.capture(), eq(emailUpdate));
         Identity actualIdentityToUpdate = identityArgumentCaptor.getValue();
         assertThat(actualIdentityToUpdate.getUid()).isEqualTo(expectedUIDToBeUpdated);
         assertThat(actualIdentityToUpdate.getEmail()).isEqualTo(expectedEmailToBeUpdated);
@@ -435,7 +433,7 @@ public class ChangeEmailControllerTest {
         when(identityService.isWhitelistedDomain(DOMAIN)).thenReturn(true);
         when(agencyTokenService.isDomainInAgencyToken(DOMAIN)).thenReturn(true);
 
-        doThrow(new RuntimeException()).when(emailUpdateService).updateEmailAddress(any(HttpServletRequest.class), any(Identity.class), any(EmailUpdate.class));
+        doThrow(new RuntimeException()).when(emailUpdateService).updateEmailAddress(any(Identity.class), any(EmailUpdate.class));
 
         mockMvc.perform(get(VERIFY_EMAIL_PATH + VERIFY_CODE)
                 .with(request1 -> {
@@ -447,7 +445,7 @@ public class ChangeEmailControllerTest {
                 .andExpect(redirectedUrl("/account/email?errorOccurred=true"))
                 .andDo(print());
 
-        verify(emailUpdateService, times(1)).updateEmailAddress(any(HttpServletRequest.class), identityArgumentCaptor.capture(), eq(emailUpdate));
+        verify(emailUpdateService, times(1)).updateEmailAddress(identityArgumentCaptor.capture(), eq(emailUpdate));
 
         Identity actualIdentityToUpdate = identityArgumentCaptor.getValue();
         assertThat(actualIdentityToUpdate.getUid()).isEqualTo(expectedUIDToBeUpdated);

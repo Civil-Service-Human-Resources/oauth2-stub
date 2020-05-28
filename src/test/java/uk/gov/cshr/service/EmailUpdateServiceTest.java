@@ -19,7 +19,6 @@ import uk.gov.cshr.domain.Role;
 import uk.gov.cshr.repository.EmailUpdateRepository;
 import uk.gov.cshr.service.security.IdentityService;
 
-import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Optional;
@@ -46,7 +45,6 @@ public class EmailUpdateServiceTest {
     private static final String NEW_DOMAIN = "newexample.com";
     private static final String AGENCY_TOKEN_UID = "UID";
     private static Identity IDENTITY = new Identity(UID, EMAIL, PASSWORD, ACTIVE, LOCKED, ROLES, Instant.now(), false, false);
-    private static Identity AGENCY_IDENTITY = new Identity(UID, EMAIL, PASSWORD, ACTIVE, LOCKED, ROLES, Instant.now(), false, false, AGENCY_TOKEN_UID);
 
     private MockHttpServletRequest request;
 
@@ -54,19 +52,7 @@ public class EmailUpdateServiceTest {
     private EmailUpdateRepository emailUpdateRepository;
 
     @MockBean
-    private EmailUpdateFactory emailUpdateFactory;
-
-    @MockBean
-    private NotifyService notifyService;
-
-    @MockBean
     private IdentityService identityService;
-
-    @MockBean
-    private AgencyTokenService agencyTokenService;
-
-    @MockBean
-    private CsrsService csrsService;
 
     @Value("${govNotify.template.emailUpdate}")
     private String updateEmailTemplateId;
@@ -123,13 +109,11 @@ public class EmailUpdateServiceTest {
         when(identityService.getDomainFromEmailAddress(NEW_EMAIL_ADDRESS)).thenReturn(NEW_DOMAIN);
 
         doNothing().when(identityService).updateEmailAddress(eq(IDENTITY), eq(emailUpdate.getEmail()), isNull());
-        doNothing().when(identityService).updateSpringWithRecentlyEmailUpdatedFlag(any(HttpServletRequest.class), eq(true));
         doNothing().when(emailUpdateRepository).delete(any(EmailUpdate.class));
 
-        emailUpdateService.updateEmailAddress(request, IDENTITY, emailUpdate);
+        emailUpdateService.updateEmailAddress(IDENTITY, emailUpdate);
 
         verify(identityService, times(1)).updateEmailAddress(identityArgumentCaptor.capture(), eq(emailUpdate.getEmail()), isNull());
-        verify(identityService, times(1)).updateSpringWithRecentlyEmailUpdatedFlag(any(HttpServletRequest.class), eq(true));
         verify(emailUpdateRepository, times(1)).delete(emailUpdateArgumentCaptor.capture());
 
         EmailUpdate actualDeletedEmailUpdate = emailUpdateArgumentCaptor.getValue();
@@ -151,13 +135,11 @@ public class EmailUpdateServiceTest {
         when(identityService.getDomainFromEmailAddress(NEW_EMAIL_ADDRESS)).thenReturn(NEW_DOMAIN);
 
         doNothing().when(identityService).updateEmailAddress(eq(IDENTITY), eq(emailUpdate.getEmail()), eq(agencyToken));
-        doNothing().when(identityService).updateSpringWithRecentlyEmailUpdatedFlag(any(HttpServletRequest.class), eq(true));
         doNothing().when(emailUpdateRepository).delete(any(EmailUpdate.class));
 
-        emailUpdateService.updateEmailAddress(request, IDENTITY, emailUpdate, agencyToken);
+        emailUpdateService.updateEmailAddress(IDENTITY, emailUpdate, agencyToken);
 
         verify(identityService, times(1)).updateEmailAddress(identityArgumentCaptor.capture(), eq(emailUpdate.getEmail()), eq(agencyToken));
-        verify(identityService, times(1)).updateSpringWithRecentlyEmailUpdatedFlag(any(HttpServletRequest.class), eq(true));
         verify(emailUpdateRepository, times(1)).delete(emailUpdateArgumentCaptor.capture());
 
         EmailUpdate actualDeletedEmailUpdate = emailUpdateArgumentCaptor.getValue();

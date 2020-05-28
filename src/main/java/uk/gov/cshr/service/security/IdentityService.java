@@ -23,9 +23,7 @@ import uk.gov.cshr.service.AgencyTokenCapacityService;
 import uk.gov.cshr.service.CsrsService;
 import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.NotifyService;
-import uk.gov.cshr.utils.SpringUserUtils;
 
-import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.util.*;
 
@@ -44,7 +42,6 @@ public class IdentityService implements UserDetailsService {
     private final TokenRepository tokenRepository;
     private final NotifyService notifyService;
     private final CsrsService csrsService;
-    private final SpringUserUtils springUserUtils;
     private InviteService inviteService;
     private String[] whitelistedDomains;
     private AgencyTokenCapacityService agencyTokenCapacityService;
@@ -56,7 +53,6 @@ public class IdentityService implements UserDetailsService {
                            @Qualifier("tokenRepository") TokenRepository tokenRepository,
                            @Qualifier("notifyServiceImpl") NotifyService notifyService,
                            CsrsService csrsService,
-                           SpringUserUtils springUserUtils,
                            @Value("${invite.whitelist.domains}") String[] whitelistedDomains, AgencyTokenCapacityService agencyTokenCapacityService) {
         this.updatePasswordEmailTemplateId = updatePasswordEmailTemplateId;
         this.identityRepository = identityRepository;
@@ -65,7 +61,6 @@ public class IdentityService implements UserDetailsService {
         this.tokenRepository = tokenRepository;
         this.notifyService = notifyService;
         this.csrsService = csrsService;
-        this.springUserUtils = springUserUtils;
         this.whitelistedDomains = whitelistedDomains;
         this.agencyTokenCapacityService = agencyTokenCapacityService;
     }
@@ -181,24 +176,7 @@ public class IdentityService implements UserDetailsService {
         }
 
         savedIdentity.setEmail(email);
-        savedIdentity.setEmailRecentlyUpdated(true);
-        Identity updatedIdentity = identityRepository.save(savedIdentity);
-        log.info("Identity has been updated to have a recently updated email flag of: " + updatedIdentity.isEmailRecentlyUpdated());
-    }
-
-    public void resetRecentlyUpdatedEmailFlagToFalse(Identity identity) {
-        Identity savedIdentity = identityRepository.findById(identity.getId())
-                .orElseThrow(() -> new IdentityNotFoundException("No such identity: " + identity.getId()));
-        savedIdentity.setEmailRecentlyUpdated(false);
-        Identity updatedIdentity = identityRepository.save(savedIdentity);
-        log.info("identity has been updated to have a recently updated email flag of: " + updatedIdentity.isEmailRecentlyUpdated());
-    }
-
-    public boolean getRecentlyUpdatedEmailFlag(Identity identity) {
-        Identity savedIdentity = identityRepository.findById(identity.getId())
-                .orElseThrow(() -> new IdentityNotFoundException("No such identity: " + identity.getId()));
-        log.info("found identity, email recently updated flag is: " + savedIdentity.isEmailRecentlyUpdated());
-        return savedIdentity.isEmailRecentlyUpdated();
+        identityRepository.save(savedIdentity);
     }
 
     public boolean isWhitelistedDomain(String domain) {
@@ -207,13 +185,6 @@ public class IdentityService implements UserDetailsService {
 
     public String getDomainFromEmailAddress(String emailAddress) {
         return emailAddress.substring(emailAddress.indexOf('@') + 1);
-    }
-
-    public void updateSpringWithRecentlyEmailUpdatedFlag(HttpServletRequest request, boolean emailUpdatedFlag) {
-        // update spring authentication and spring session
-        Identity identityFromSpringAuth = springUserUtils.getIdentityFromSpringAuthentication();
-        identityFromSpringAuth.setEmailRecentlyUpdated(emailUpdatedFlag);
-        springUserUtils.updateSpringAuthenticationAndSpringSessionWithUpdatedIdentity(request, identityFromSpringAuth);
     }
 
     public boolean checkValidEmail(String email) {

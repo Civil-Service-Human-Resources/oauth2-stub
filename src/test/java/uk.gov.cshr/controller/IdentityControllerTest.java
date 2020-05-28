@@ -28,13 +28,12 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -46,6 +45,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 public class IdentityControllerTest {
 
+    private static final String UID = "uid";
+    private static String EMAIL_SUCCESSFULLY_UPDATED_URL;
     private final Boolean ACTIVE = true;
     private final Boolean LOCKED = false;
     private final String DESCRIPTION = "User";
@@ -53,10 +54,8 @@ public class IdentityControllerTest {
     private final String NAME = "User";
     private final String PASSWORD = "password";
     private final Set<Role> ROLES = new HashSet();
-    private static final String UID = "uid";
     private final String USERNAME = "test";
     private final String[] roleID = {"1"};
-    private static String EMAIL_SUCCESSFULLY_UPDATED_URL;
     @InjectMocks
     private IdentityController identityController;
 
@@ -149,7 +148,6 @@ public class IdentityControllerTest {
         assertThat(actualSavedIdentity.getUid(), equalTo(UID));
         assertThat(actualSavedIdentity.getEmail(), equalTo(EMAIL));
         assertTrue(actualSavedIdentity.isLocked());
-        assertFalse(actualSavedIdentity.isEmailRecentlyUpdated());
     }
 
     @Test
@@ -173,7 +171,6 @@ public class IdentityControllerTest {
         ArrayList<Role> roles = new ArrayList(actualSavedIdentity.getRoles());
 
         assertThat(roles.get(0).getName(), equalTo(NAME));
-        assertFalse(actualSavedIdentity.isEmailRecentlyUpdated());
     }
 
 }

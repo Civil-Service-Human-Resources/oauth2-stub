@@ -12,7 +12,6 @@ import uk.gov.cshr.exception.ResourceNotFoundException;
 import uk.gov.cshr.repository.EmailUpdateRepository;
 import uk.gov.cshr.service.security.IdentityService;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -66,20 +65,17 @@ public class EmailUpdateService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void updateEmailAddress(HttpServletRequest request, Identity identity, EmailUpdate emailUpdate) {
-        updateEmailAddress(request, identity, emailUpdate, null);
+    public void updateEmailAddress(Identity identity, EmailUpdate emailUpdate) {
+        updateEmailAddress(identity, emailUpdate, null);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void updateEmailAddress(HttpServletRequest request, Identity identity, EmailUpdate emailUpdate, AgencyToken agencyToken) {
+    public void updateEmailAddress(Identity identity, EmailUpdate emailUpdate, AgencyToken agencyToken) {
         String newEmail = emailUpdate.getEmail();
 
         log.debug("Updating email address for: oldEmail = {}, newEmail = {}", identity.getEmail(), newEmail);
 
         identityService.updateEmailAddress(identity, newEmail, agencyToken);
-
-        // TODO: 26/05/2020 do we need flag, can we delete
-        identityService.updateSpringWithRecentlyEmailUpdatedFlag(request, true);
 
         emailUpdateRepository.delete(emailUpdate);
 

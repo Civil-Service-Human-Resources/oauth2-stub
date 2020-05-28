@@ -20,7 +20,6 @@ import uk.gov.cshr.service.AgencyTokenCapacityService;
 import uk.gov.cshr.service.CsrsService;
 import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.NotifyService;
-import uk.gov.cshr.utils.SpringUserUtils;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -76,8 +75,6 @@ public class IdentityServiceTest {
     @Mock
     private AgencyTokenCapacityService agencyTokenCapacityService;
 
-    @Mock
-    private SpringUserUtils springUserUtils;
 
     @Captor
     private ArgumentCaptor<Identity> identityArgumentCaptor;
@@ -92,7 +89,6 @@ public class IdentityServiceTest {
                 tokenRepository,
                 notifyService,
                 csrsService,
-                springUserUtils,
                 whitelistedDomains,
                 agencyTokenCapacityService
         );
@@ -331,7 +327,6 @@ public class IdentityServiceTest {
         verify(identityRepository, times(1)).findById(anyLong());
         verify(identityRepository, times(1)).save(optionalIdentity.get());
         Identity actualSavedIdentity = identityArgumentCaptor.getValue();
-        assertThat(actualSavedIdentity.isEmailRecentlyUpdated(), equalTo(true));
         assertThat(actualSavedIdentity.getAgencyTokenUid(), equalTo(null));
     }
 
@@ -355,75 +350,7 @@ public class IdentityServiceTest {
         verify(identityRepository, times(1)).findById(anyLong());
         verify(identityRepository, times(1)).save(optionalIdentity.get());
         Identity actualSavedIdentity = identityArgumentCaptor.getValue();
-        assertThat(actualSavedIdentity.isEmailRecentlyUpdated(), equalTo(true));
         assertThat(actualSavedIdentity.getAgencyTokenUid(), equalTo(UID));
-    }
-
-    @Test
-    public void givenAValidIdentity_resetRecentlyUpdatedEmailFlag_shouldReturnSuccessfully(){
-        // given
-        IDENTITY.setId(123L);
-        Optional<Identity> optionalIdentity = Optional.of(IDENTITY);
-        when(identityRepository.findById(anyLong())).thenReturn(optionalIdentity);
-        when(identityRepository.save(identityArgumentCaptor.capture())).thenReturn(new Identity());
-
-        // when
-        identityService.resetRecentlyUpdatedEmailFlagToFalse(IDENTITY);
-
-        // then
-        verify(identityRepository, times(1)).save(optionalIdentity.get());
-        Identity actualSavedIdentity = identityArgumentCaptor.getValue();
-        assertThat(actualSavedIdentity.isEmailRecentlyUpdated(), equalTo(false));
-    }
-
-    @Test(expected = IdentityNotFoundException.class)
-    public void givenAnNotFoundIdentity_resetRecentlyUpdatedEmailFlag_shouldThrowIdentityNotFoundException(){
-
-        // when
-        identityService.resetRecentlyUpdatedEmailFlagToFalse(new Identity());
-
-        // then
-        verify(identityRepository, never()).save(any(Identity.class));
-    }
-
-    @Test(expected = RuntimeException.class)
-    public void givenAnInvalidIdentity_resetRecentlyUpdatedEmailFlag_shouldThrowException(){
-        // given
-        Optional<Identity> optionalIdentity = Optional.of(IDENTITY);
-
-        // when
-        identityService.resetRecentlyUpdatedEmailFlagToFalse(new Identity());
-
-        // then
-        verify(identityRepository, times(1)).save(optionalIdentity.get());
-    }
-
-    @Test
-    public void givenAValidIdentity_getEmailRecentlyUpdatedFlag_shouldReturnSuccessfully(){
-        // given
-        IDENTITY.setId(123L);
-        IDENTITY.setEmailRecentlyUpdated(true);
-        Optional<Identity> optionalIdentity = Optional.of(IDENTITY);
-        when(identityRepository.findById(anyLong())).thenReturn(optionalIdentity);
-
-        // when
-        boolean actual = identityService.getRecentlyUpdatedEmailFlag(IDENTITY);
-
-        // then
-        assertTrue(actual);
-        verify(identityRepository, times(1)).findById(eq(IDENTITY.getId()));
-    }
-
-    @Test(expected = IdentityNotFoundException.class)
-    public void givenAnInvalidIdentity_getEmailRecentlyUpdatedFlag_shouldThrowIdentityNotFoundException(){
-        // given
-
-        // when
-        boolean actual = identityService.getRecentlyUpdatedEmailFlag(IDENTITY);
-
-        // then
-        assertFalse(actual);
-        verify(identityRepository, never()).findById(anyLong());
     }
 
     @Test

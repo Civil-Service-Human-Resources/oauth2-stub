@@ -20,7 +20,6 @@ import uk.gov.cshr.service.security.IdentityDetails;
 import uk.gov.cshr.service.security.IdentityService;
 import uk.gov.cshr.utils.ApplicationConstants;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Map;
 
@@ -83,7 +82,6 @@ public class AgencyTokenVerificationController {
     public String checkToken(Model model,
                              @ModelAttribute @Valid EmailUpdatedRecentlyEnterTokenForm form,
                              BindingResult bindingResult,
-                             HttpServletRequest request,
                              RedirectAttributes redirectAttributes) {
         log.info("User verifying token after updating their email");
 
@@ -114,7 +112,7 @@ public class AgencyTokenVerificationController {
 
             Identity identity = identityDetails.getIdentity();
             EmailUpdate emailUpdate = emailUpdateService.getEmailUpdate(identity, code);
-            emailUpdateService.updateEmailAddress(request, identity, emailUpdate, agencyToken);
+            emailUpdateService.updateEmailAddress(identity, emailUpdate, agencyToken);
 
             log.info("Token validation complete, new agencyTokenUid: {}", identity.getAgencyTokenUid());
 
@@ -135,7 +133,6 @@ public class AgencyTokenVerificationController {
             return "redirect:/login";
         }
     }
-
 
     private void buildGenericErrorModel(Model model, EmailUpdatedRecentlyEnterTokenForm form) {
         model.addAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.ENTER_TOKEN_ERROR_MESSAGE);

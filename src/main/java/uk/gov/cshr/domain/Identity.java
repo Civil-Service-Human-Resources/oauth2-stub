@@ -39,9 +39,6 @@ public class Identity implements Serializable {
     private boolean deletionNotificationSent;
 
     @Column
-    private boolean emailRecentlyUpdated;
-
-    @Column
     private String agencyTokenUid;
 
     public Identity() {
@@ -56,7 +53,6 @@ public class Identity implements Serializable {
         this.locked = locked;
         this.lastLoggedIn = lastLoggedIn;
         this.deletionNotificationSent = deletionNotificationSent;
-        this.emailRecentlyUpdated = emailRecentlyUpdated;
     }
 
     public Identity(String uid, String email, String password, boolean active, boolean locked, Set<Role> roles, Instant lastLoggedIn, boolean deletionNotificationSent, boolean emailRecentlyUpdated, String agencyTokenUid) {
@@ -68,7 +64,6 @@ public class Identity implements Serializable {
         this.locked = locked;
         this.lastLoggedIn = lastLoggedIn;
         this.deletionNotificationSent = deletionNotificationSent;
-        this.emailRecentlyUpdated = emailRecentlyUpdated;
         this.agencyTokenUid = agencyTokenUid;
     }
 
@@ -140,14 +135,6 @@ public class Identity implements Serializable {
         this.deletionNotificationSent = deletionNotificationSent;
     }
 
-    public boolean isEmailRecentlyUpdated() {
-        return emailRecentlyUpdated;
-    }
-
-    public void setEmailRecentlyUpdated(boolean emailRecentlyUpdated) {
-        this.emailRecentlyUpdated = emailRecentlyUpdated;
-    }
-
     public String getAgencyTokenUid() {
         return agencyTokenUid;
     }
@@ -163,7 +150,6 @@ public class Identity implements Serializable {
                 ", uid='" + uid + '\'' +
                 ", active=" + active +
                 ", locked=" + locked +
-                ", emailRecentlyUpdated=" + emailRecentlyUpdated +
                 '}';
     }
 }

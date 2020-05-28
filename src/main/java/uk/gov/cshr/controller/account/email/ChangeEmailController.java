@@ -109,7 +109,7 @@ public class ChangeEmailController {
         if (isWhitelisted(newDomain)) {
             log.debug("New email is whitelisted: oldEmail = {}, newEmail = {}", identity.getEmail(), emailUpdate.getEmail());
             try {
-                emailUpdateService.updateEmailAddress(request, identity, emailUpdate);
+                emailUpdateService.updateEmailAddress(identity, emailUpdate);
                 redirectAttributes.addFlashAttribute(EMAIL_ATTRIBUTE, emailUpdate.getEmail());
                 return REDIRECT_ACCOUNT_EMAIL_UPDATED_SUCCESS;
             } catch (ResourceNotFoundException e) {
