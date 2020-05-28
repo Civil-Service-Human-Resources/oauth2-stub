@@ -16,6 +16,7 @@ import uk.gov.cshr.service.AgencyTokenService;
 import uk.gov.cshr.service.EmailUpdateService;
 import uk.gov.cshr.service.security.IdentityDetails;
 import uk.gov.cshr.service.security.IdentityService;
+import uk.gov.cshr.utils.ApplicationConstants;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -35,7 +36,7 @@ public class ChangeEmailController {
 
     private static final String REDIRECT_ACCOUNT_EMAIL_ALREADY_TAKEN_TRUE = "redirect:/account/email?emailAlreadyTaken=true";
     private static final String REDIRECT_UPDATE_EMAIL_NOT_VALID_EMAIL_DOMAIN_TRUE = "redirect:/account/email?notValidEmailDomain=true";
-    private static final String REDIRECT_ACCOUNT_EMAIL_ERROR_OCCURRED_TRUE = "redirect:/account/email?errorOccurred=true";
+    private static final String REDIRECT_LOGIN = "redirect:/login";
     private static final String REDIRECT_ACCOUNT_EMAIL_INVALID_EMAIL_TRUE = "redirect:/account/email?invalidEmail=true";
     private static final String REDIRECT_ACCOUNT_EMAIL_UPDATED_SUCCESS = "redirect:/account/email/updated";
     private static final String REDIRECT_ACCOUNT_ENTER_TOKEN = "redirect:/account/email/verify/agency/";
@@ -116,8 +117,10 @@ public class ChangeEmailController {
                 log.error("Unable to update email, redirecting to enter token screen: {} {}", code, identity);
                 return REDIRECT_ACCOUNT_EMAIL_INVALID_EMAIL_TRUE;
             } catch (Exception e) {
+                redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.CHANGE_EMAIL_ERROR_MESSAGE);
+
                 log.error("Unable to update email: {} {}", code, identity);
-                return REDIRECT_ACCOUNT_EMAIL_ERROR_OCCURRED_TRUE;
+                return REDIRECT_LOGIN;
             }
         } else if (isNotWhitelistedAndIsAgency(newDomain)) {
             log.debug("New email is agency: oldEmail = {}, newEmail = {}", identity.getEmail(), emailUpdate.getEmail());
@@ -125,7 +128,9 @@ public class ChangeEmailController {
             return REDIRECT_ACCOUNT_ENTER_TOKEN + code;
         } else {
             log.error("User trying to verify change email where new email is not whitelisted or agency: oldEmail = {}, newEmail = {}", identity.getEmail(), emailUpdate.getEmail());
-            return REDIRECT_ACCOUNT_EMAIL_ERROR_OCCURRED_TRUE;
+            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.CHANGE_EMAIL_ERROR_MESSAGE);
+
+            return REDIRECT_LOGIN;
         }
     }
 

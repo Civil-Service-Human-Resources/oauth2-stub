@@ -24,6 +24,7 @@ import uk.gov.cshr.service.AgencyTokenService;
 import uk.gov.cshr.service.EmailUpdateService;
 import uk.gov.cshr.service.security.IdentityDetails;
 import uk.gov.cshr.service.security.IdentityService;
+import uk.gov.cshr.utils.ApplicationConstants;
 import uk.gov.cshr.utils.CsrfRequestPostProcessor;
 import uk.gov.cshr.utils.MockMVCFilterOverrider;
 
@@ -352,7 +353,8 @@ public class ChangeEmailControllerTest {
                         }
                 ))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/account/email?errorOccurred=true"))
+                .andExpect(flash().attribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.CHANGE_EMAIL_ERROR_MESSAGE))
+                .andExpect(redirectedUrl("/login"))
                 .andDo(print());
     }
 
@@ -442,7 +444,8 @@ public class ChangeEmailControllerTest {
                         }
                 ))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/account/email?errorOccurred=true"))
+                .andExpect(flash().attribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.CHANGE_EMAIL_ERROR_MESSAGE))
+                .andExpect(redirectedUrl("/login"))
                 .andDo(print());
 
         verify(emailUpdateService, times(1)).updateEmailAddress(identityArgumentCaptor.capture(), eq(emailUpdate));
