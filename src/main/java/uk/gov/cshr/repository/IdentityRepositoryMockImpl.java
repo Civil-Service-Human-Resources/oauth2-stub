@@ -48,6 +48,11 @@ public class IdentityRepositoryMockImpl implements IdentityRepository {
     }
 
     @Override
+    public void removeAgencyToken(String agencyTokenUid) {
+        return;
+    }
+
+    @Override
     public List<Identity> findAll() {
         return null;
     }

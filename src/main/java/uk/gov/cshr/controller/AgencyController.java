@@ -3,15 +3,12 @@ package uk.gov.cshr.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import uk.gov.cshr.domain.AgencyTokenCapacityUsedDto;
 import uk.gov.cshr.service.AgencyTokenCapacityService;
 
-@RestController
 @Slf4j
+@RestController
 @RequestMapping("/agency")
 public class AgencyController {
 
@@ -29,6 +26,18 @@ public class AgencyController {
             return ResponseEntity.ok(agencyTokenCapacityService.getSpacesUsedByAgencyToken(uid));
         } catch (Exception e) {
             log.error("Unexpected error calling getSpacesUsedForAgencyToken with uid = {}, {}", uid, e);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @DeleteMapping("/{uid}")
+    public ResponseEntity deleteAgencyToken(@PathVariable(value = "uid") String uid) {
+        log.debug("Deleting agency token {}", uid);
+        try {
+            agencyTokenCapacityService.deleteAgencyToken(uid);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.error("Unexpected error calling deleteAgencyToken with uid = {}, {}", uid, e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

@@ -9,8 +9,10 @@ import uk.gov.cshr.domain.AgencyToken;
 import uk.gov.cshr.domain.AgencyTokenCapacityUsedDto;
 import uk.gov.cshr.repository.IdentityRepository;
 
+import java.util.UUID;
+
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AgencyTokenCapacityServiceTest {
@@ -83,5 +85,12 @@ public class AgencyTokenCapacityServiceTest {
         Long countOfAgencyByUid = agencyTokenCapacityService.getCountOfAgencyByUid(UID);
 
         assertEquals(new Long(100), countOfAgencyByUid);
+    }
+
+    @Test
+    public void deleteAgencyToken_shouldCallremoveAgencyToken() {
+        String agencyToken = UUID.randomUUID().toString();
+        agencyTokenCapacityService.deleteAgencyToken(agencyToken);
+        verify(identityRepository, times(1)).removeAgencyToken(agencyToken);
     }
 }

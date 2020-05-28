@@ -31,4 +31,8 @@ public class AgencyTokenCapacityService {
     public Long getCountOfAgencyByUid(String uid) {
         return identityRepository.countByAgencyTokenUid(uid);
     }
+
+    public void deleteAgencyToken(String agencyTokenUid) {
+        identityRepository.removeAgencyToken(agencyTokenUid);
+    }
 }

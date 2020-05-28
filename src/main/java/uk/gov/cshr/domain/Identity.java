@@ -150,6 +150,7 @@ public class Identity implements Serializable {
                 ", uid='" + uid + '\'' +
                 ", active=" + active +
                 ", locked=" + locked +
+                ", agencyTokenUid=" + agencyTokenUid +
                 '}';
     }
 }

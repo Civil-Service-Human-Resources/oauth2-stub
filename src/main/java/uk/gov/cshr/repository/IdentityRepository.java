@@ -1,11 +1,13 @@
 package uk.gov.cshr.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.dto.IdentityDTO;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,4 +27,9 @@ public interface IdentityRepository extends JpaRepository<Identity, Long> {
         List<IdentityDTO> findAllNormalised();
 
         Long countByAgencyTokenUid(String uid);
+
+        @Transactional
+        @Modifying(flushAutomatically = true, clearAutomatically = true)
+        @Query("UPDATE Identity SET agencyTokenUid = null, active = false WHERE agencyTokenUid IS NOT NULL AND agencyTokenUid = :agencyTokenUid")
+        void removeAgencyToken(String agencyTokenUid);
 }

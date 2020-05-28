@@ -15,8 +15,11 @@ import uk.gov.cshr.domain.AgencyTokenCapacityUsedDto;
 import uk.gov.cshr.service.AgencyTokenCapacityService;
 import uk.gov.cshr.utils.MockMVCFilterOverrider;
 
-import static org.mockito.Mockito.when;
+import java.util.UUID;
+
+import static org.mockito.Mockito.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -37,11 +40,6 @@ public class AgencyControllerTest {
     @MockBean
     private AgencyTokenCapacityService agencyTokenCapacityService;
 
-    @Before
-    public void overridePatternMappingFilterProxyFilter() throws IllegalAccessException {
-        MockMVCFilterOverrider.overrideFilterOf(mockMvc, "PatternMappingFilterProxy");
-    }
-
     @Test
     public void getSpacesUsedForAgencyToken() throws Exception {
         AgencyTokenCapacityUsedDto agencyTokenCapacityUsedDto = new AgencyTokenCapacityUsedDto(100L);
@@ -54,5 +52,30 @@ public class AgencyControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().json(gson.toJson(agencyTokenCapacityUsedDto)));
+    }
+
+    @Test
+    public void deleteAgencyToken_callsAgencyTokenCapacityServiceDeleteAgencyTokenOk() throws Exception {
+        String agencyTokenUid = UUID.randomUUID().toString();
+        mockMvc.perform(
+                MockMvcRequestBuilders.delete(String.format("/agency/%s", agencyTokenUid))
+                        .with(csrf()))
+                .andExpect(status().isOk());
+
+        verify(agencyTokenCapacityService, times(1)).deleteAgencyToken(agencyTokenUid);
+    }
+
+    @Test
+    public void deleteAgencyToken_callsAgencyTokenCapacityServiceDeleteAgencyTokenError() throws Exception {
+        String agencyTokenUid = UUID.randomUUID().toString();
+
+        doThrow(Exception.class).when(agencyTokenCapacityService).deleteAgencyToken(agencyTokenUid);
+
+        mockMvc.perform(
+                MockMvcRequestBuilders.delete(String.format("/agency/%s", agencyTokenUid))
+                        .with(csrf())
+        ).andExpect(status().is5xxServerError());
+
+        verify(agencyTokenCapacityService, times(1)).deleteAgencyToken(agencyTokenUid);
     }
 }
