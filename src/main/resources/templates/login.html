@@ -9,13 +9,11 @@
                          aria-labelledby="error-summary-heading-example-1" tabindex="-1">
 
                         <h2 class="heading-medium error-summary-heading" id="error-summary-heading-example-1">
-                            Sign in failed
+                            Your sign-in details are incorrect
                         </h2>
                         <p>
-
-                            <span th:if="${param.error[0] == 'failed'}">You have entered the wrong email address or password, please try again.</span>
-                            <span th:if="${param.error[0] == 'locked'}">Your account has been locked. Please contact us to <a
-                                    href="mailto:feedback@cslearning.gov.uk">unlock your account.</a></span>
+                            <span th:if="${param.error[0] == 'failed'}">Check your email and password are correct. After 5 unsuccessful attempts, your account will be locked.</span>
+                            <span th:if="${param.error[0] == 'locked'}"><a href="/reset" class="push-bottom">Reset your password to unlock your account</a></span>
                         </p>
                     </div>
 
