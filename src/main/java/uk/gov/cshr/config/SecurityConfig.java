@@ -1,10 +1,8 @@
 package uk.gov.cshr.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.core.GrantedAuthorityDefaults;
 import org.springframework.security.oauth2.provider.approval.ApprovalStore;
@@ -15,7 +13,6 @@ import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.util.matcher.RequestMatcher;
-import uk.gov.cshr.service.security.IdentityService;
 import uk.gov.cshr.service.security.LocalClientDetailsService;
 
 import javax.servlet.http.HttpServletRequest;
@@ -32,11 +29,6 @@ public class SecurityConfig {
 
     static RequestMatcher forPort(final int port) {
         return (HttpServletRequest request) -> port == request.getLocalPort();
-    }
-
-    @Autowired
-    public void globalUserDetails(IdentityService identityService, AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(identityService);
     }
 
     @Bean
