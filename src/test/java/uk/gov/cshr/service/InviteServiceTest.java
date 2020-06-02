@@ -11,11 +11,14 @@ import uk.gov.service.notify.NotificationClientException;
 
 import java.util.Date;
 
+import static junit.framework.TestCase.assertFalse;
+import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.mockito.Mockito.*;
 
 public class InviteServiceTest {
 
+    private static final String EMAIL = "test@example.com";
     private final String govNotifyTemplateId = "template-id";
     private final int validityInSeconds = 30;
     private final String signupUrlFormat = "invite-url";
@@ -84,5 +87,17 @@ public class InviteServiceTest {
 
         verify(notifyService).notify(email, code, govNotifyTemplateId, signupUrlFormat);
         verify(inviteRepository).save(invite);
+    }
+
+    @Test
+    public void shouldReturnTrueIfEmailInvited() {
+        when(inviteRepository.existsByForEmailAndInviterIdIsNotNull(EMAIL)).thenReturn(true);
+        assertTrue(inviteService.isEmailInvited(EMAIL));
+    }
+
+    @Test
+    public void shouldReturnFalseIfEmailNotInvited() {
+        when(inviteRepository.existsByForEmailAndInviterIdIsNotNull(EMAIL)).thenReturn(false);
+        assertFalse(inviteService.isEmailInvited(EMAIL));
     }
 }

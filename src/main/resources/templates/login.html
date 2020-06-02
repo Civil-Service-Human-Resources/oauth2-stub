@@ -16,6 +16,8 @@
                             <span th:if="${param.error[0] == 'failed'}">You have entered the wrong email address or password, please try again.</span>
                             <span th:if="${param.error[0] == 'locked'}">Your account has been locked. Please contact us to <a
                                     href="mailto:feedback@cslearning.gov.uk">unlock your account.</a></span>
+                            <span th:if="${param.error[0] == 'blocked'}">Your account has been blocked and cannot access LPG. Please <a
+                                    href="mailto:feedback@cslearning.gov.uk">contact us</a> for more information.</span>
                         </p>
                     </div>
 

@@ -86,4 +86,8 @@ public class InviteService {
     public boolean isInviteValid(String code) {
         return inviteRepository.existsByCode(code) && (inviteRepository.existsByCode(code) || !isCodeExpired(code));
     }
+
+    public boolean isEmailInvited(String email) {
+        return inviteRepository.existsByForEmailAndInviterIdIsNotNull(email);
+    }
 }
