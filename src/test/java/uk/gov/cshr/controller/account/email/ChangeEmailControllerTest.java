@@ -49,7 +49,7 @@ public class ChangeEmailControllerTest {
 
     private static final String EMAIL_PATH = "/account/email";
     private static final String VERIFY_EMAIL_PATH = "/account/email/verify/";
-    private static final String VERIFY_EMAIL_AGENCY_PATH = "/account/email/verify/agency/";
+    private static final String VERIFY_EMAIL_AGENCY_PATH = "/account/verify/agency/";
 
     private static final String UID = "uid";
     private static final String VERIFY_CODE = "ZBnX9unEnnOcgMmCJ6rI3H2LUQFs2xsiMNj2Ejou";
@@ -272,14 +272,14 @@ public class ChangeEmailControllerTest {
         emailUpdate.setCode(VERIFY_CODE);
         emailUpdate.setEmail(identity.getEmail());
 
-        when(emailUpdateService.verifyEmailUpdateExists(identity, VERIFY_CODE)).thenReturn(true);
-        when(emailUpdateService.getEmailUpdate(identity, VERIFY_CODE)).thenReturn(emailUpdate);
+        when(emailUpdateService.existsByCode(VERIFY_CODE)).thenReturn(true);
+        when(emailUpdateService.getEmailUpdateByCode(VERIFY_CODE)).thenReturn(emailUpdate);
         when(identityService.getDomainFromEmailAddress(identity.getEmail())).thenReturn(DOMAIN);
 
         when(identityService.isWhitelistedDomain(DOMAIN)).thenReturn(true);
         when(agencyTokenService.isDomainInAgencyToken(DOMAIN)).thenReturn(false);
 
-        doNothing().when(emailUpdateService).updateEmailAddress(identityArgumentCaptor.capture(), eq(emailUpdate));
+        doNothing().when(emailUpdateService).updateEmailAddress(eq(emailUpdate));
 
         mockMvc.perform(get(VERIFY_EMAIL_PATH + VERIFY_CODE)
                 .with(request1 -> {
@@ -290,10 +290,6 @@ public class ChangeEmailControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/account/email/updated"))
                 .andDo(print());
-
-        Identity actualIdentityToUpdate = identityArgumentCaptor.getValue();
-        assertThat(actualIdentityToUpdate.getUid()).isEqualTo(expectedUIDToBeUpdated);
-        assertThat(actualIdentityToUpdate.getEmail()).isEqualTo(expectedEmailToBeUpdated);
     }
 
     @Test
@@ -307,14 +303,14 @@ public class ChangeEmailControllerTest {
         emailUpdate.setCode(VERIFY_CODE);
         emailUpdate.setEmail(identity.getEmail());
 
-        when(emailUpdateService.verifyEmailUpdateExists(identity, VERIFY_CODE)).thenReturn(true);
-        when(emailUpdateService.getEmailUpdate(identity, VERIFY_CODE)).thenReturn(emailUpdate);
+        when(emailUpdateService.existsByCode(VERIFY_CODE)).thenReturn(true);
+        when(emailUpdateService.getEmailUpdateByCode(VERIFY_CODE)).thenReturn(emailUpdate);
         when(identityService.getDomainFromEmailAddress(identity.getEmail())).thenReturn(DOMAIN);
 
         when(identityService.isWhitelistedDomain(DOMAIN)).thenReturn(false);
         when(agencyTokenService.isDomainInAgencyToken(DOMAIN)).thenReturn(true);
 
-        doNothing().when(emailUpdateService).updateEmailAddress(identityArgumentCaptor.capture(), eq(emailUpdate));
+        doNothing().when(emailUpdateService).updateEmailAddress(eq(emailUpdate));
 
         mockMvc.perform(get(VERIFY_EMAIL_PATH + VERIFY_CODE)
                 .with(request1 -> {
@@ -339,8 +335,8 @@ public class ChangeEmailControllerTest {
         emailUpdate.setCode(VERIFY_CODE);
         emailUpdate.setEmail(identity.getEmail());
 
-        when(emailUpdateService.verifyEmailUpdateExists(identity, VERIFY_CODE)).thenReturn(true);
-        when(emailUpdateService.getEmailUpdate(identity, VERIFY_CODE)).thenReturn(emailUpdate);
+        when(emailUpdateService.existsByCode(VERIFY_CODE)).thenReturn(true);
+        when(emailUpdateService.getEmailUpdateByCode(VERIFY_CODE)).thenReturn(emailUpdate);
         when(identityService.getDomainFromEmailAddress(identity.getEmail())).thenReturn(DOMAIN);
 
         when(identityService.isWhitelistedDomain(DOMAIN)).thenReturn(false);
@@ -362,7 +358,7 @@ public class ChangeEmailControllerTest {
     @Test
     public void givenAInvalidCode_whenUpdateEmail_shouldRedirectToUpdateEmailPageWithAnInvalidCodeError() throws Exception {
         Authentication authentication = prepareAuthentication(UID);
-        when(emailUpdateService.verifyEmailUpdateExists(any(Identity.class), anyString())).thenReturn(false);
+        when(emailUpdateService.existsByCode(anyString())).thenReturn(false);
 
         mockMvc.perform(get(VERIFY_EMAIL_PATH + VERIFY_CODE)
                 .with(request1 -> {
@@ -374,7 +370,7 @@ public class ChangeEmailControllerTest {
                 .andExpect(redirectedUrl("/account/email?invalidCode=true"))
                 .andDo(print());
 
-        verify(emailUpdateService, never()).updateEmailAddress(any(Identity.class), any(EmailUpdate.class));
+        verify(emailUpdateService, never()).updateEmailAddress(any(EmailUpdate.class));
     }
 
     @Test
@@ -390,14 +386,14 @@ public class ChangeEmailControllerTest {
         emailUpdate.setCode(VERIFY_CODE);
         emailUpdate.setEmail(identity.getEmail());
 
-        when(emailUpdateService.verifyEmailUpdateExists(identity, VERIFY_CODE)).thenReturn(true);
-        when(emailUpdateService.getEmailUpdate(identity, VERIFY_CODE)).thenReturn(emailUpdate);
+        when(emailUpdateService.existsByCode(VERIFY_CODE)).thenReturn(true);
+        when(emailUpdateService.getEmailUpdateByCode(VERIFY_CODE)).thenReturn(emailUpdate);
         when(identityService.getDomainFromEmailAddress(identity.getEmail())).thenReturn(DOMAIN);
 
         when(identityService.isWhitelistedDomain(DOMAIN)).thenReturn(true);
         when(agencyTokenService.isDomainInAgencyToken(DOMAIN)).thenReturn(true);
 
-        doThrow(new ResourceNotFoundException()).when(emailUpdateService).updateEmailAddress(any(Identity.class), any(EmailUpdate.class));
+        doThrow(new ResourceNotFoundException()).when(emailUpdateService).updateEmailAddress(any(EmailUpdate.class));
 
         mockMvc.perform(get(VERIFY_EMAIL_PATH + VERIFY_CODE)
                 .with(request1 -> {
@@ -409,10 +405,7 @@ public class ChangeEmailControllerTest {
                 .andExpect(redirectedUrl("/account/email?invalidEmail=true"))
                 .andDo(print());
 
-        verify(emailUpdateService, times(1)).updateEmailAddress(identityArgumentCaptor.capture(), eq(emailUpdate));
-        Identity actualIdentityToUpdate = identityArgumentCaptor.getValue();
-        assertThat(actualIdentityToUpdate.getUid()).isEqualTo(expectedUIDToBeUpdated);
-        assertThat(actualIdentityToUpdate.getEmail()).isEqualTo(expectedEmailToBeUpdated);
+        verify(emailUpdateService, times(1)).updateEmailAddress(eq(emailUpdate));
     }
 
     @Test
@@ -428,14 +421,14 @@ public class ChangeEmailControllerTest {
         emailUpdate.setCode(VERIFY_CODE);
         emailUpdate.setEmail(identity.getEmail());
 
-        when(emailUpdateService.verifyEmailUpdateExists(identity, VERIFY_CODE)).thenReturn(true);
-        when(emailUpdateService.getEmailUpdate(identity, VERIFY_CODE)).thenReturn(emailUpdate);
+        when(emailUpdateService.existsByCode(VERIFY_CODE)).thenReturn(true);
+        when(emailUpdateService.getEmailUpdateByCode(VERIFY_CODE)).thenReturn(emailUpdate);
         when(identityService.getDomainFromEmailAddress(identity.getEmail())).thenReturn(DOMAIN);
 
         when(identityService.isWhitelistedDomain(DOMAIN)).thenReturn(true);
         when(agencyTokenService.isDomainInAgencyToken(DOMAIN)).thenReturn(true);
 
-        doThrow(new RuntimeException()).when(emailUpdateService).updateEmailAddress(any(Identity.class), any(EmailUpdate.class));
+        doThrow(new RuntimeException()).when(emailUpdateService).updateEmailAddress(any(EmailUpdate.class));
 
         mockMvc.perform(get(VERIFY_EMAIL_PATH + VERIFY_CODE)
                 .with(request1 -> {
@@ -448,11 +441,7 @@ public class ChangeEmailControllerTest {
                 .andExpect(redirectedUrl("/login"))
                 .andDo(print());
 
-        verify(emailUpdateService, times(1)).updateEmailAddress(identityArgumentCaptor.capture(), eq(emailUpdate));
-
-        Identity actualIdentityToUpdate = identityArgumentCaptor.getValue();
-        assertThat(actualIdentityToUpdate.getUid()).isEqualTo(expectedUIDToBeUpdated);
-        assertThat(actualIdentityToUpdate.getEmail()).isEqualTo(expectedEmailToBeUpdated);
+        verify(emailUpdateService, times(1)).updateEmailAddress(eq(emailUpdate));
     }
 
     @Test

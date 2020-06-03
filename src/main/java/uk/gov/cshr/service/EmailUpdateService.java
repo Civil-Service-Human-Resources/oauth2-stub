@@ -60,17 +60,25 @@ public class EmailUpdateService {
         emailUpdate.getCode();
     }
 
-    public boolean verifyEmailUpdateExists(Identity identity, String code) {
-        return emailUpdateRepository.existsByIdentityAndCode(identity, code);
+    public boolean existsByCode(String code) {
+        return emailUpdateRepository.existsByCode(code);
+    }
+
+    public EmailUpdate getEmailUpdateByCode(String code) {
+        return emailUpdateRepository.findByCode(code)
+                .orElseThrow(ResourceNotFoundException::new);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void updateEmailAddress(Identity identity, EmailUpdate emailUpdate) {
-        updateEmailAddress(identity, emailUpdate, null);
+    public void updateEmailAddress(EmailUpdate emailUpdate) {
+        updateEmailAddress(emailUpdate, null);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void updateEmailAddress(Identity identity, EmailUpdate emailUpdate, AgencyToken agencyToken) {
+    public void updateEmailAddress(EmailUpdate emailUpdate, AgencyToken agencyToken) {
+        Identity emailUpdateIdentity = emailUpdate.getIdentity();
+        Identity identity = identityService.getIdentityByEmail(emailUpdateIdentity.getEmail());
+
         String newEmail = emailUpdate.getEmail();
 
         log.debug("Updating email address for: oldEmail = {}, newEmail = {}", identity.getEmail(), newEmail);
@@ -82,10 +90,5 @@ public class EmailUpdateService {
         log.debug("Email address {} has been updated to {} successfully", identity.getEmail(), newEmail);
 
         log.debug("Deleting emailUpdateObject: {}", emailUpdate.toString());
-    }
-
-    public EmailUpdate getEmailUpdate(Identity identity, String code) {
-        return emailUpdateRepository.findByIdentityAndCode(identity, code)
-                .orElseThrow(ResourceNotFoundException::new);
     }
 }

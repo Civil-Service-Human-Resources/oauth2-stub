@@ -18,7 +18,6 @@ import uk.gov.cshr.service.security.IdentityDetails;
 import uk.gov.cshr.service.security.IdentityService;
 import uk.gov.cshr.utils.ApplicationConstants;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Map;
 
@@ -39,7 +38,7 @@ public class ChangeEmailController {
     private static final String REDIRECT_LOGIN = "redirect:/login";
     private static final String REDIRECT_ACCOUNT_EMAIL_INVALID_EMAIL_TRUE = "redirect:/account/email?invalidEmail=true";
     private static final String REDIRECT_ACCOUNT_EMAIL_UPDATED_SUCCESS = "redirect:/account/email/updated";
-    private static final String REDIRECT_ACCOUNT_ENTER_TOKEN = "redirect:/account/email/verify/agency/";
+    private static final String REDIRECT_ACCOUNT_ENTER_TOKEN = "redirect:/account/verify/agency/";
 
     private final IdentityService identityService;
     private final EmailUpdateService emailUpdateService;
@@ -91,17 +90,19 @@ public class ChangeEmailController {
     }
 
     @GetMapping("/verify/{code}")
-    public String verifyEmail(@PathVariable String code, Authentication authentication, HttpServletRequest request, RedirectAttributes redirectAttributes) {
+    public String verifyEmail(@PathVariable String code,
+                              Authentication authentication,
+                              RedirectAttributes redirectAttributes) {
         log.debug("Attempting update email verification with code: {}", code);
 
         Identity identity = ((IdentityDetails) authentication.getPrincipal()).getIdentity();
 
-        if (!emailUpdateService.verifyEmailUpdateExists(identity, code)) {
-            log.error("Unable to verify email update code: {} {}", code, identity);
+        if (!emailUpdateService.existsByCode(code)) {
+            log.error("Unable to verify email update code: {}", code);
             return "redirect:/account/email?invalidCode=true";
         }
 
-        EmailUpdate emailUpdate = emailUpdateService.getEmailUpdate(identity, code);
+        EmailUpdate emailUpdate = emailUpdateService.getEmailUpdateByCode(code);
         String newDomain = identityService.getDomainFromEmailAddress(emailUpdate.getEmail());
 
         log.debug("Attempting update email verification with domain: {}", newDomain);
@@ -110,7 +111,7 @@ public class ChangeEmailController {
         if (isWhitelisted(newDomain)) {
             log.debug("New email is whitelisted: oldEmail = {}, newEmail = {}", identity.getEmail(), emailUpdate.getEmail());
             try {
-                emailUpdateService.updateEmailAddress(identity, emailUpdate);
+                emailUpdateService.updateEmailAddress(emailUpdate);
                 redirectAttributes.addFlashAttribute(EMAIL_ATTRIBUTE, emailUpdate.getEmail());
                 return REDIRECT_ACCOUNT_EMAIL_UPDATED_SUCCESS;
             } catch (ResourceNotFoundException e) {

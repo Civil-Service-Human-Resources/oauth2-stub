@@ -136,6 +136,15 @@ public class IdentityService implements UserDetailsService {
         identityRepository.save(identity);
     }
 
+    public void reactivateIdentity(Identity identity, AgencyToken agencyToken) {
+        identity.setActive(true);
+
+        if (agencyToken != null && agencyToken.getUid() != null) {
+            identity.setAgencyTokenUid(agencyToken.getUid());
+        }
+        identityRepository.save(identity);
+    }
+
     public boolean checkPassword(String username, String password) {
         UserDetails userDetails = loadUserByUsername(username);
         return passwordEncoder.matches(password, userDetails.getPassword());
@@ -201,5 +210,9 @@ public class IdentityService implements UserDetailsService {
 
     private boolean hasData(String s) {
         return s != null && s.length() > 0;
+    }
+
+    public Identity getIdentityByEmail(String email) {
+        return identityRepository.findFirstByEmailEquals(email);
     }
 }

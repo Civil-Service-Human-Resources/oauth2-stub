@@ -76,42 +76,40 @@ public class EmailUpdateServiceTest {
 
     @Test
     public void givenAValidCodeForIdentity_whenVerifyCode_thenReturnsTrue() {
-        // given
-        when(emailUpdateRepository.existsByIdentityAndCode(any(Identity.class), anyString())).thenReturn(true);
+        when(emailUpdateRepository.existsByCode(anyString())).thenReturn(true);
 
-        // when
-        boolean actual = emailUpdateService.verifyEmailUpdateExists(IDENTITY, "co");
+        boolean actual = emailUpdateService.existsByCode("co");
 
-        // then
         assertTrue(actual);
-        verify(emailUpdateRepository, times(1)).existsByIdentityAndCode(eq(IDENTITY), eq("co"));
+        verify(emailUpdateRepository, times(1)).existsByCode(eq("co"));
     }
 
     @Test
     public void givenAInvalidCodeForIdentity_whenVerifyCode_thenReturnsFalse() {
-        // given
-        when(emailUpdateRepository.existsByIdentityAndCode(any(Identity.class), anyString())).thenReturn(false);
+        when(emailUpdateRepository.existsByCode(anyString())).thenReturn(false);
 
-        // when
-        boolean actual = emailUpdateService.verifyEmailUpdateExists(IDENTITY, "co");
+        boolean actual = emailUpdateService.existsByCode("co");
 
-        // then
         assertFalse(actual);
-        verify(emailUpdateRepository, times(1)).existsByIdentityAndCode(eq(IDENTITY), eq("co"));
+        verify(emailUpdateRepository, times(1)).existsByCode(eq("co"));
     }
 
     @Test
     public void givenAValidIdentity_whenNewDomainWhitelistedAndNotAgency_shouldReturnSuccessfully() throws Exception {
+        Identity identity = new Identity();
+        identity.setEmail(EMAIL);
+
         EmailUpdate emailUpdate = new EmailUpdate();
         emailUpdate.setId(100l);
         emailUpdate.setEmail(NEW_EMAIL_ADDRESS);
+        emailUpdate.setIdentity(identity);
 
-        when(identityService.getDomainFromEmailAddress(NEW_EMAIL_ADDRESS)).thenReturn(NEW_DOMAIN);
+        when(identityService.getIdentityByEmail(EMAIL)).thenReturn(identity);
 
         doNothing().when(identityService).updateEmailAddress(eq(IDENTITY), eq(emailUpdate.getEmail()), isNull());
         doNothing().when(emailUpdateRepository).delete(any(EmailUpdate.class));
 
-        emailUpdateService.updateEmailAddress(IDENTITY, emailUpdate);
+        emailUpdateService.updateEmailAddress(emailUpdate);
 
         verify(identityService, times(1)).updateEmailAddress(identityArgumentCaptor.capture(), eq(emailUpdate.getEmail()), isNull());
         verify(emailUpdateRepository, times(1)).delete(emailUpdateArgumentCaptor.capture());
@@ -119,25 +117,29 @@ public class EmailUpdateServiceTest {
         EmailUpdate actualDeletedEmailUpdate = emailUpdateArgumentCaptor.getValue();
         assertThat(actualDeletedEmailUpdate.getId(), equalTo(100l));
 
-        Identity identity = identityArgumentCaptor.getValue();
-        assertThat(identity.getUid(), equalTo(UID));
+        Identity identityArgumentCaptorValue = identityArgumentCaptor.getValue();
+        assertThat(identityArgumentCaptorValue.getEmail(), equalTo(EMAIL));
     }
 
     @Test
     public void givenAValidIdentity_whenNewDomainIsAgency_shouldReturnSuccessfully() throws Exception {
+        Identity identity = new Identity();
+        identity.setEmail(EMAIL);
+
         EmailUpdate emailUpdate = new EmailUpdate();
         emailUpdate.setId(100l);
         emailUpdate.setEmail(NEW_EMAIL_ADDRESS);
+        emailUpdate.setIdentity(identity);
 
         AgencyToken agencyToken = new AgencyToken();
         agencyToken.setUid(UID);
 
-        when(identityService.getDomainFromEmailAddress(NEW_EMAIL_ADDRESS)).thenReturn(NEW_DOMAIN);
+        when(identityService.getIdentityByEmail(EMAIL)).thenReturn(identity);
 
         doNothing().when(identityService).updateEmailAddress(eq(IDENTITY), eq(emailUpdate.getEmail()), eq(agencyToken));
         doNothing().when(emailUpdateRepository).delete(any(EmailUpdate.class));
 
-        emailUpdateService.updateEmailAddress(IDENTITY, emailUpdate, agencyToken);
+        emailUpdateService.updateEmailAddress(emailUpdate, agencyToken);
 
         verify(identityService, times(1)).updateEmailAddress(identityArgumentCaptor.capture(), eq(emailUpdate.getEmail()), eq(agencyToken));
         verify(emailUpdateRepository, times(1)).delete(emailUpdateArgumentCaptor.capture());
@@ -145,16 +147,16 @@ public class EmailUpdateServiceTest {
         EmailUpdate actualDeletedEmailUpdate = emailUpdateArgumentCaptor.getValue();
         assertThat(actualDeletedEmailUpdate.getId(), equalTo(100l));
 
-        Identity identity = identityArgumentCaptor.getValue();
-        assertThat(identity.getUid(), equalTo(UID));
+        Identity identityArgumentCaptorValue = identityArgumentCaptor.getValue();
+        assertThat(identityArgumentCaptorValue.getEmail(), equalTo(EMAIL));
     }
 
     @Test
     public void shouldGetEmailUpdate() {
         EmailUpdate emailUpdate = new EmailUpdate();
 
-        when(emailUpdateRepository.findByIdentityAndCode(any(Identity.class), anyString())).thenReturn(Optional.of(emailUpdate));
+        when(emailUpdateRepository.findByCode(anyString())).thenReturn(Optional.of(emailUpdate));
 
-        assertEquals(emailUpdateService.getEmailUpdate(IDENTITY, CODE), emailUpdate);
+        assertEquals(emailUpdateService.getEmailUpdateByCode(CODE), emailUpdate);
     }
 }

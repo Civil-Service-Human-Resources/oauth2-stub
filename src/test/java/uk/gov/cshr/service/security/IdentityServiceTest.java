@@ -392,4 +392,20 @@ public class IdentityServiceTest {
         assertFalse(actual);
         verify(csrsService, times(1)).isDomainInAgency(eq("bennevis.com"));
     }
+
+    @Test
+    public void shouldReactivateIdentity() {
+        Identity identity = new Identity();
+        AgencyToken agencyToken = new AgencyToken();
+        agencyToken.setUid(UID);
+
+        identityService.reactivateIdentity(identity, agencyToken);
+
+        verify(identityRepository).save(identityArgumentCaptor.capture());
+
+        Identity identityCaptor = identityArgumentCaptor.getValue();
+
+        assertEquals(identityCaptor.isActive(), true);
+        assertEquals(identityCaptor.getAgencyTokenUid(), UID);
+    }
 }
