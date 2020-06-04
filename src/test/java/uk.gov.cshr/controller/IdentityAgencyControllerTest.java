@@ -34,7 +34,6 @@ public class IdentityAgencyControllerTest {
     @MockBean
     private IdentityRepository identityRepository;
 
-
     @Autowired
     private MockMvc mockMvc;
 
@@ -47,8 +46,7 @@ public class IdentityAgencyControllerTest {
     public void shouldReturnIdentityAgencyDTOSuccessfully() throws Exception {
        when(identityRepository.findFirstByUid(eq(IDENTITY_UID))).thenReturn(Optional.of(createIdentity()));
 
-        mockMvc.perform(get("/agencyToken/identity")
-                .param("uid", IDENTITY_UID))
+        mockMvc.perform(get("/identity/agency/" + IDENTITY_UID))
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.uid", CoreMatchers.is(IDENTITY_UID)))
                 .andExpect(jsonPath("$.agencyTokenUid", CoreMatchers.is("456")));
@@ -58,8 +56,7 @@ public class IdentityAgencyControllerTest {
     public void shouldReturnNotFoundWhenIdentityNotFound() throws Exception {
         when(identityRepository.findFirstByUid(eq(IDENTITY_UID))).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/agencyToken/identity")
-                .param("uid", IDENTITY_UID))
+        mockMvc.perform(get("/identity/agency/" + IDENTITY_UID))
                 .andExpect(status().isNotFound());
     }
 
