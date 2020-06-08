@@ -97,3 +97,5 @@ CREATE TABLE `oauth_code` (
 ALTER TABLE `invite` ADD COLUMN `is_authorised_invite` bit(1) DEFAULT TRUE;
 
 ALTER TABLE `identity` ADD COLUMN `agency_token_uid` char(36);
+
+UPDATE `identity` SET `agency_token_uid` = '300' WHERE email = 'learner@domain.com';
