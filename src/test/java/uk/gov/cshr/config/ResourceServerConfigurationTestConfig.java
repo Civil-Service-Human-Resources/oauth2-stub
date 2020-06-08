@@ -5,7 +5,7 @@ import org.springframework.security.oauth2.config.annotation.web.configurers.Res
 
 public class ResourceServerConfigurationTestConfig extends ResourceServerConfigurerAdapter {
 
-    /* No support for OAuth in Spring tests basically.
+    /* No support for OAuth in Spring tests.
      * Avoid unauthorised errors by overriding the stateless field
      *
      * The mocked Security Context in spring unit tests is naturally

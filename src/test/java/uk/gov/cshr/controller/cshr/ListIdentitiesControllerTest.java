@@ -35,9 +35,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 public class ListIdentitiesControllerTest {
-    //ListIdentitiesControllerTest
-    private static final String CSRS_CLIENT_ID = "123";
 
+    private static final String GET_IDENTITY_AGENCY_TOKEN_UID_URL = "/api/identity/agency/";
+    private static final String CSRS_CLIENT_ID = "123";
+    private static final String CLIENT_AUTHORITY = "CLIENT";
     private static final String EMAIL = "test@example.org";
     private static final String PASSWORD = "password123";
     private static final String IDENTITY_UID = "abc123";
@@ -62,13 +63,14 @@ public class ListIdentitiesControllerTest {
 
     @Test
     public void shouldReturnIdentityAgencyDTOSuccessfully() throws Exception {
-        when(identityRepository.findFirstByUid(eq(IDENTITY_UID))).thenReturn(Optional.of(createIdentity()));
+        Identity identity = createIdentity();
+        when(identityRepository.findFirstByUid(eq(IDENTITY_UID))).thenReturn(Optional.of(identity));
 
-        mockMvc.perform(get("/api/identity/agency/" + IDENTITY_UID)
-                .with(user("theclient").authorities(() -> "CLIENT")))
+        mockMvc.perform(get(GET_IDENTITY_AGENCY_TOKEN_UID_URL + IDENTITY_UID)
+                .with(user(CSRS_CLIENT_ID).authorities(() -> CLIENT_AUTHORITY)))
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.uid", CoreMatchers.is(IDENTITY_UID)))
-                .andExpect(jsonPath("$.agencyTokenUid", CoreMatchers.is("456")));
+                .andExpect(jsonPath("$.agencyTokenUid", CoreMatchers.is(identity.getAgencyTokenUid())));
 
         verify(identityRepository, times(1)).findFirstByUid(eq(IDENTITY_UID));
     }
@@ -77,8 +79,8 @@ public class ListIdentitiesControllerTest {
     public void shouldReturnNotFoundWhenIdentityNotFound() throws Exception {
         when(identityRepository.findFirstByUid(eq(IDENTITY_UID))).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/api/identity/agency/" + IDENTITY_UID)
-                .with(user("theclient").authorities(() -> "CLIENT")))
+        mockMvc.perform(get(GET_IDENTITY_AGENCY_TOKEN_UID_URL + IDENTITY_UID)
+                .with(user(CSRS_CLIENT_ID).authorities(() -> CLIENT_AUTHORITY)))
                 .andExpect(status().isNotFound());
 
         verify(identityRepository, times(1)).findFirstByUid(eq(IDENTITY_UID));
