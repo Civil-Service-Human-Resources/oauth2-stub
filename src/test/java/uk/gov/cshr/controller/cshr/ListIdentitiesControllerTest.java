@@ -71,8 +71,6 @@ public class ListIdentitiesControllerTest {
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.uid", CoreMatchers.is(IDENTITY_UID)))
                 .andExpect(jsonPath("$.agencyTokenUid", CoreMatchers.is(identity.getAgencyTokenUid())));
-
-        verify(identityRepository, times(1)).findFirstByUid(eq(IDENTITY_UID));
     }
 
     @Test
@@ -82,8 +80,15 @@ public class ListIdentitiesControllerTest {
         mockMvc.perform(get(GET_IDENTITY_AGENCY_TOKEN_UID_URL + IDENTITY_UID)
                 .with(user(CSRS_CLIENT_ID).authorities(() -> CLIENT_AUTHORITY)))
                 .andExpect(status().isNotFound());
+    }
 
-        verify(identityRepository, times(1)).findFirstByUid(eq(IDENTITY_UID));
+    @Test
+    public void shouldReturn500WhenTechnicalError() throws Exception {
+        when(identityRepository.findFirstByUid(eq(IDENTITY_UID))).thenThrow(new RuntimeException());
+
+        mockMvc.perform(get(GET_IDENTITY_AGENCY_TOKEN_UID_URL + IDENTITY_UID)
+                .with(user(CSRS_CLIENT_ID).authorities(() -> CLIENT_AUTHORITY)))
+                .andExpect(status().isInternalServerError());
     }
 
     private Identity createIdentity() {

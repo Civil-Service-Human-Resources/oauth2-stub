@@ -2,6 +2,7 @@ package uk.gov.cshr.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -66,10 +67,14 @@ public class ListIdentitiesController {
     @GetMapping(value = "/api/identity/agency/{uid}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<IdentityAgencyDTO> findAgencyTokenUidByUid(@PathVariable String uid) {
         log.info("Getting agency token uid for user with uid " + uid);
-        Optional<Identity> identity = identityRepository.findFirstByUid(uid);
-        return identity
-                .map(i -> buildResponse(i))
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        try {
+            Optional<Identity> identity = identityRepository.findFirstByUid(uid);
+            return identity
+                    .map(i -> buildResponse(i))
+                    .orElseGet(() -> ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     private ResponseEntity<IdentityAgencyDTO> buildResponse(Identity i) {
