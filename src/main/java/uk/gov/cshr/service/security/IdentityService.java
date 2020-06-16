@@ -215,4 +215,8 @@ public class IdentityService implements UserDetailsService {
     public Identity getIdentityByEmail(String email) {
         return identityRepository.findFirstByEmailEquals(email);
     }
+
+    public Identity getIdentityByEmailAndActiveFalse(String email) {
+        return identityRepository.findFirstByActiveFalseAndEmailEquals(email).orElseThrow(() -> new IdentityNotFoundException("Identity not found for email: " + email));
+    }
 }

@@ -6,6 +6,7 @@ import uk.gov.cshr.domain.AgencyToken;
 import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Reactivation;
 import uk.gov.cshr.domain.ReactivationStatus;
+import uk.gov.cshr.exception.IdentityNotFoundException;
 import uk.gov.cshr.exception.ResourceNotFoundException;
 import uk.gov.cshr.repository.ReactivationRepository;
 import uk.gov.cshr.service.security.IdentityService;
@@ -40,14 +41,14 @@ public class ReactivationService {
         reactivateIdentity(reactivation, null);
     }
 
-    public void reactivateIdentity(Reactivation reactivation, AgencyToken agencyToken) {
-        Identity identity = identityService.getIdentityByEmail(reactivation.getEmail());
+    public void reactivateIdentity(Reactivation reactivation, AgencyToken agencyToken) throws IdentityNotFoundException {
+        Identity identity = identityService.getIdentityByEmailAndActiveFalse(reactivation.getEmail());
         identityService.reactivateIdentity(identity, agencyToken);
 
         reactivation.setReactivationStatus(ReactivationStatus.REACTIVATED);
         reactivation.setReactivatedAt(new Date());
 
-        log.debug("Identity reactivated for Reactivation: {}", reactivation.toString());
+        log.debug("Identity reactivated for Reactivation: {}", reactivation);
         reactivationRepository.save(reactivation);
     }
 }

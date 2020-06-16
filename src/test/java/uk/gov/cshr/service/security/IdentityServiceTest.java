@@ -408,4 +408,25 @@ public class IdentityServiceTest {
         assertEquals(identityCaptor.isActive(), true);
         assertEquals(identityCaptor.getAgencyTokenUid(), UID);
     }
+
+    @Test
+    public void shouldGetIdentityByEmailAndActiveFalse() {
+        Identity identity = mock(Identity.class);
+        when(identity.getUid()).thenReturn(UID);
+        when(identity.isActive()).thenReturn(false);
+
+        when(identityRepository.findFirstByActiveFalseAndEmailEquals(EMAIL)).thenReturn(Optional.of(identity));
+
+        Identity actualIdentity = identityService.getIdentityByEmailAndActiveFalse(EMAIL);
+
+        assertEquals(UID, actualIdentity.getUid());
+        assertEquals(false, actualIdentity.isActive());
+    }
+
+    @Test(expected = IdentityNotFoundException.class)
+    public void shouldThrowExceptionIfIdentityNotFound() {
+        doThrow(new IdentityNotFoundException("Identity not found")).when(identityRepository).findFirstByActiveFalseAndEmailEquals(EMAIL);
+
+        identityService.getIdentityByEmailAndActiveFalse(EMAIL);
+    }
 }

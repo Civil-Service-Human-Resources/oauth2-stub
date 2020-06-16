@@ -71,7 +71,7 @@ public class ReactivationControllerTest {
     }
 
     @Test
-    public void shouldReactivateAccount() throws Exception {
+    public void shouldReactivateAccountIfNotAgency() throws Exception {
         Reactivation reactivation = new Reactivation();
         reactivation.setEmail(EMAIL_ADDRESS);
 

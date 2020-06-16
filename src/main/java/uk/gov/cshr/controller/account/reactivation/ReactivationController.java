@@ -59,13 +59,13 @@ public class ReactivationController {
             Reactivation reactivation = reactivationService.getReactivationByCodeAndStatus(code, ReactivationStatus.PENDING);
             String domain = identityService.getDomainFromEmailAddress(reactivation.getEmail());
 
-            log.debug("Reactivating account using Reactivation: {}", reactivation.toString());
+            log.debug("Reactivating account using Reactivation: {}", reactivation);
 
             if (isNotWhitelistedAndIsAgency(domain)) {
-                log.info("Account reactivation is agency, not whitelisted and requires token validation for Reactivation: {}", reactivation.toString());
+                log.info("Account reactivation is agency, not whitelisted and requires token validation for Reactivation: {}", reactivation);
                 return REDIRECT_ACCOUNT_REACTIVATE_AGENCY + code;
             } else {
-                log.info("Account reactivation is not agency and can reactivate without further validation for Reactivation: {}", reactivation.toString());
+                log.info("Account reactivation is not agency and can reactivate without further validation for Reactivation: {}", reactivation);
                 reactivationService.reactivateIdentity(reactivation);
                 return REDIRECT_ACCOUNT_REACTIVATED;
             }

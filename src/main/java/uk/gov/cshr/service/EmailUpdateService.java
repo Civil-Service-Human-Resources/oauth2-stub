@@ -77,18 +77,18 @@ public class EmailUpdateService {
     @Transactional(rollbackFor = Exception.class)
     public void updateEmailAddress(EmailUpdate emailUpdate, AgencyToken agencyToken) {
         Identity emailUpdateIdentity = emailUpdate.getIdentity();
-        Identity identity = identityService.getIdentityByEmail(emailUpdateIdentity.getEmail());
+        Identity existingIdentity = identityService.getIdentityByEmail(emailUpdateIdentity.getEmail());
 
         String newEmail = emailUpdate.getEmail();
 
-        log.debug("Updating email address for: oldEmail = {}, newEmail = {}", identity.getEmail(), newEmail);
+        log.debug("Updating email address for: oldEmail = {}, newEmail = {}", existingIdentity.getEmail(), newEmail);
 
-        identityService.updateEmailAddress(identity, newEmail, agencyToken);
+        identityService.updateEmailAddress(existingIdentity, newEmail, agencyToken);
 
         emailUpdateRepository.delete(emailUpdate);
 
-        log.debug("Email address {} has been updated to {} successfully", identity.getEmail(), newEmail);
+        log.debug("Email address {} has been updated to {} successfully", existingIdentity.getEmail(), newEmail);
 
-        log.debug("Deleting emailUpdateObject: {}", emailUpdate.toString());
+        log.debug("Deleting emailUpdateObject: {}", emailUpdate);
     }
 }
