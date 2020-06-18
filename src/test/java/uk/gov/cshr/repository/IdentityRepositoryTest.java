@@ -53,7 +53,7 @@ public class IdentityRepositoryTest {
         Identity postUpdateOtherAgencyTokenIdentity = identityRepository.getOne(otherAgencyTokenIdentity.getId());
         Identity postUpdateOtherNonAgencyIdentity = identityRepository.getOne(otherNonAgencyIdentity.getId());
 
-        assertFalse(updatedIdentity.isActive());
+        assertTrue(updatedIdentity.isActive());
         assertNull(updatedIdentity.getAgencyTokenUid());
 
         assertEquals(otherAgencyTokenIdentity.toString(), postUpdateOtherAgencyTokenIdentity.toString());
@@ -82,10 +82,10 @@ public class IdentityRepositoryTest {
         Identity postUpdateOtherAgencyTokenIdentity = identityRepository.getOne(otherAgencyTokenIdentity.getId());
         Identity postUpdateOtherNonAgencyIdentity = identityRepository.getOne(otherNonAgencyIdentity.getId());
 
-        assertFalse(updatedIdentityOne.isActive());
+        assertTrue(updatedIdentityOne.isActive());
         assertNull(updatedIdentityOne.getAgencyTokenUid());
 
-        assertFalse(updatedIdentityTwo.isActive());
+        assertTrue(updatedIdentityTwo.isActive());
         assertNull(updatedIdentityTwo.getAgencyTokenUid());
 
         assertEquals(otherAgencyTokenIdentity.toString(), postUpdateOtherAgencyTokenIdentity.toString());

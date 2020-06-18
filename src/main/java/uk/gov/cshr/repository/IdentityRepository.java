@@ -32,6 +32,6 @@ public interface IdentityRepository extends JpaRepository<Identity, Long> {
 
         @Transactional
         @Modifying(flushAutomatically = true, clearAutomatically = true)
-        @Query("UPDATE Identity SET agencyTokenUid = null, active = false WHERE agencyTokenUid IS NOT NULL AND agencyTokenUid = :agencyTokenUid")
+        @Query("UPDATE Identity SET agencyTokenUid = null WHERE agencyTokenUid IS NOT NULL AND agencyTokenUid = :agencyTokenUid")
         void removeAgencyToken(String agencyTokenUid);
 }
