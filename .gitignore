@@ -8,4 +8,5 @@
 build
 out
 bin
+**/.DS_Store
 logs

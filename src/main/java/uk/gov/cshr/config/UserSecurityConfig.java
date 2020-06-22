@@ -65,7 +65,7 @@ public class UserSecurityConfig extends WebSecurityConfigurerAdapter {
                 .logoutSuccessHandler((request, response, authentication) -> {
                     String redirectUrl = request.getParameter("returnTo");
                     if (redirectUrl == null) {
-                        response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+                        response.sendRedirect("/login");
                     } else {
                         response.sendRedirect(redirectUrl);
                     }

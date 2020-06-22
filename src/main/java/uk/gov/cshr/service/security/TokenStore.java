@@ -34,6 +34,7 @@ public class TokenStore implements org.springframework.security.oauth2.provider.
     @Cacheable(cacheNames = "readAuthenticationCache", key = "#token.toString()")
     public OAuth2Authentication readAuthentication(OAuth2AccessToken token) {
         return readAuthentication(token.getValue());
+
     }
 
     @Override
@@ -78,6 +79,13 @@ public class TokenStore implements org.springframework.security.oauth2.provider.
 
     @Override
     public void storeRefreshToken(OAuth2RefreshToken refreshToken, OAuth2Authentication authentication) {
+        Token storedToken = tokenRepository.findByTokenIdAndStatus(authenticationKeyGenerator.extractKey(authentication), TokenStatus.ACTIVE);
+        if (storedToken == null) {
+            storedToken = new Token(authenticationKeyGenerator.extractKey(authentication), refreshToken, authentication);
+        } else {
+            storedToken.setRefreshToken(refreshToken);
+        }
+        tokenRepository.save(storedToken);
     }
 
     @Override

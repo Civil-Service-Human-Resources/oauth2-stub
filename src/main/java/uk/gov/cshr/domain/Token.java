@@ -1,6 +1,7 @@
 package uk.gov.cshr.domain;
 
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.common.OAuth2RefreshToken;
 import org.springframework.security.oauth2.common.util.SerializationUtils;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 
@@ -53,7 +54,8 @@ public class Token {
     @Lob
     private byte[] authentication;
 
-    private String refreshToken;
+    @Lob
+    private byte[] refreshToken;
 
     protected Token() {
     }
@@ -68,8 +70,22 @@ public class Token {
         setAuthentication(authentication);
 
         if (token.getRefreshToken() != null) {
-            this.refreshToken = extractTokenKey(token.getRefreshToken().getValue());
+            this.refreshToken = SerializationUtils.serialize(token.getRefreshToken());
         }
+        if (!authentication.isClientOnly()) {
+            userName = authentication.getName();
+        }
+    }
+
+    public Token(String authenticationId, OAuth2RefreshToken refreshToken, OAuth2Authentication authentication) {
+        this.authenticationId = authenticationId;
+        this.clientId = authentication.getOAuth2Request().getClientId();
+        this.token = SerializationUtils.serialize(token);
+        this.refreshToken = SerializationUtils.serialize(refreshToken);
+        this.status = TokenStatus.ACTIVE;
+
+        setAuthentication(authentication);
+
         if (!authentication.isClientOnly()) {
             userName = authentication.getName();
         }
@@ -93,5 +109,13 @@ public class Token {
 
     public void setAuthentication(OAuth2Authentication authentication) {
         this.authentication = SerializationUtils.serialize(authentication);
+    }
+
+    public OAuth2RefreshToken getRefreshToken() {
+        return SerializationUtils.deserialize(refreshToken);
+    }
+
+    public void setRefreshToken(OAuth2RefreshToken refreshToken) {
+        this.refreshToken = SerializationUtils.serialize(refreshToken);
     }
 }
