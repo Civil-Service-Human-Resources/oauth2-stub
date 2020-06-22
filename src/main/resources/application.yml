@@ -15,7 +15,6 @@ spring:
     hibernate:
       ddl-auto: none
 
-
 server:
   servlet:
     session:
@@ -31,6 +30,7 @@ logging:
     org.apache.http: WARN
 
 accessToken:
+  jwtKey: ${jwt_key}
   validityInSeconds: ${ACCESS_TOKEN_VALIDITY:86400}
 
 govNotify:
@@ -82,6 +82,7 @@ spring:
   profiles: production
   thymeleaf:
     cache: true
+    check-template: true
   datasource:
     url: ${DATASOURCE:jdbc:mysql://localhost:3306/oauth2?user=root&password=password&useSSL=false}
     platform: mysql
