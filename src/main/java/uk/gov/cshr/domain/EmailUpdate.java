@@ -1,14 +1,15 @@
 package uk.gov.cshr.domain;
 
 import lombok.Data;
+import lombok.ToString;
 import org.apache.commons.lang3.RandomStringUtils;
 
 import javax.persistence.*;
 import java.time.Instant;
-import java.util.UUID;
 
 @Data
 @Entity
+@ToString
 public class EmailUpdate {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,5 +21,6 @@ public class EmailUpdate {
 
     @ManyToOne
     private Identity identity;
+
     private Instant timestamp;
 }

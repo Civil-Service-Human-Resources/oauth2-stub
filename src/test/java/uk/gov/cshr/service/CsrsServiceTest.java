@@ -17,7 +17,10 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.cshr.domain.AgencyToken;
 import uk.gov.cshr.domain.OrganisationalUnitDto;
 import uk.gov.cshr.dto.AgencyTokenDTO;
-import uk.gov.cshr.exception.*;
+import uk.gov.cshr.exception.BadRequestException;
+import uk.gov.cshr.exception.NotEnoughSpaceAvailableException;
+import uk.gov.cshr.exception.ResourceNotFoundException;
+import uk.gov.cshr.exception.UnableToAllocateAgencyTokenException;
 
 import java.util.Optional;
 
@@ -69,6 +72,28 @@ public class CsrsServiceTest {
     }
 
     @Test
+    public void shouldReturnTrueIfDomainInAgency() {
+        String domain = "example.com";
+
+        Boolean expectedBoolean = true;
+
+        when(restTemplate.getForObject(String.format(agencyTokensByDomainFormat, domain), Boolean.class)).thenReturn(expectedBoolean);
+
+        assertEquals(expectedBoolean, csrsService.isDomainInAgency(domain));
+    }
+
+    @Test
+    public void shouldReturnFalseIfDomainInAgency() {
+        String domain = "example.com";
+
+        Boolean expectedBoolean = false;
+
+        when(restTemplate.getForObject(String.format(agencyTokensByDomainFormat, domain), Boolean.class)).thenReturn(expectedBoolean);
+
+        assertEquals(expectedBoolean, csrsService.isDomainInAgency(domain));
+    }
+
+    @Test
     public void shouldReturnAgencyTokenForDomainTokenOrganisation() {
         AgencyToken agencyToken = new AgencyToken();
         String domain = "example.com";
@@ -102,23 +127,6 @@ public class CsrsServiceTest {
         when(restTemplate.getForObject(organisationalUnitsFlatUrl, OrganisationalUnitDto[].class)).thenReturn(organisationalUnitDtoArray);
 
         assertArrayEquals(organisationalUnitDtoArray, csrsService.getOrganisationalUnitsFormatted());
-    }
-
-    @Test
-    public void givenAgencyTokenDomainAndOrganisation_whenGetAgencyTokenForDomainAndOrganisation_thenShouldReturnAgencyToken() {
-        // given
-        AgencyToken agencyToken = buildAgencyToken();
-        String domain = "example.com";
-        String code = "code";
-        when(restTemplate.getForObject(String.format(agencyTokensByDomainAndOrganisationFormat, domain, code), AgencyToken.class)).thenReturn(agencyToken);
-
-        // when
-        Optional<AgencyToken> actual = csrsService.getAgencyTokenForDomainAndOrganisation(domain, code);
-
-        // then
-        assertThat(actual.get().getToken(), equalTo(agencyToken.getToken()));
-        assertThat(actual.get().getCapacity(), equalTo(100));
-        assertThat(actual.get().getCapacityUsed(), equalTo(11));
     }
 
     @Test
@@ -279,9 +287,6 @@ public class CsrsServiceTest {
 
     private AgencyToken buildAgencyToken() {
         AgencyToken at = new AgencyToken();
-        at.setToken("token123");
-        at.setCapacity(100);
-        at.setCapacityUsed(11);
         return at;
     }
 

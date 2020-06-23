@@ -39,7 +39,7 @@ public class Identity implements Serializable {
     private boolean deletionNotificationSent;
 
     @Column
-    private boolean emailRecentlyUpdated;
+    private String agencyTokenUid;
 
     public Identity() {
     }
@@ -53,7 +53,18 @@ public class Identity implements Serializable {
         this.locked = locked;
         this.lastLoggedIn = lastLoggedIn;
         this.deletionNotificationSent = deletionNotificationSent;
-        this.emailRecentlyUpdated = emailRecentlyUpdated;
+    }
+
+    public Identity(String uid, String email, String password, boolean active, boolean locked, Set<Role> roles, Instant lastLoggedIn, boolean deletionNotificationSent, boolean emailRecentlyUpdated, String agencyTokenUid) {
+        this.uid = uid;
+        this.email = email;
+        this.password = password;
+        this.active = active;
+        this.roles = roles;
+        this.locked = locked;
+        this.lastLoggedIn = lastLoggedIn;
+        this.deletionNotificationSent = deletionNotificationSent;
+        this.agencyTokenUid = agencyTokenUid;
     }
 
     public boolean isActive() {
@@ -88,6 +99,10 @@ public class Identity implements Serializable {
         return email;
     }
 
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
     public Long getId() {
         return id;
     }
@@ -120,16 +135,12 @@ public class Identity implements Serializable {
         this.deletionNotificationSent = deletionNotificationSent;
     }
 
-    public boolean isEmailRecentlyUpdated() {
-        return emailRecentlyUpdated;
+    public String getAgencyTokenUid() {
+        return agencyTokenUid;
     }
 
-    public void setEmailRecentlyUpdated(boolean emailRecentlyUpdated) {
-        this.emailRecentlyUpdated = emailRecentlyUpdated;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
+    public void setAgencyTokenUid(String agencyTokenUid) {
+        this.agencyTokenUid = agencyTokenUid;
     }
 
     @Override
@@ -139,7 +150,7 @@ public class Identity implements Serializable {
                 ", uid='" + uid + '\'' +
                 ", active=" + active +
                 ", locked=" + locked +
-                ", emailRecentlyUpdated=" + emailRecentlyUpdated +
+                ", agencyTokenUid=" + agencyTokenUid +
                 '}';
     }
 }

@@ -5,13 +5,13 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.cshr.domain.AgencyToken;
 import uk.gov.cshr.domain.EmailUpdate;
 import uk.gov.cshr.domain.Identity;
-import uk.gov.cshr.exception.InvalidCodeException;
+import uk.gov.cshr.exception.ResourceNotFoundException;
 import uk.gov.cshr.repository.EmailUpdateRepository;
 import uk.gov.cshr.service.security.IdentityService;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,6 +25,7 @@ public class EmailUpdateService {
     private final NotifyService notifyService;
     private final IdentityService identityService;
     private final CsrsService csrsService;
+    private final AgencyTokenService agencyTokenService;
     private final String updateEmailTemplateId;
     private final String inviteUrlFormat;
 
@@ -33,6 +34,7 @@ public class EmailUpdateService {
                               @Qualifier("notifyServiceImpl") NotifyService notifyService,
                               IdentityService identityService,
                               CsrsService csrsService,
+                              AgencyTokenService agencyTokenService,
                               @Value("${govNotify.template.emailUpdate}") String updateEmailTemplateId,
                               @Value("${emailUpdate.urlFormat}") String inviteUrlFormat) {
         this.emailUpdateRepository = emailUpdateRepository;
@@ -40,11 +42,12 @@ public class EmailUpdateService {
         this.notifyService = notifyService;
         this.identityService = identityService;
         this.csrsService = csrsService;
+        this.agencyTokenService = agencyTokenService;
         this.updateEmailTemplateId = updateEmailTemplateId;
         this.inviteUrlFormat = inviteUrlFormat;
     }
 
-    public String saveEmailUpdateAndNotify(Identity identity, String email) {
+    public void saveEmailUpdateAndNotify(Identity identity, String email) {
         EmailUpdate emailUpdate = emailUpdateFactory.create(identity, email);
         emailUpdateRepository.save(emailUpdate);
 
@@ -54,44 +57,38 @@ public class EmailUpdateService {
 
         notifyService.notifyWithPersonalisation(email, updateEmailTemplateId, personalisation);
 
-        return emailUpdate.getCode();
+        emailUpdate.getCode();
     }
 
-    public boolean verifyCode(Identity identity, String code) {
-        return emailUpdateRepository.findByIdentityAndCode(identity, code).isPresent();
+    public boolean existsByCode(String code) {
+        return emailUpdateRepository.existsByCode(code);
+    }
+
+    public EmailUpdate getEmailUpdateByCode(String code) {
+        return emailUpdateRepository.findByCode(code)
+                .orElseThrow(ResourceNotFoundException::new);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void updateEmailAddress(HttpServletRequest request, Identity identity, String code) {
-        EmailUpdate emailUpdate = emailUpdateRepository.findByIdentityAndCode(identity, code)
-                .orElseThrow(() -> new InvalidCodeException(String.format("Code %s does not exist for identity %s", code, identity)));
+    public void updateEmailAddress(EmailUpdate emailUpdate) {
+        updateEmailAddress(emailUpdate, null);
+    }
 
-        log.info("updating email address on users identity");
-        // update identity in the db
-        identityService.updateEmailAddressAndEmailRecentlyUpdatedFlagToTrue(identity, emailUpdate.getEmail());
-        // update spring
-        identityService.updateSpringWithRecentlyEmailUpdatedFlag(request, true);
-        log.info("deleting the email update config for this user");
+    @Transactional(rollbackFor = Exception.class)
+    public void updateEmailAddress(EmailUpdate emailUpdate, AgencyToken agencyToken) {
+        Identity emailUpdateIdentity = emailUpdate.getIdentity();
+        Identity existingIdentity = identityService.getIdentityByEmail(emailUpdateIdentity.getEmail());
+
+        String newEmail = emailUpdate.getEmail();
+
+        log.debug("Updating email address for: oldEmail = {}, newEmail = {}", existingIdentity.getEmail(), newEmail);
+
+        identityService.updateEmailAddress(existingIdentity, newEmail, agencyToken);
+
         emailUpdateRepository.delete(emailUpdate);
-        log.info("all ok");
-    }
 
-    @Transactional(rollbackFor = Exception.class)
-    public void processEmailUpdatedRecentlyRequestForWhiteListedDomainUser(HttpServletRequest request, Identity identity) {
-        // update identity in the db
-        identityService.resetRecentlyUpdatedEmailFlagToFalse(identity);
-        // update spring
-        identityService.updateSpringWithRecentlyEmailUpdatedFlag(request, false);
-    }
+        log.debug("Email address {} has been updated to {} successfully", existingIdentity.getEmail(), newEmail);
 
-    @Transactional(rollbackFor = Exception.class)
-    public void processEmailUpdatedRecentlyRequestForAgencyTokenUser(String newDomain, String newToken,
-                                                                     String newOrgCode, Identity identity, HttpServletRequest request) {
-        csrsService.updateSpacesAvailable(newDomain, newToken, newOrgCode, false);
-        // update identity in the db
-        identityService.resetRecentlyUpdatedEmailFlagToFalse(identity);
-        // update spring
-        identityService.updateSpringWithRecentlyEmailUpdatedFlag(request, false);
+        log.debug("Deleting emailUpdateObject: {}", emailUpdate);
     }
-
 }

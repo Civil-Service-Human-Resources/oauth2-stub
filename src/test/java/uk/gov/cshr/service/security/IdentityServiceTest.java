@@ -16,10 +16,10 @@ import uk.gov.cshr.domain.*;
 import uk.gov.cshr.exception.IdentityNotFoundException;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.TokenRepository;
+import uk.gov.cshr.service.AgencyTokenCapacityService;
 import uk.gov.cshr.service.CsrsService;
 import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.NotifyService;
-import uk.gov.cshr.utils.SpringUserUtils;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -36,10 +36,6 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class IdentityServiceTest {
 
-    private final String updatePasswordEmailTemplateId = "template-id";
-    private final String[] whitelistedDomains = new String[]{"whitelisted.gov.uk"};
-    private final String orgCode = "AB";
-
     private static final String EMAIL = "test@example.com";
     private static final String CODE = "abc123";
     private static final String UID = "uid123";
@@ -47,9 +43,10 @@ public class IdentityServiceTest {
     private static final Boolean LOCKED = false;
     private static final String PASSWORD = "password";
     private static final Set<Role> ROLES = new HashSet();
-
     private static Identity IDENTITY = new Identity(UID, EMAIL, PASSWORD, ACTIVE, LOCKED, ROLES, Instant.now(), false, false);
-
+    private final String updatePasswordEmailTemplateId = "template-id";
+    private final String[] whitelistedDomains = new String[]{"whitelisted.gov.uk"};
+    private final String orgCode = "AB";
     private MockHttpServletRequest request;
 
     private IdentityService identityService;
@@ -76,7 +73,8 @@ public class IdentityServiceTest {
     private CsrsService csrsService;
 
     @Mock
-    private SpringUserUtils springUserUtils;
+    private AgencyTokenCapacityService agencyTokenCapacityService;
+
 
     @Captor
     private ArgumentCaptor<Identity> identityArgumentCaptor;
@@ -91,8 +89,8 @@ public class IdentityServiceTest {
                 tokenRepository,
                 notifyService,
                 csrsService,
-                springUserUtils,
-                whitelistedDomains
+                whitelistedDomains,
+                agencyTokenCapacityService
         );
 
         request = new MockHttpServletRequest();
@@ -142,7 +140,7 @@ public class IdentityServiceTest {
     }
 
     @Test
-    public void createIdentityFromInviteCode() {
+    public void createIdentityFromInviteCodeWithoutAgency() {
         final String code = "123abc";
         final String email = "test@example.com";
         Role role = new Role();
@@ -156,13 +154,15 @@ public class IdentityServiceTest {
         invite.setForEmail(email);
         invite.setForRoles(roles);
 
+        TokenRequest tokenRequest = new TokenRequest();
+
         when(inviteService.findByCode(code)).thenReturn(invite);
 
         when(passwordEncoder.encode("password")).thenReturn("password");
 
         identityService.setInviteService(inviteService);
 
-        identityService.createIdentityFromInviteCode(code, "password");
+        identityService.createIdentityFromInviteCode(code, "password", tokenRequest);
 
         ArgumentCaptor<Identity> inviteArgumentCaptor = ArgumentCaptor.forClass(Identity.class);
 
@@ -172,6 +172,53 @@ public class IdentityServiceTest {
         assertThat(identity.getRoles().contains(role), equalTo(true));
         assertThat(identity.getPassword(), equalTo("password"));
         assertThat(identity.getEmail(), equalTo("test@example.com"));
+        assertThat(identity.getAgencyTokenUid(), equalTo(null));
+    }
+
+    @Test
+    public void createIdentityFromInviteCodeWithAgency() {
+        final String code = "123abc";
+        final String email = "test@example.com";
+        Role role = new Role();
+        role.setName("USER");
+
+        Set<Role> roles = new HashSet<>();
+        roles.add(role);
+
+        Invite invite = new Invite();
+        invite.setCode(code);
+        invite.setForEmail(email);
+        invite.setForRoles(roles);
+
+        TokenRequest tokenRequest = new TokenRequest();
+        String tokenDomain = "example.com";
+        String tokenCode = "co";
+        String tokenToken = "token123";
+        tokenRequest.setDomain(tokenDomain);
+        tokenRequest.setOrg(tokenCode);
+        tokenRequest.setToken(tokenToken);
+
+        String uid = "UID";
+        AgencyToken agencyToken = new AgencyToken();
+        agencyToken.setUid(uid);
+
+        when(inviteService.findByCode(code)).thenReturn(invite);
+        when(csrsService.getAgencyTokenForDomainTokenOrganisation(tokenDomain, tokenToken, tokenCode)).thenReturn(Optional.of(agencyToken));
+        when(passwordEncoder.encode("password")).thenReturn("password");
+        when(agencyTokenCapacityService.hasSpaceAvailable(agencyToken)).thenReturn(true);
+        identityService.setInviteService(inviteService);
+
+        identityService.createIdentityFromInviteCode(code, "password", tokenRequest);
+
+        ArgumentCaptor<Identity> inviteArgumentCaptor = ArgumentCaptor.forClass(Identity.class);
+
+        verify(identityRepository).save(inviteArgumentCaptor.capture());
+
+        Identity identity = inviteArgumentCaptor.getValue();
+        assertThat(identity.getRoles().contains(role), equalTo(true));
+        assertThat(identity.getPassword(), equalTo("password"));
+        assertThat(identity.getEmail(), equalTo("test@example.com"));
+        assertThat(identity.getAgencyTokenUid(), equalTo(uid));
     }
 
     @Test
@@ -253,6 +300,16 @@ public class IdentityServiceTest {
         verify(notifyService).notify(email, updatePasswordEmailTemplateId);
     }
 
+    @Test(expected = IdentityNotFoundException.class)
+    public void identityRepositoryShouldThrowExceptionIfNotFound() {
+        when(identityRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        Identity identityParam = new Identity();
+        identityParam.setId(new Long(123l));
+
+        identityService.updateEmailAddress(identityParam, "mynewemail@whitelisted.gov.uk", null);
+    }
+
     @Test
     public void givenAValidIdentityWithAWhitelistedDomain_whenUpdateEmailAddress_shouldReturnSuccessfully(){
         // given
@@ -264,80 +321,36 @@ public class IdentityServiceTest {
         identityParam.setId(new Long(123l));
 
         // when
-        identityService.updateEmailAddressAndEmailRecentlyUpdatedFlagToTrue(identityParam, "mynewemail@whitelisted.gov.uk");
+        identityService.updateEmailAddress(identityParam, "mynewemail@whitelisted.gov.uk", null);
 
         // then
         verify(identityRepository, times(1)).findById(anyLong());
         verify(identityRepository, times(1)).save(optionalIdentity.get());
         Identity actualSavedIdentity = identityArgumentCaptor.getValue();
-        assertThat(actualSavedIdentity.isEmailRecentlyUpdated(), equalTo(true));
+        assertThat(actualSavedIdentity.getAgencyTokenUid(), equalTo(null));
     }
 
     @Test
-    public void givenAValidIdentity_resetRecentlyUpdatedEmailFlag_shouldReturnSuccessfully(){
+    public void givenAValidIdentityWithAnAgencyDomain_whenUpdateEmailAddress_shouldReturnSuccessfully() {
         // given
-        IDENTITY.setId(123L);
         Optional<Identity> optionalIdentity = Optional.of(IDENTITY);
         when(identityRepository.findById(anyLong())).thenReturn(optionalIdentity);
         when(identityRepository.save(identityArgumentCaptor.capture())).thenReturn(new Identity());
 
+        Identity identityParam = new Identity();
+        identityParam.setId(new Long(123l));
+
+        AgencyToken agencyToken = new AgencyToken();
+        agencyToken.setUid(UID);
+
         // when
-        identityService.resetRecentlyUpdatedEmailFlagToFalse(IDENTITY);
+        identityService.updateEmailAddress(identityParam, "mynewemail@whitelisted.gov.uk", agencyToken);
 
         // then
+        verify(identityRepository, times(1)).findById(anyLong());
         verify(identityRepository, times(1)).save(optionalIdentity.get());
         Identity actualSavedIdentity = identityArgumentCaptor.getValue();
-        assertThat(actualSavedIdentity.isEmailRecentlyUpdated(), equalTo(false));
-    }
-
-    @Test(expected = IdentityNotFoundException.class)
-    public void givenAnNotFoundIdentity_resetRecentlyUpdatedEmailFlag_shouldThrowIdentityNotFoundException(){
-
-        // when
-        identityService.resetRecentlyUpdatedEmailFlagToFalse(new Identity());
-
-        // then
-        verify(identityRepository, never()).save(any(Identity.class));
-    }
-
-    @Test(expected = RuntimeException.class)
-    public void givenAnInvalidIdentity_resetRecentlyUpdatedEmailFlag_shouldThrowException(){
-        // given
-        Optional<Identity> optionalIdentity = Optional.of(IDENTITY);
-
-        // when
-        identityService.resetRecentlyUpdatedEmailFlagToFalse(new Identity());
-
-        // then
-        verify(identityRepository, times(1)).save(optionalIdentity.get());
-    }
-
-    @Test
-    public void givenAValidIdentity_getEmailRecentlyUpdatedFlag_shouldReturnSuccessfully(){
-        // given
-        IDENTITY.setId(123L);
-        IDENTITY.setEmailRecentlyUpdated(true);
-        Optional<Identity> optionalIdentity = Optional.of(IDENTITY);
-        when(identityRepository.findById(anyLong())).thenReturn(optionalIdentity);
-
-        // when
-        boolean actual = identityService.getRecentlyUpdatedEmailFlag(IDENTITY);
-
-        // then
-        assertTrue(actual);
-        verify(identityRepository, times(1)).findById(eq(IDENTITY.getId()));
-    }
-
-    @Test(expected = IdentityNotFoundException.class)
-    public void givenAnInvalidIdentity_getEmailRecentlyUpdatedFlag_shouldThrowIdentityNotFoundException(){
-        // given
-
-        // when
-        boolean actual = identityService.getRecentlyUpdatedEmailFlag(IDENTITY);
-
-        // then
-        assertFalse(actual);
-        verify(identityRepository, never()).findById(anyLong());
+        assertThat(actualSavedIdentity.getAgencyTokenUid(), equalTo(UID));
     }
 
     @Test
@@ -355,40 +368,65 @@ public class IdentityServiceTest {
 
     @Test
     public void givenAValidAgencyTokenEmail_whenCheckValidEmail_shouldReturnTrue(){
-        // given
-        // badger.gov.uk which has at least one agency tokens associated with it
-        AgencyToken[] agencyTokens = new AgencyToken[1];
-        agencyTokens[0] = buildAgencyToken();
-        when(csrsService.getAgencyTokensForDomain(anyString())).thenReturn(agencyTokens);
+        String email = "someone@badger.gov.uk";
+        String domain = "badger.gov.uk";
 
-        // when
-        boolean actual = identityService.checkValidEmail("someone@badger.gov.uk");
+        when(csrsService.isDomainInAgency(domain)).thenReturn(true);
+
+        boolean actual = identityService.checkValidEmail(email);
 
         // then
         assertTrue(actual);
-        verify(csrsService, times(1)).getAgencyTokensForDomain(eq("badger.gov.uk"));
+        verify(csrsService, times(1)).isDomainInAgency(eq("badger.gov.uk"));
     }
 
     @Test
     public void givenANonValidAgencyTokenEmail_whenCheckValidEmail_shouldReturnFalse(){
-        // given
-        // bennevis.com which is not whitelisted and has no agency tokens associated with it
-        AgencyToken[] agencyTokens = new AgencyToken[0];
-        when(csrsService.getAgencyTokensForDomain(anyString())).thenReturn(agencyTokens);
+        String email = "someone@bennevis.com";
+        String domain = "bennevis.com";
 
-        // when
-        boolean actual = identityService.checkValidEmail("someone@bennevis.com");
+        when(csrsService.isDomainInAgency(domain)).thenReturn(false);
 
-        // then
+        boolean actual = identityService.checkValidEmail(email);
+
         assertFalse(actual);
-        verify(csrsService, times(1)).getAgencyTokensForDomain(eq("bennevis.com"));
+        verify(csrsService, times(1)).isDomainInAgency(eq("bennevis.com"));
     }
 
-    private AgencyToken buildAgencyToken() {
-        AgencyToken at = new AgencyToken();
-        at.setToken("token123");
-        at.setCapacity(100);
-        at.setCapacityUsed(11);
-        return at;
+    @Test
+    public void shouldReactivateIdentity() {
+        Identity identity = new Identity();
+        AgencyToken agencyToken = new AgencyToken();
+        agencyToken.setUid(UID);
+
+        identityService.reactivateIdentity(identity, agencyToken);
+
+        verify(identityRepository).save(identityArgumentCaptor.capture());
+
+        Identity identityCaptor = identityArgumentCaptor.getValue();
+
+        assertEquals(identityCaptor.isActive(), true);
+        assertEquals(identityCaptor.getAgencyTokenUid(), UID);
+    }
+
+    @Test
+    public void shouldGetIdentityByEmailAndActiveFalse() {
+        Identity identity = mock(Identity.class);
+        when(identity.getUid()).thenReturn(UID);
+        when(identity.isActive()).thenReturn(false);
+
+        when(identityRepository.findFirstByActiveFalseAndEmailEquals(EMAIL)).thenReturn(Optional.of(identity));
+
+        Identity actualIdentity = identityService.getIdentityByEmailAndActiveFalse(EMAIL);
+
+        assertEquals(UID, actualIdentity.getUid());
+        assertEquals(false, actualIdentity.isActive());
+    }
+
+    @Test(expected = IdentityNotFoundException.class)
+    public void shouldThrowExceptionIfIdentityNotFound() {
+        doThrow(new IdentityNotFoundException("Identity not found")).when(identityRepository).findFirstByActiveFalseAndEmailEquals(EMAIL);
+
+        identityService.getIdentityByEmailAndActiveFalse(EMAIL);
     }
 }

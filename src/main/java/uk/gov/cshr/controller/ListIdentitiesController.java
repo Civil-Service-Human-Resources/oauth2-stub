@@ -1,12 +1,16 @@
 package uk.gov.cshr.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.cshr.domain.Identity;
+import uk.gov.cshr.dto.IdentityAgencyDTO;
 import uk.gov.cshr.dto.IdentityDTO;
 import uk.gov.cshr.repository.IdentityRepository;
 
@@ -18,6 +22,7 @@ import java.util.stream.StreamSupport;
 
 import static java.util.stream.Collectors.toList;
 
+@Slf4j
 @RestController
 public class ListIdentitiesController {
 
@@ -57,5 +62,25 @@ public class ListIdentitiesController {
         return identity
                 .map(i -> ResponseEntity.ok(new IdentityDTO(i)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping(value = "/api/identity/agency/{uid}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<IdentityAgencyDTO> findAgencyTokenUidByUid(@PathVariable String uid) {
+        log.info("Getting agency token uid for user with uid " + uid);
+        try {
+            Optional<Identity> identity = identityRepository.findFirstByUid(uid);
+            return identity
+                    .map(i -> buildResponse(i))
+                    .orElseGet(() -> ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    private ResponseEntity<IdentityAgencyDTO> buildResponse(Identity i) {
+        IdentityAgencyDTO responseDTO = new IdentityAgencyDTO();
+        responseDTO.setAgencyTokenUid(i.getAgencyTokenUid());
+        responseDTO.setUid(i.getUid());
+        return ResponseEntity.ok(responseDTO);
     }
 }

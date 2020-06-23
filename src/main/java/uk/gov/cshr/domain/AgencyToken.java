@@ -4,7 +4,6 @@ import lombok.Data;
 
 @Data
 public class AgencyToken {
-    private String token;
+    private String uid;
     private int capacity;
-    private int capacityUsed;
 }

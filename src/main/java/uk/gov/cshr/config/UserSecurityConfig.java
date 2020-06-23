@@ -1,15 +1,19 @@
 package uk.gov.cshr.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import uk.gov.cshr.service.security.IdentityService;
+import uk.gov.cshr.service.security.UserDetailsChecker;
 import uk.gov.cshr.service.security.WebSecurityExpressionHandler;
 
 import javax.servlet.http.HttpServletResponse;
@@ -19,6 +23,15 @@ import static uk.gov.cshr.config.SecurityConfig.forPort;
 @Configuration
 @Order(101)
 public class UserSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Autowired
+    IdentityService identityService;
+
+    @Autowired
+    UserDetailsChecker userDetailsChecker;
+
+    @Autowired
+    PasswordEncoder passwordEncoder;
 
     @Value("${server.port}")
     private int serverPort;
@@ -32,11 +45,19 @@ public class UserSecurityConfig extends WebSecurityConfigurerAdapter {
                 .requestMatcher(forPort(serverPort))
                 .authorizeRequests()
                 .antMatchers("/management/**").denyAll()
-                .antMatchers("/login", "/enterToken/**", "/emailUpdated/**", "/oauth/logout", "/webjars/**", "/assets/**", "/signup/**", "/reset/**", "/account/passwordUpdated", "/domain/**").permitAll()
+                .antMatchers(
+                        "/login",
+                        "/oauth/logout",
+                        "/webjars/**",
+                        "/assets/**",
+                        "/signup/**",
+                        "/reset/**",
+                        "/account/passwordUpdated",
+                        "/account/reactivate/**",
+                        "/account/verify/agency/**").permitAll()
                 .anyRequest().authenticated().and()
                 .formLogin()
                 .loginPage("/login").defaultSuccessUrl(lpgUiUrl)
-                .successHandler(myAuthenticationSuccessHandler())
                 .failureHandler(new CustomAuthenticationFailureHandler())
                 .and()
                 .logout()
@@ -58,8 +79,12 @@ public class UserSecurityConfig extends WebSecurityConfigurerAdapter {
         web.expressionHandler(new WebSecurityExpressionHandler());
     }
 
-    @Bean
-    public AuthenticationSuccessHandler myAuthenticationSuccessHandler(){
-        return new CustomAuthenticationSuccessHandler();
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setPreAuthenticationChecks(userDetailsChecker);
+        provider.setPasswordEncoder(passwordEncoder);
+        provider.setUserDetailsService(identityService);
+        auth.authenticationProvider(provider);
     }
 }
