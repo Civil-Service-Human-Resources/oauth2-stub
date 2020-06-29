@@ -187,8 +187,8 @@ public class SignupController {
 
                 model.addAttribute(INVITE_MODEL, invite);
                 redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.SIGNUP_RESOURCE_NOT_FOUND_ERROR_MESSAGE);
-                redirectAttributes.addFlashAttribute(TOKEN_INFO_FLASH_ATTRIBUTE, tokenRequest);
-                return REDIRECT_SIGNUP + code;
+
+                return REDIRECT_LOGIN;
             }
             inviteService.updateInviteByCode(code, InviteStatus.ACCEPTED);
 
