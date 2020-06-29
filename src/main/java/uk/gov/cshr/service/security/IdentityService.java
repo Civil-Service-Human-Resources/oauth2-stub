@@ -84,9 +84,10 @@ public class IdentityService implements UserDetailsService {
         return identityRepository.existsByEmail(email);
     }
 
-    @Transactional(noRollbackFor = UnableToAllocateAgencyTokenException.class)
+    @Transactional(noRollbackFor = {UnableToAllocateAgencyTokenException.class, ResourceNotFoundException.class})
     public void createIdentityFromInviteCode(String code, String password, TokenRequest tokenRequest) {
         Invite invite = inviteService.findByCode(code);
+        final String domain = getDomainFromEmailAddress(invite.getForEmail());
 
         Set<Role> newRoles = new HashSet<>(invite.getForRoles());
 
@@ -105,6 +106,9 @@ public class IdentityService implements UserDetailsService {
                     .orElseThrow(ResourceNotFoundException::new);
 
             log.info("Identity request has agency uid = {}", agencyTokenUid);
+        } else if (!isWhitelistedDomain(domain) || !isEmailInvitedViaIDM(invite.getForEmail())) {
+            log.info("Invited request neither agency, nor whitelisted, nor invited via IDM: {}", invite);
+            throw new ResourceNotFoundException();
         }
 
         Identity identity = new Identity(UUID.randomUUID().toString(),
@@ -218,5 +222,9 @@ public class IdentityService implements UserDetailsService {
 
     public Identity getIdentityByEmailAndActiveFalse(String email) {
         return identityRepository.findFirstByActiveFalseAndEmailEquals(email).orElseThrow(() -> new IdentityNotFoundException("Identity not found for email: " + email));
+    }
+
+    private boolean isEmailInvitedViaIDM(String email) {
+        return inviteService.isEmailInvited(email);
     }
 }

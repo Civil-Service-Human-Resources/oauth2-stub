@@ -45,7 +45,7 @@ public class IdentityServiceTest {
     private static final Set<Role> ROLES = new HashSet();
     private static Identity IDENTITY = new Identity(UID, EMAIL, PASSWORD, ACTIVE, LOCKED, ROLES, Instant.now(), false, false);
     private final String updatePasswordEmailTemplateId = "template-id";
-    private final String[] whitelistedDomains = new String[]{"whitelisted.gov.uk"};
+    private final String[] whitelistedDomains = new String[]{"whitelisted.gov.uk", "example.com"};
     private final String orgCode = "AB";
     private MockHttpServletRequest request;
 
@@ -140,7 +140,7 @@ public class IdentityServiceTest {
     }
 
     @Test
-    public void createIdentityFromInviteCodeWithoutAgency() {
+    public void createIdentityFromInviteCodeWithoutAgencyButIsWhitelisted() {
         final String code = "123abc";
         final String email = "test@example.com";
         Role role = new Role();
@@ -159,6 +159,7 @@ public class IdentityServiceTest {
         when(inviteService.findByCode(code)).thenReturn(invite);
 
         when(passwordEncoder.encode("password")).thenReturn("password");
+        when(inviteService.isEmailInvited(email)).thenReturn(true);
 
         identityService.setInviteService(inviteService);
 
@@ -382,15 +383,15 @@ public class IdentityServiceTest {
 
     @Test
     public void givenANonValidAgencyTokenEmail_whenCheckValidEmail_shouldReturnFalse(){
-        String email = "someone@bennevis.com";
-        String domain = "bennevis.com";
+        String email = "someone@foo.com";
+        String domain = "foo.com";
 
         when(csrsService.isDomainInAgency(domain)).thenReturn(false);
 
         boolean actual = identityService.checkValidEmail(email);
 
         assertFalse(actual);
-        verify(csrsService, times(1)).isDomainInAgency(eq("bennevis.com"));
+        verify(csrsService, times(1)).isDomainInAgency(eq("foo.com"));
     }
 
     @Test
