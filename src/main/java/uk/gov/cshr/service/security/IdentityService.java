@@ -106,7 +106,7 @@ public class IdentityService implements UserDetailsService {
                     .orElseThrow(ResourceNotFoundException::new);
 
             log.info("Identity request has agency uid = {}", agencyTokenUid);
-        } else if (!isWhitelistedDomain(domain) || !isEmailInvitedViaIDM(invite.getForEmail())) {
+        } else if (!isWhitelistedDomain(domain) && !isEmailInvitedViaIDM(invite.getForEmail())) {
             log.info("Invited request neither agency, nor whitelisted, nor invited via IDM: {}", invite);
             throw new ResourceNotFoundException();
         }

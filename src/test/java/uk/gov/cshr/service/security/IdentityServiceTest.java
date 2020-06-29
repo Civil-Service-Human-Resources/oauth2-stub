@@ -159,7 +159,6 @@ public class IdentityServiceTest {
         when(inviteService.findByCode(code)).thenReturn(invite);
 
         when(passwordEncoder.encode("password")).thenReturn("password");
-        when(inviteService.isEmailInvited(email)).thenReturn(true);
 
         identityService.setInviteService(inviteService);
 
