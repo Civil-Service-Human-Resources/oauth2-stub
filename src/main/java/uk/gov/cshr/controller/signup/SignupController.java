@@ -108,14 +108,14 @@ public class SignupController {
 
         final String domain = identityService.getDomainFromEmailAddress(email);
 
-        if (identityService.isWhitelistedDomain(domain)) {
-            log.debug("Sending invite to whitelisted user {}", email);
-            inviteService.sendSelfSignupInvite(email, true);
+        if (csrsService.isDomainInAgency(domain)) {
+            log.debug("Sending invite to agency user {}", email);
+            inviteService.sendSelfSignupInvite(email, false);
             return INVITE_SENT_TEMPLATE;
         } else {
-            if (csrsService.isDomainInAgency(domain)) {
-                log.debug("Sending invite to agency user {}", email);
-                inviteService.sendSelfSignupInvite(email, false);
+            if (identityService.isWhitelistedDomain(domain)) {
+                log.debug("Sending invite to whitelisted user {}", email);
+                inviteService.sendSelfSignupInvite(email, true);
                 return INVITE_SENT_TEMPLATE;
             } else {
                 log.debug("The domain of user {} is neither Whitelisted nor part of an Agency token", email);

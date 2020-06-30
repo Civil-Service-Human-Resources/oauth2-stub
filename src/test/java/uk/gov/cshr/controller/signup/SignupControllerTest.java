@@ -3,7 +3,6 @@ package uk.gov.cshr.controller.signup;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,6 +26,7 @@ import java.util.Optional;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -75,7 +75,7 @@ public class SignupControllerTest {
     }
 
     @Test
-    public void shouldConfirmInviteSentIfWhitelistedDomain() throws Exception {
+    public void shouldConfirmInviteSentIfWhitelistedDomainAndNotAgency() throws Exception {
         String email = "user@domain.com";
         String domain = "domain.com";
 
@@ -83,7 +83,7 @@ public class SignupControllerTest {
         when(identityService.existsByEmail(email)).thenReturn(false);
         when(identityService.getDomainFromEmailAddress(email)).thenReturn(domain);
         when(identityService.isWhitelistedDomain(domain)).thenReturn(true);
-
+        when(csrsService.isDomainInAgency(domain)).thenReturn(false);
         mockMvc.perform(
                 post("/signup/request")
                         .with(CsrfRequestPostProcessor.csrf())
@@ -94,6 +94,8 @@ public class SignupControllerTest {
                 .andExpect(content().string(containsString("We've sent you an email")))
                 .andExpect(content().string(containsString("What happens next")))
                 .andExpect(content().string(containsString("We have sent you an email with a link to <strong>continue creating your account</strong>.")));
+
+        verify(inviteService).sendSelfSignupInvite(email, true);
     }
 
     @Test
@@ -159,7 +161,6 @@ public class SignupControllerTest {
         when(inviteRepository.existsByForEmailAndStatus(email, InviteStatus.PENDING)).thenReturn(false);
         when(identityService.existsByEmail(email)).thenReturn(false);
         when(identityService.getDomainFromEmailAddress(email)).thenReturn(domain);
-        when(identityService.isWhitelistedDomain(domain)).thenReturn(false);
         when(csrsService.isDomainInAgency(domain)).thenReturn(true);
 
         mockMvc.perform(
@@ -174,7 +175,7 @@ public class SignupControllerTest {
                 .andExpect(content().string(containsString("What happens next")))
                 .andExpect(content().string(containsString("We have sent you an email with a link to <strong>continue creating your account</strong>.")));
 
-        Mockito.verify(inviteService).sendSelfSignupInvite(email, false);
+        verify(inviteService).sendSelfSignupInvite(email, false);
     }
 
     @Test 
