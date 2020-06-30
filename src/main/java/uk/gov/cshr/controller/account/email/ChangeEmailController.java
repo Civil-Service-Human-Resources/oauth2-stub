@@ -107,8 +107,11 @@ public class ChangeEmailController {
 
         log.debug("Attempting update email verification with domain: {}", newDomain);
 
-
-        if (isWhitelisted(newDomain)) {
+        if (isAgencyDomain(newDomain)) {
+            log.debug("New email is agency: oldEmail = {}, newEmail = {}", identity.getEmail(), emailUpdate.getEmail());
+            redirectAttributes.addFlashAttribute(EMAIL_ATTRIBUTE, emailUpdate.getEmail());
+            return REDIRECT_ACCOUNT_ENTER_TOKEN + code;
+        } else if (isWhitelisted(newDomain)) {
             log.debug("New email is whitelisted: oldEmail = {}, newEmail = {}", identity.getEmail(), emailUpdate.getEmail());
             try {
                 emailUpdateService.updateEmailAddress(emailUpdate);
@@ -123,10 +126,6 @@ public class ChangeEmailController {
                 log.error("Unable to update email: {} {}", code, identity);
                 return REDIRECT_LOGIN;
             }
-        } else if (isNotWhitelistedAndIsAgency(newDomain)) {
-            log.debug("New email is agency: oldEmail = {}, newEmail = {}", identity.getEmail(), emailUpdate.getEmail());
-            redirectAttributes.addFlashAttribute(EMAIL_ATTRIBUTE, emailUpdate.getEmail());
-            return REDIRECT_ACCOUNT_ENTER_TOKEN + code;
         } else {
             log.error("User trying to verify change email where new email is not whitelisted or agency: oldEmail = {}, newEmail = {}", identity.getEmail(), emailUpdate.getEmail());
             redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, ApplicationConstants.CHANGE_EMAIL_ERROR_MESSAGE);
@@ -151,7 +150,7 @@ public class ChangeEmailController {
         return identityService.isWhitelistedDomain(newDomain);
     }
 
-    private boolean isNotWhitelistedAndIsAgency(String newDomain) {
-        return !identityService.isWhitelistedDomain(newDomain) && agencyTokenService.isDomainInAgencyToken(newDomain);
+    private boolean isAgencyDomain(String newDomain) {
+        return agencyTokenService.isDomainInAgencyToken(newDomain);
     }
 }

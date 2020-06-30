@@ -379,19 +379,17 @@ public class ChangeEmailControllerTest {
 
         IdentityDetails identityDetails = (IdentityDetails) authentication.getPrincipal();
         Identity identity = identityDetails.getIdentity();
-        String expectedUIDToBeUpdated = identity.getUid();
-        String expectedEmailToBeUpdated = identity.getEmail();
 
         EmailUpdate emailUpdate = new EmailUpdate();
         emailUpdate.setCode(VERIFY_CODE);
         emailUpdate.setEmail(identity.getEmail());
 
+        when(agencyTokenService.isDomainInAgencyToken(DOMAIN)).thenReturn(false);
         when(emailUpdateService.existsByCode(VERIFY_CODE)).thenReturn(true);
         when(emailUpdateService.getEmailUpdateByCode(VERIFY_CODE)).thenReturn(emailUpdate);
         when(identityService.getDomainFromEmailAddress(identity.getEmail())).thenReturn(DOMAIN);
-
         when(identityService.isWhitelistedDomain(DOMAIN)).thenReturn(true);
-        when(agencyTokenService.isDomainInAgencyToken(DOMAIN)).thenReturn(true);
+        when(agencyTokenService.isDomainInAgencyToken(DOMAIN)).thenReturn(false);
 
         doThrow(new ResourceNotFoundException()).when(emailUpdateService).updateEmailAddress(any(EmailUpdate.class));
 
@@ -426,7 +424,7 @@ public class ChangeEmailControllerTest {
         when(identityService.getDomainFromEmailAddress(identity.getEmail())).thenReturn(DOMAIN);
 
         when(identityService.isWhitelistedDomain(DOMAIN)).thenReturn(true);
-        when(agencyTokenService.isDomainInAgencyToken(DOMAIN)).thenReturn(true);
+        when(agencyTokenService.isDomainInAgencyToken(DOMAIN)).thenReturn(false);
 
         doThrow(new RuntimeException()).when(emailUpdateService).updateEmailAddress(any(EmailUpdate.class));
 
