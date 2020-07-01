@@ -127,5 +127,5 @@ Significant configuration properties are highlighted here. For the full configur
 
 ## Licenses
 
-Notification Service is licensed by the MIT license, see `LICENSE` in the root folder for details. Dependent applications are licensed as according to their respective readme and license files.
+Identity Service is licensed by the MIT license, see `LICENSE` in the root folder for details. Dependent applications are licensed as according to their respective readme and license files.
 
