@@ -1,6 +1,8 @@
 package uk.gov.cshr.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
@@ -12,6 +14,7 @@ import org.springframework.security.oauth2.provider.approval.UserApprovalHandler
 import org.springframework.security.oauth2.provider.code.AuthorizationCodeServices;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import uk.gov.cshr.service.security.LocalClientDetailsService;
 
 @Configuration
@@ -33,11 +36,16 @@ public class AuthorisationServerConfiguration extends AuthorizationServerConfigu
     private LocalClientDetailsService clientDetailsService;
 
     @Autowired
-    private AuthorizationServerTokenServices tokenServices;
-
-    @Autowired
     private AuthorizationCodeServices authorizationCodeServices;
 
+    @Value("${accessToken.jwtKey}")
+    private String jwtKey;
+
+    public JwtAccessTokenConverter accessTokenConverter(String jwtKey) {
+        JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
+        converter.setSigningKey(jwtKey);
+        return converter;
+    }
 
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
@@ -48,9 +56,9 @@ public class AuthorisationServerConfiguration extends AuthorizationServerConfigu
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) {
         endpoints.tokenStore(tokenStore)
                 .userApprovalHandler(userApprovalHandler)
-                .authenticationManager(authenticationManager)
-                .tokenServices(tokenServices)
-                .authorizationCodeServices(authorizationCodeServices);
+                .authorizationCodeServices(authorizationCodeServices)
+                .accessTokenConverter(accessTokenConverter(jwtKey))
+                .authenticationManager(authenticationManager);
     }
 
     @Override

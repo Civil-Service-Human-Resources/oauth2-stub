@@ -1,15 +1,12 @@
 package uk.gov.cshr.controller;
 
-import java.util.Map;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.boot.web.servlet.error.ErrorController;
-import uk.gov.cshr.controller.utils.ErrorPageMap;
-
 import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.boot.web.servlet.error.ErrorController;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import uk.gov.cshr.controller.utils.ErrorPageMap;
 
 @Controller
 public class CustomErrorController implements ErrorController {
