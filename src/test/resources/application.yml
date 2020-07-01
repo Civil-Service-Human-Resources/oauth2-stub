@@ -53,7 +53,6 @@ reset:
 
 emailUpdate:
   urlFormat: "${lpg.identity}/account/email/verify/%s?redirect=true"
-  invalidDomainUrl: "${lpg.identity}/invalid"
 
 accountValidation:
   passwordPattern: ${PASSWORD_PATTERN:(?!([a-zA-Z]*|[a-z\d]*|[^A-Z\d]*|[A-Z\d]*|[^a-z\d]*|[^a-zA-Z]*)$).{8,}}
@@ -72,6 +71,3 @@ registry:
   agencyTokensByDomainFormat: "${registry.serviceUrl}/agencyTokens?domain=%s"
   agencyTokensByDomainAndOrganisationFormat: "${registry.serviceUrl}/agencyTokens?domain=%s&code=%s"
   organisationalUnitsFlatUrl: "${registry.serviceUrl}/organisationalUnits/flat"
-  updateSpacesAvailableUrl: "${registry.serviceUrl}/agencyTokens"
-  getOrganisationUrl: "${registry.serviceUrl}/civilServants/org?uid=%s"
-  updateOrganisationUrl: "${registry.serviceUrl}/civilServants/org"

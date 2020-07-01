@@ -24,8 +24,6 @@ public class EmailUpdateService {
     private final EmailUpdateFactory emailUpdateFactory;
     private final NotifyService notifyService;
     private final IdentityService identityService;
-    private final CsrsService csrsService;
-    private final AgencyTokenService agencyTokenService;
     private final String updateEmailTemplateId;
     private final String inviteUrlFormat;
 
@@ -33,16 +31,12 @@ public class EmailUpdateService {
                               EmailUpdateFactory emailUpdateFactory,
                               @Qualifier("notifyServiceImpl") NotifyService notifyService,
                               IdentityService identityService,
-                              CsrsService csrsService,
-                              AgencyTokenService agencyTokenService,
                               @Value("${govNotify.template.emailUpdate}") String updateEmailTemplateId,
                               @Value("${emailUpdate.urlFormat}") String inviteUrlFormat) {
         this.emailUpdateRepository = emailUpdateRepository;
         this.emailUpdateFactory = emailUpdateFactory;
         this.notifyService = notifyService;
         this.identityService = identityService;
-        this.csrsService = csrsService;
-        this.agencyTokenService = agencyTokenService;
         this.updateEmailTemplateId = updateEmailTemplateId;
         this.inviteUrlFormat = inviteUrlFormat;
     }
