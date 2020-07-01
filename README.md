@@ -1,6 +1,6 @@
 # Identity Service  
 ## Purpose
-The Identity Service uses [Spring Security OAuth](http://projects.spring.io/spring-security-oauth/) to utilise OAuth components. We are using with custom Details, Providers and Services in this implementation.
+The Identity Service uses [Spring Security OAuth](http://projects.spring.io/spring-security-oauth/) and [Spring Security JWT](http://projects.spring.io/spring-security-jwt/) to create and validate authentication tokens. We are using with custom Details, Providers and Services in this implementation.
 
 
 ## Component overview
@@ -18,6 +18,7 @@ For a complete list of build dependencies check the `build.gradle` file. The mai
 - Spring Boot (web, redis) 2.0 
 - Spring Data JPA 2.0
 - Spring Security OAuth2 2.3
+- Spring Security JWT 1.1
 - Spring Security (core, web, config) 5.1
 - Azure App Insights 2.5
 - GOV.UK Notify client 3.9
@@ -117,7 +118,7 @@ Significant configuration properties are highlighted here. For the full configur
 - `govNotify` GOV.UK Notify API key and template references
 - `accountValidation` password complexity regex
 - `account` configuration for max login attempts before account lockout
-- `accessToken` maximum validity for user sessions
+- `accessToken` the JWT key used to encrypt session tokens and the time of maximum validity for user sessions
 - `lpg` links back to LPG-UI for notifications and redirects
 - `spring.flyway` Spring Boot configuration including flyway db migrations path
 - `spring.datasource` connection parameters for MySQL DB
