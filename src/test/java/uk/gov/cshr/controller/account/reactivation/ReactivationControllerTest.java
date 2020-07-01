@@ -53,7 +53,25 @@ public class ReactivationControllerTest {
     }
 
     @Test
-    public void shouldRedirectIfAccountIsAgency() throws Exception {
+    public void shouldRedirectIfAccountIsAgencyAndWhitelisted() throws Exception {
+        Reactivation reactivation = new Reactivation();
+        reactivation.setEmail(EMAIL_ADDRESS);
+
+        when(reactivationService.getReactivationByCodeAndStatus(CODE, ReactivationStatus.PENDING)).thenReturn(reactivation);
+        when(identityService.getDomainFromEmailAddress(EMAIL_ADDRESS)).thenReturn(DOMAIN);
+        when(identityService.isWhitelistedDomain(DOMAIN)).thenReturn(true);
+        when(agencyTokenService.isDomainInAgencyToken(DOMAIN)).thenReturn(true);
+
+        doNothing().when(reactivationService).reactivateIdentity(reactivation);
+
+        mockMvc.perform(
+                get("/account/reactivate/" + CODE))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/account/verify/agency/" + CODE));
+    }
+
+    @Test
+    public void shouldRedirectIfAccountIsAgencyAndNotWhitelisted() throws Exception {
         Reactivation reactivation = new Reactivation();
         reactivation.setEmail(EMAIL_ADDRESS);
 

@@ -62,7 +62,7 @@ public class ReactivationController {
             log.debug("Reactivating account using Reactivation: {}", reactivation);
 
             if (isDomainInAgency(domain)) {
-                log.info("Account reactivation is agency, not whitelisted and requires token validation for Reactivation: {}", reactivation);
+                log.info("Account reactivation is agency, requires token validation for Reactivation: {}", reactivation);
                 return REDIRECT_ACCOUNT_REACTIVATE_AGENCY + code;
             } else {
                 log.info("Account reactivation is not agency and can reactivate without further validation for Reactivation: {}", reactivation);
