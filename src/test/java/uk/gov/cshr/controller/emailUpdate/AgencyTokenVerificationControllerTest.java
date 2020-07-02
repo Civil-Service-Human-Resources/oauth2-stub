@@ -316,4 +316,28 @@ public class AgencyTokenVerificationControllerTest {
                 .andExpect(flash().attribute("status", ERROR_TEXT))
                 .andExpect(redirectedUrl(LOGIN_URL));
     }
+
+    @Test
+    public void shouldBuildGenericErrorModelIfErrorOccurs() throws Exception {
+        AgencyToken agencyToken = new AgencyToken();
+        agencyToken.setUid(AGENCY_TOKEN_UID);
+
+        VerificationCodeDetermination verificationCodeDetermination = new VerificationCodeDetermination(EMAIL, VerificationCodeType.EMAIL_UPDATE);
+        when(identityService.getDomainFromEmailAddress(EMAIL)).thenReturn(DOMAIN);
+        when(csrsService.getAgencyTokenForDomainTokenOrganisation(DOMAIN, TOKEN, ORGANISATION)).thenReturn(Optional.of(agencyToken));
+        when(agencyTokenCapacityService.hasSpaceAvailable(agencyToken)).thenReturn(false);
+        when(verificationCodeDeterminationService.getCodeType(CODE)).thenReturn(verificationCodeDetermination);
+        when(emailUpdateService.getEmailUpdateByCode(CODE)).thenThrow(new NotEnoughSpaceAvailableException("No space available"));
+
+        mockMvc.perform(
+                post(VERIFY_TOKEN_URL + CODE)
+                        .with(CsrfRequestPostProcessor.csrf())
+                        .param("token", TOKEN)
+                        .param("uid", IDENTITY_UID)
+        )
+                .andExpect(flash().attribute("status", INCORRECT_ORG_TOKEN_TEXT))
+                .andExpect(model().attributeExists("verifyTokenForm"))
+                .andExpect(model().attribute("code", CODE))
+                .andExpect(view().name(VERIFY_TOKEN_TEMPLATE));
+    }
 }
