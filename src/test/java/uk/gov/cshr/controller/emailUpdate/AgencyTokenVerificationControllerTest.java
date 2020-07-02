@@ -335,7 +335,7 @@ public class AgencyTokenVerificationControllerTest {
                         .param("token", TOKEN)
                         .param("uid", IDENTITY_UID)
         )
-                .andExpect(flash().attribute("status", INCORRECT_ORG_TOKEN_TEXT))
+                .andExpect(model().attribute("status", INCORRECT_ORG_TOKEN_TEXT))
                 .andExpect(model().attributeExists("verifyTokenForm"))
                 .andExpect(model().attribute("code", CODE))
                 .andExpect(view().name(VERIFY_TOKEN_TEMPLATE));
