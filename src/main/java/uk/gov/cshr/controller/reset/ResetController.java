@@ -62,7 +62,7 @@ public class ResetController {
 
     @GetMapping("/{code}")
     public String loadResetForm(@PathVariable(value = "code") String code, RedirectAttributes redirectAttributes, Model model) {
-        LOGGER.info("User on reset screen with code {}", code);
+        LOGGER.debug("User on reset screen with code {}", code);
 
         checkResetCodeExists(code);
 
