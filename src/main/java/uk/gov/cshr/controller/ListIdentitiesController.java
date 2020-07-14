@@ -36,11 +36,6 @@ public class ListIdentitiesController {
                 .collect(toList()));
     }
 
-    @GetMapping("/api/identities/map")
-    public ResponseEntity<Map<String, IdentityDTO>> listIdentitiesAsMap() {
-        return ResponseEntity.ok(identityRepository.findAllNormalised().stream().collect(Collectors.toMap(o -> o.getUid(), o -> o)));
-    }
-
     @GetMapping(value = "/api/identities", params = "emailAddress")
     public ResponseEntity<IdentityDTO> findByEmailAddress(@RequestParam String emailAddress) {
 
