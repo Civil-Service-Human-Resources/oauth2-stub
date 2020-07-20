@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.cshr.domain.*;
+import uk.gov.cshr.exception.AccountDeactivatedException;
 import uk.gov.cshr.exception.IdentityNotFoundException;
 import uk.gov.cshr.exception.ResourceNotFoundException;
 import uk.gov.cshr.exception.UnableToAllocateAgencyTokenException;
@@ -72,9 +73,11 @@ public class IdentityService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Identity identity = identityRepository.findFirstByActiveTrueAndEmailEquals(username);
+        Identity identity = identityRepository.findFirstByEmailEquals(username);
         if (identity == null) {
             throw new UsernameNotFoundException("No user found with email address " + username);
+        } else if (!identity.isActive()) {
+            throw new AccountDeactivatedException("User account is deactivated");
         }
         return new IdentityDetails(identity);
     }

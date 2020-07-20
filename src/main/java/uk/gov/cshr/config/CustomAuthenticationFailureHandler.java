@@ -19,6 +19,9 @@ public class CustomAuthenticationFailureHandler implements AuthenticationFailure
             case ("User account is blocked"):
                 response.sendRedirect("/login?error=blocked");
                 break;
+            case ("User account is deactivated"):
+                response.sendRedirect("/login?error=deactivated");
+                break;
             default:
                 response.sendRedirect("/login?error=failed");
         }

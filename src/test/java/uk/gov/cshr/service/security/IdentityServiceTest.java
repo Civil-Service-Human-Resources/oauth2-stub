@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import uk.gov.cshr.domain.*;
+import uk.gov.cshr.exception.AccountDeactivatedException;
 import uk.gov.cshr.exception.IdentityNotFoundException;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.TokenRepository;
@@ -103,7 +104,7 @@ public class IdentityServiceTest {
         final String uid = "uid";
         final Identity identity = new Identity(uid, emailAddress, "password", true, false, emptySet(), Instant.now(), false, false);
 
-        when(identityRepository.findFirstByActiveTrueAndEmailEquals(emailAddress))
+        when(identityRepository.findFirstByEmailEquals(emailAddress))
                 .thenReturn(identity);
 
         IdentityDetails identityDetails = (IdentityDetails) identityService.loadUserByUsername(emailAddress);
@@ -118,8 +119,21 @@ public class IdentityServiceTest {
 
         final String emailAddress = "test@example.org";
 
-        when(identityRepository.findFirstByActiveTrueAndEmailEquals(emailAddress))
+        when(identityRepository.findFirstByEmailEquals(emailAddress))
                 .thenReturn(null);
+
+        identityService.loadUserByUsername(emailAddress);
+    }
+
+    @Test(expected = AccountDeactivatedException.class)
+    public void shouldThrowErrorWhenUserDeactivated() {
+
+        final String emailAddress = "test@example.org";
+        Identity identity = new Identity();
+        identity.setActive(false);
+
+        when(identityRepository.findFirstByEmailEquals(emailAddress))
+                .thenReturn(identity);
 
         identityService.loadUserByUsername(emailAddress);
     }
