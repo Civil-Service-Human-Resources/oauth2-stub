@@ -43,7 +43,6 @@ public class CustomAuthenticationFailureHandlerTest {
         verify(response).sendRedirect("/login?error=failed");
     }
 
-
     @Test
     public void shouldSetErrorToFailedOnAccountBlocked() throws IOException, ServletException {
         HttpServletRequest request = mock(HttpServletRequest.class);
@@ -55,5 +54,18 @@ public class CustomAuthenticationFailureHandlerTest {
         authenticationFailureHandler.onAuthenticationFailure(request, response, exception);
 
         verify(response).sendRedirect("/login?error=blocked");
+    }
+
+    @Test
+    public void shouldSetErrorToDeactivatedOnAccountDeactivated() throws IOException, ServletException {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        AuthenticationException exception = mock(AuthenticationException.class);
+
+        when(exception.getMessage()).thenReturn("User account is deactivated");
+
+        authenticationFailureHandler.onAuthenticationFailure(request, response, exception);
+
+        verify(response).sendRedirect("/login?error=deactivated");
     }
 }
