@@ -36,7 +36,7 @@ public class NotifyServiceImpl implements NotifyService {
 
         SendEmailResponse response = notificationClient.sendEmail(templateId, email, personalisation, "");
 
-        log.debug("Notify email sent to: {}", response.getBody());
+        log.info("Notify email sent to: {}", response.getBody());
     }
 
     @Override
