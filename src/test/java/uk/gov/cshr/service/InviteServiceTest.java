@@ -3,7 +3,6 @@ package uk.gov.cshr.service;
 import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import uk.gov.cshr.domain.Identity;
 import uk.gov.cshr.domain.Invite;
 import uk.gov.cshr.domain.InviteStatus;
 import uk.gov.cshr.domain.factory.InviteFactory;
@@ -12,18 +11,20 @@ import uk.gov.service.notify.NotificationClientException;
 
 import java.util.Date;
 
+import static junit.framework.TestCase.assertFalse;
+import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.mockito.Mockito.*;
 
 public class InviteServiceTest {
 
-    private InviteRepository inviteRepository = mock(InviteRepository.class);
-    private InviteFactory inviteFactory = mock(InviteFactory.class);
-    private NotifyService notifyService = mock(NotifyService.class);
+    private static final String EMAIL = "test@example.com";
     private final String govNotifyTemplateId = "template-id";
     private final int validityInSeconds = 30;
     private final String signupUrlFormat = "invite-url";
-
+    private InviteRepository inviteRepository = mock(InviteRepository.class);
+    private InviteFactory inviteFactory = mock(InviteFactory.class);
+    private NotifyService notifyService = mock(NotifyService.class);
     private InviteService inviteService = new InviteService(govNotifyTemplateId, validityInSeconds,
             signupUrlFormat, notifyService, inviteRepository, inviteFactory);
 
@@ -76,15 +77,27 @@ public class InviteServiceTest {
     public void shouldSendAndSaveSelfSignupInvite() throws NotificationClientException {
         String email = "use@domain.org";
         String code = "invite-code";
-        Identity identity = new Identity();
+
         Invite invite = new Invite();
         invite.setForEmail(email);
         invite.setCode(code);
         when(inviteFactory.createSelfSignUpInvite(email)).thenReturn(invite);
 
-        inviteService.sendSelfSignupInvite(email);
+        inviteService.sendSelfSignupInvite(email, true);
 
         verify(notifyService).notify(email, code, govNotifyTemplateId, signupUrlFormat);
         verify(inviteRepository).save(invite);
+    }
+
+    @Test
+    public void shouldReturnTrueIfEmailInvited() {
+        when(inviteRepository.existsByForEmailAndInviterIdIsNotNull(EMAIL)).thenReturn(true);
+        assertTrue(inviteService.isEmailInvited(EMAIL));
+    }
+
+    @Test
+    public void shouldReturnFalseIfEmailNotInvited() {
+        when(inviteRepository.existsByForEmailAndInviterIdIsNotNull(EMAIL)).thenReturn(false);
+        assertFalse(inviteService.isEmailInvited(EMAIL));
     }
 }

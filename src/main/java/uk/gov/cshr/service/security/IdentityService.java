@@ -1,8 +1,10 @@
 package uk.gov.cshr.service.security;
 
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,20 +13,22 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.cshr.domain.Identity;
-import uk.gov.cshr.domain.Invite;
-import uk.gov.cshr.domain.Role;
+import uk.gov.cshr.domain.*;
+import uk.gov.cshr.exception.AccountDeactivatedException;
 import uk.gov.cshr.exception.IdentityNotFoundException;
+import uk.gov.cshr.exception.ResourceNotFoundException;
+import uk.gov.cshr.exception.UnableToAllocateAgencyTokenException;
 import uk.gov.cshr.repository.IdentityRepository;
 import uk.gov.cshr.repository.TokenRepository;
+import uk.gov.cshr.service.AgencyTokenCapacityService;
+import uk.gov.cshr.service.CsrsService;
 import uk.gov.cshr.service.InviteService;
 import uk.gov.cshr.service.NotifyService;
 
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
+@Slf4j
 @Service
 @Transactional
 public class IdentityService implements UserDetailsService {
@@ -34,29 +38,32 @@ public class IdentityService implements UserDetailsService {
     private final String updatePasswordEmailTemplateId;
 
     private final IdentityRepository identityRepository;
-
-    private InviteService inviteService;
-
     private final PasswordEncoder passwordEncoder;
-
     private final TokenServices tokenServices;
-
     private final TokenRepository tokenRepository;
-
     private final NotifyService notifyService;
+    private final CsrsService csrsService;
+    private InviteService inviteService;
+    private String[] whitelistedDomains;
+    private AgencyTokenCapacityService agencyTokenCapacityService;
 
     public IdentityService(@Value("${govNotify.template.passwordUpdate}") String updatePasswordEmailTemplateId,
                            IdentityRepository identityRepository,
                            PasswordEncoder passwordEncoder,
                            TokenServices tokenServices,
-                           TokenRepository tokenRepository,
-                           NotifyService notifyService) {
+                           @Qualifier("tokenRepository") TokenRepository tokenRepository,
+                           @Qualifier("notifyServiceImpl") NotifyService notifyService,
+                           CsrsService csrsService,
+                           @Value("${invite.whitelist.domains}") String[] whitelistedDomains, AgencyTokenCapacityService agencyTokenCapacityService) {
         this.updatePasswordEmailTemplateId = updatePasswordEmailTemplateId;
         this.identityRepository = identityRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenServices = tokenServices;
         this.tokenRepository = tokenRepository;
         this.notifyService = notifyService;
+        this.csrsService = csrsService;
+        this.whitelistedDomains = whitelistedDomains;
+        this.agencyTokenCapacityService = agencyTokenCapacityService;
     }
 
     @Autowired
@@ -66,9 +73,11 @@ public class IdentityService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Identity identity = identityRepository.findFirstByActiveTrueAndEmailEquals(username);
+        Identity identity = identityRepository.findFirstByEmailEquals(username);
         if (identity == null) {
             throw new UsernameNotFoundException("No user found with email address " + username);
+        } else if (!identity.isActive()) {
+            throw new AccountDeactivatedException("User account is deactivated");
         }
         return new IdentityDetails(identity);
     }
@@ -78,14 +87,47 @@ public class IdentityService implements UserDetailsService {
         return identityRepository.existsByEmail(email);
     }
 
-    public void createIdentityFromInviteCode(String code, String password) {
+    @Transactional(noRollbackFor = {UnableToAllocateAgencyTokenException.class, ResourceNotFoundException.class})
+    public void createIdentityFromInviteCode(String code, String password, TokenRequest tokenRequest) {
         Invite invite = inviteService.findByCode(code);
+        final String domain = getDomainFromEmailAddress(invite.getForEmail());
 
         Set<Role> newRoles = new HashSet<>(invite.getForRoles());
-        Identity identity = new Identity(UUID.randomUUID().toString(), invite.getForEmail(), passwordEncoder.encode(password), true, false, newRoles, Instant.now(), false);
+
+        String agencyTokenUid = null;
+        if (requestHasTokenData(tokenRequest)) {
+            Optional<AgencyToken> agencyTokenForDomainTokenOrganisation = csrsService.getAgencyTokenForDomainTokenOrganisation(tokenRequest.getDomain(), tokenRequest.getToken(), tokenRequest.getOrg());
+
+            agencyTokenUid = agencyTokenForDomainTokenOrganisation
+                    .map(agencyToken -> {
+                        if (agencyTokenCapacityService.hasSpaceAvailable(agencyToken)) {
+                            return agencyToken.getUid();
+                        } else {
+                            throw new UnableToAllocateAgencyTokenException("Agency token uid " + agencyToken.getUid() + " has no spaces available. Identity not created");
+                        }
+                    })
+                    .orElseThrow(ResourceNotFoundException::new);
+
+            log.info("Identity request has agency uid = {}", agencyTokenUid);
+        } else if (!isWhitelistedDomain(domain) && !isEmailInvitedViaIDM(invite.getForEmail())) {
+            log.info("Invited request neither agency, nor whitelisted, nor invited via IDM: {}", invite);
+            throw new ResourceNotFoundException();
+        }
+
+        Identity identity = new Identity(UUID.randomUUID().toString(),
+                invite.getForEmail(),
+                passwordEncoder.encode(password),
+                true,
+                false,
+                newRoles,
+                Instant.now(),
+                false,
+                false,
+                agencyTokenUid);
+
         identityRepository.save(identity);
 
-        LOGGER.info("New identity {} successfully created", identity.getEmail());
+        LOGGER.debug("New identity email = {} successfully created", identity.getEmail());
     }
 
     public void updatePassword(Identity identity, String password) {
@@ -98,6 +140,15 @@ public class IdentityService implements UserDetailsService {
     public void lockIdentity(String email) {
         Identity identity = identityRepository.findFirstByActiveTrueAndEmailEquals(email);
         identity.setLocked(true);
+        identityRepository.save(identity);
+    }
+
+    public void reactivateIdentity(Identity identity, AgencyToken agencyToken) {
+        identity.setActive(true);
+
+        if (agencyToken != null && agencyToken.getUid() != null) {
+            identity.setAgencyTokenUid(agencyToken.getUid());
+        }
         identityRepository.save(identity);
     }
 
@@ -128,13 +179,55 @@ public class IdentityService implements UserDetailsService {
         return identityRepository.save(identity);
     }
 
-    public void updateEmailAddress(Identity identity, String email) {
+    public void updateEmailAddress(Identity identity, String email, AgencyToken newAgencyToken) {
         Identity savedIdentity = identityRepository.findById(identity.getId())
                 .orElseThrow(() -> new IdentityNotFoundException("No such identity: " + identity.getId()));
 
-        savedIdentity.setEmail(email);
+        if (newAgencyToken != null && newAgencyToken.getUid() != null) {
+            log.debug("Updating agency token for user: oldAgencyToken = {}, newAgencyToken = {}", identity.getAgencyTokenUid(), newAgencyToken.getUid());
+            savedIdentity.setAgencyTokenUid(newAgencyToken.getUid());
+        } else {
+            log.debug("Setting existing agency token UID to null");
+            savedIdentity.setAgencyTokenUid(null);
+        }
 
+        savedIdentity.setEmail(email);
         identityRepository.save(savedIdentity);
     }
 
+    public boolean isWhitelistedDomain(String domain) {
+        return Arrays.asList(whitelistedDomains).contains(domain);
+    }
+
+    public String getDomainFromEmailAddress(String emailAddress) {
+        return emailAddress.substring(emailAddress.indexOf('@') + 1);
+    }
+
+    public boolean checkValidEmail(String email) {
+        final String domain = getDomainFromEmailAddress(email);
+
+        return (isWhitelistedDomain(domain) || csrsService.isDomainInAgency(domain));
+    }
+
+    private boolean requestHasTokenData(TokenRequest tokenRequest) {
+        return hasData(tokenRequest.getDomain())
+                && hasData(tokenRequest.getToken())
+                && hasData(tokenRequest.getOrg());
+    }
+
+    private boolean hasData(String s) {
+        return s != null && s.length() > 0;
+    }
+
+    public Identity getIdentityByEmail(String email) {
+        return identityRepository.findFirstByEmailEquals(email);
+    }
+
+    public Identity getIdentityByEmailAndActiveFalse(String email) {
+        return identityRepository.findFirstByActiveFalseAndEmailEquals(email).orElseThrow(() -> new IdentityNotFoundException("Identity not found for email: " + email));
+    }
+
+    private boolean isEmailInvitedViaIDM(String email) {
+        return inviteService.isEmailInvited(email);
+    }
 }

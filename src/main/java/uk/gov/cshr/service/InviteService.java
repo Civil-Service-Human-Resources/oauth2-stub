@@ -1,5 +1,6 @@
 package uk.gov.cshr.service;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.stereotype.Service;
@@ -29,8 +30,8 @@ public class InviteService {
             @Value("${govNotify.template.invite}") String govNotifyInviteTemplateId,
             @Value("${invite.validityInSeconds}") int validityInSeconds,
             @Value("${invite.url}") String signupUrlFormat,
-            NotifyService notifyService,
-            InviteRepository inviteRepository,
+            @Qualifier("notifyServiceImpl") NotifyService notifyService,
+            @Qualifier("inviteRepository") InviteRepository inviteRepository,
             InviteFactory inviteFactory) {
         this.govNotifyInviteTemplateId = govNotifyInviteTemplateId;
         this.validityInSeconds = validityInSeconds;
@@ -73,11 +74,20 @@ public class InviteService {
         inviteRepository.save(invite);
     }
 
-    public void sendSelfSignupInvite(String email) throws NotificationClientException {
+    public void sendSelfSignupInvite(String email, boolean isAuthorisedInvite) throws NotificationClientException {
         Invite invite = inviteFactory.createSelfSignUpInvite(email);
+        invite.setAuthorisedInvite(isAuthorisedInvite);
 
         notifyService.notify(invite.getForEmail(), invite.getCode(), govNotifyInviteTemplateId, signupUrlFormat);
 
         inviteRepository.save(invite);
+    }
+
+    public boolean isInviteValid(String code) {
+        return inviteRepository.existsByCode(code) && (inviteRepository.existsByCode(code) || !isCodeExpired(code));
+    }
+
+    public boolean isEmailInvited(String email) {
+        return inviteRepository.existsByForEmailAndInviterIdIsNotNull(email);
     }
 }

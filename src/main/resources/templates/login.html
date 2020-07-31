@@ -1,5 +1,5 @@
 <page th:replace="fragments/user-layout :: page(~{::title},~{::content})">
-    <title>Sign in</title>
+    <title>Sign in - Civil Service Learning</title>
 
     <content>
         <div class="container">
@@ -12,11 +12,20 @@
                             Sign in failed
                         </h2>
                         <p>
-
                             <span th:if="${param.error[0] == 'failed'}">You have entered the wrong email address or password, please try again.</span>
-                            <span th:if="${param.error[0] == 'locked'}">Your account has been locked. Please contact us to <a
-                                    href="mailto:feedback@cslearning.gov.uk">unlock your account.</a></span>
+                            <span th:if="${param.error[0] == 'locked'}">Your account has been locked. Please contact us to <a href="mailto:feedback@cslearning.gov.uk">unlock your account.</a></span>
+                            <span th:if="${param.error[0] == 'blocked'}">Your account has been blocked and cannot access this website.<br>Please <a href="mailto:feedback@cslearning.gov.uk">contact us</a> for more information.</span>
+                            <span th:if="${param.error[0] == 'deactivated'}">Your account has been deactivated and cannot access this website.<br>Please <a href="mailto:feedback@cslearning.gov.uk">contact us</a> for more information.</span>
                         </p>
+                    </div>
+
+                    <div th:if="${status}" class="error-summary" role="alert"
+                         aria-labelledby="error-summary-heading-example-1" tabindex="-1">
+                        <h2 class="heading-medium error-summary-heading" id="error-summary-heading-example-2">There was
+                            a problem</h2>
+                        <ul class="error-summary-list">
+                            <li><a href="#token" th:text="${status}">status ...</a></li>
+                        </ul>
                     </div>
 
                     <div th:if="${param.logout}" class="error-summary" role="alert"

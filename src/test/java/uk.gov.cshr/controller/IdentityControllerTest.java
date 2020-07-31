@@ -1,6 +1,7 @@
 package uk.gov.cshr.controller;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -27,10 +28,10 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.junit.Assert.assertTrue;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -44,6 +45,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 public class IdentityControllerTest {
 
+    private static final String UID = "uid";
+    private static String EMAIL_SUCCESSFULLY_UPDATED_URL;
     private final Boolean ACTIVE = true;
     private final Boolean LOCKED = false;
     private final String DESCRIPTION = "User";
@@ -51,7 +54,6 @@ public class IdentityControllerTest {
     private final String NAME = "User";
     private final String PASSWORD = "password";
     private final Set<Role> ROLES = new HashSet();
-    private final String UID = "uid";
     private final String USERNAME = "test";
     private final String[] roleID = {"1"};
     @InjectMocks
@@ -72,6 +74,11 @@ public class IdentityControllerTest {
     @Mock
     private IdentityService identityService;
 
+    @BeforeClass
+    public static void setUpAll() {
+        EMAIL_SUCCESSFULLY_UPDATED_URL = "/management/identities/update/"+UID+"/emailSuccessfullyUpdated";
+    }
+
     @Before
     public void setup() {
 
@@ -85,7 +92,7 @@ public class IdentityControllerTest {
 
         ArrayList<Identity> identities = new ArrayList<>();
 
-        identities.add(new Identity(UID, EMAIL, PASSWORD, ACTIVE, LOCKED, ROLES, Instant.now(), false));
+        identities.add(new Identity(UID, EMAIL, PASSWORD, ACTIVE, LOCKED, ROLES, Instant.now(), false, false));
         ArrayList<Role> roles = new ArrayList<>();
 
         roles.add(new Role(NAME, DESCRIPTION));
@@ -113,7 +120,7 @@ public class IdentityControllerTest {
     @Test
     public void shouldLoadIdentityToEdit() throws Exception {
 
-        Identity identity = new Identity(UID, EMAIL, PASSWORD, ACTIVE, LOCKED, ROLES, Instant.now(), false);
+        Identity identity = new Identity(UID, EMAIL, PASSWORD, ACTIVE, LOCKED, ROLES, Instant.now(), false, false);
         when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
         this.mockMvc.perform(get("/management/identities/update/uid"))
                 .andExpect(model().attribute("identity", hasProperty("uid", is(UID))));
@@ -122,7 +129,7 @@ public class IdentityControllerTest {
     @Test
     public void shouldSaveEditedIdentity() throws Exception {
 
-        Identity identity = new Identity(UID, EMAIL, PASSWORD, ACTIVE, LOCKED, ROLES, Instant.now(), false);
+        Identity identity = new Identity(UID, EMAIL, PASSWORD, ACTIVE, LOCKED, ROLES, Instant.now(), false, false);
         when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
 
 
@@ -137,16 +144,16 @@ public class IdentityControllerTest {
 
         verify(identityRepository).save(identityCaptor.capture());
 
-        identity = identityCaptor.getValue();
-        assertThat(identity.getUid(), equalTo(UID));
-        assertThat(identity.getEmail(), equalTo(EMAIL));
-        assertTrue(identity.isLocked());
+        Identity actualSavedIdentity = identityCaptor.getValue();
+        assertThat(actualSavedIdentity.getUid(), equalTo(UID));
+        assertThat(actualSavedIdentity.getEmail(), equalTo(EMAIL));
+        assertTrue(actualSavedIdentity.isLocked());
     }
 
     @Test
     public void shouldInsertRolesByIDForEditedIdentity() throws Exception {
 
-        Identity identity = new Identity(UID, EMAIL, PASSWORD, ACTIVE, LOCKED, ROLES, Instant.now(), false);
+        Identity identity = new Identity(UID, EMAIL, PASSWORD, ACTIVE, LOCKED, ROLES, Instant.now(), false, false);
         when(identityRepository.findFirstByUid(UID)).thenReturn(Optional.of(identity));
 
 
@@ -160,12 +167,10 @@ public class IdentityControllerTest {
 
         verify(identityRepository).save(identityCaptor.capture());
 
-        identity = identityCaptor.getValue();
-        ArrayList<Role> roles = new ArrayList(identity.getRoles());
+        Identity actualSavedIdentity = identityCaptor.getValue();
+        ArrayList<Role> roles = new ArrayList(actualSavedIdentity.getRoles());
 
         assertThat(roles.get(0).getName(), equalTo(NAME));
-
     }
-
 
 }

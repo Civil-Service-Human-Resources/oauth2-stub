@@ -109,7 +109,6 @@ Will respond like
 }
 ```
 
-
 ## Configuration
 
 Significant configuration properties are highlighted here. For the full configuration file see `src/main/resources/application.yml`
@@ -124,7 +123,55 @@ Significant configuration properties are highlighted here. For the full configur
 - `spring.datasource` connection parameters for MySQL DB
 - `spring.redis` connection parameters for Redis session cache
 
+# Mocks for testing Agency Self Sign Up flows
+In order to test signing up users with an agency token, a fake invite service is required.
+There is a spring profile which runs mock implementations for the following 3 services.
+* InviteService
+* NotifyService
+* IdentityService
 
+The spring profile is called runMocks and can be added to the runtime configuration.
+
+* Invite Service was mocked to avoid the sending of a real invite.  This would require a real email account.  Most people only have 1 or 2 email accounts.
+* Notify Service was mocked to avoid sending a real email via the Gov Notify service.  
+* Identity Service was mocked to avoid the saving of a signed up user account to the real database.
+
+## Running a specific spring profile via IntelliJ
+Create a new runtime configuration and give it a name
+
+set the following:
+* gradle project: identity-service
+* tasks: bootRun
+* environment variables: SPRING_PROFILES_ACTIVE=runMocks
+
+## Running a specific spring profile via the command line
+Use the following command
+
+SPRING_PROFILES_ACTIVE=runMocks ./gradlew clean bootRun
+
+### Using the mocks
+The create a new account screen flow sends an invitation to the relevant email account.
+All this really is, is the following url.
+http://localhost:8080/signup/16digitcode
+For example http://localhost:8080/signup/1234567812345678
+
+The sign up code checks the email that is returned therefore several accounts have been added to the code
+in order ot mock this.
+
+If the following url is used
+http://localhost:8080/signup/joebloggsatpeo16
+then the email address that is returned is joebloggs@peoplemakeglasgow.scot
+
+The following codes can be used for the given emails as detailed in the code snippet below:
+```
+mockedUsers.put("joebloggsatpeo16", "joebloggs@peoplemakeglasgow.scot");
+mockedUsers.put("joebloggsatnhs16", "joebloggs@nhsglasgow.gov.uk");
+mockedUsers.put("joebloggsatgla16", "joebloggs@glasgownhs.gov.uk");
+```
+
+This allows you to test the agency self sign up screens.
+
+       
 ## Licenses
 
 Identity Service is licensed by the MIT license, see `LICENSE` in the root folder for details. Dependent applications are licensed as according to their respective readme and license files.

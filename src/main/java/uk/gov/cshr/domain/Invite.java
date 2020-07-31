@@ -40,4 +40,5 @@ public class Invite implements Serializable {
     )
     private Set<Role> forRoles;
 
+    private boolean isAuthorisedInvite = true;
 }

@@ -12,7 +12,6 @@ import javax.validation.constraints.NotBlank;
 public class UpdateEmailForm {
     @NotBlank(message = "{validation.updateEmail.email.NotBlank}")
     @Email(message = "{validation.updateEmail.email.Email}")
-    @Whitelisted(message = "{validation.updateEmail.email.Whitelisted}")
     private String email;
 
     @NotBlank(message = "{validation.updateEmail.confirm.NotBlank}")

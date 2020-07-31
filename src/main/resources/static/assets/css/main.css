@@ -4308,6 +4308,10 @@ only screen and (min-resolution: 2dppx) {
   max-width: 23ex;
 }
 
+.width-10 {
+    max-width: 23ex;
+}
+
 .booking__col-heading {
   padding: 10px 0;
   border-top: 5px solid #000;

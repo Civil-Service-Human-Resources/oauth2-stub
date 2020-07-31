@@ -1,10 +1,10 @@
 package uk.gov.cshr.service;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.cshr.exception.NotificationException;
 import uk.gov.service.notify.NotificationClient;
 import uk.gov.service.notify.NotificationClientException;
@@ -18,12 +18,16 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class NotifyServiceTest {
 
-    @Mock
     private NotificationClient notificationClient;
 
-    @InjectMocks
     private NotifyService notifyService;
 
+    @Before
+    public void setUp(){
+        notificationClient = mock(NotificationClient.class);
+        notifyService = new NotifyServiceImpl(notificationClient);
+        ReflectionTestUtils.setField(notifyService, "notificationClient", notificationClient);
+    }
     @Test
     public void shouldSendNotificationWithEmailAddressAndTemplateId() throws NotificationClientException {
         String email = "learner@domain.com";
