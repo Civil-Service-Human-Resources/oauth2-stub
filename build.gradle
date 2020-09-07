@@ -88,6 +88,9 @@ dependencies {
     // https://github.com/alphagov/notifications-java-client
     compile('uk.gov.service.notify:notifications-java-client:3.9.1-RELEASE')
 
+    compile 'org.springdoc:springdoc-openapi-ui:1.4.6'
+    compile 'org.springdoc:springdoc-openapi-security:1.4.6'
+
     testCompile("junit:junit")
     testCompile("org.springframework.boot:spring-boot-starter-test")
 

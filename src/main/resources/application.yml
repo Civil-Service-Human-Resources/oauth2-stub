@@ -73,6 +73,13 @@ registry:
   agencyTokensByDomainFormat: "${registry.serviceUrl}/agencyTokens?domain=%s"
   agencyTokensByDomainAndOrganisationFormat: "${registry.serviceUrl}/agencyTokens?domain=%s&code=%s"
   organisationalUnitsFlatUrl: "${registry.serviceUrl}/organisationalUnits/flat"
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    path: /swagger-ui.html
+    disable-swagger-default-url: true
 ---
 
 spring:
