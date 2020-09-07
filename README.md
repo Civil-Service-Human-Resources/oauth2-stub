@@ -10,6 +10,13 @@ The Identity Service uses [Spring Security OAuth](http://projects.spring.io/spri
 See the `diagram/` folder for diagram source in draw.io XML format
 
 
+## API documentation
+
+The [SpringDoc](https://springdoc.org/) library has been added to Identity Service to enable automatic generation of API documentation for HTTP endpoints. This will generate API docs for the classes annotated with `@RestController` and any endpoints in a `@Controller` class that have a `@ResponseBody` defined. The endpoints used by Identity Service to return HTML template responses (i.e. the paths corresponding to the web pages rather than the service APIs) will not by default be included, ensuring the API documentation shows the service interface endpoints. Further detail for each API endpoint can be included in the generated documentation by enriching the controller methods with additional annotations described in the SpringDoc documentation.
+
+To view the Swagger UI page for a user-friendly view of the API docs, run the service locally with the configuration property `springdoc.api-docs.enabled` set to `true` and view on `localhost:8080/swagger-ui.html`. The default value is set to `false` as a production-safe value, though per-environment configuration can be created in the Terraform deployment configuration for this application to override this in a pre-production environment where exposing the Swagger UI may be desired.
+
+
 ## Dependencies
 
 ### Build-time
