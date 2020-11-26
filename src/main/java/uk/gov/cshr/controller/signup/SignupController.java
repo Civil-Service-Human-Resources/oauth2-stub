@@ -23,6 +23,8 @@ import uk.gov.cshr.utils.ApplicationConstants;
 import uk.gov.service.notify.NotificationClientException;
 
 import javax.validation.Valid;
+import java.util.Date;
+import java.util.Optional;
 
 @Slf4j
 @Controller
@@ -61,18 +63,22 @@ public class SignupController {
 
     private final String lpgUiUrl;
 
+    private final long allowedTimeForReReg;
+
     public SignupController(InviteService inviteService,
                             IdentityService identityService,
                             CsrsService csrsService,
                             InviteRepository inviteRepository,
                             AgencyTokenCapacityService agencyTokenCapacityService,
-                            @Value("${lpg.uiUrl}") String lpgUiUrl) {
+                            @Value("${lpg.uiUrl}") String lpgUiUrl,
+                            @Value("${invite.allowedTimeForReReg}") long allowedTimeForReReg) {
         this.inviteService = inviteService;
         this.identityService = identityService;
         this.csrsService = csrsService;
         this.inviteRepository = inviteRepository;
         this.agencyTokenCapacityService = agencyTokenCapacityService;
         this.lpgUiUrl = lpgUiUrl;
+        this.allowedTimeForReReg = allowedTimeForReReg;
     }
 
     @GetMapping(path = "/request")
@@ -93,14 +99,21 @@ public class SignupController {
         }
 
         final String email = form.getEmail();
-
-        if (inviteRepository.existsByForEmailAndStatus(email, InviteStatus.PENDING)) {
+        Optional<Invite> invite = inviteService.findByForEmailAndStatus(email, InviteStatus.PENDING);
+        if(invite.isPresent()) {
+            if (!inviteService.ifExpired(invite.get())) {
+                long timeForReReg = new Date().getTime() - invite.get().getInvitedAt().getTime();
+                if (timeForReReg < allowedTimeForReReg * 1000) {
+                    log.info("{} user given time to wait before re-registration", email);
+                    redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, "<<CUSTOMIZABLE>> Wait for time to re-register and try again " + email);
+                    return REDIRECT_SIGNUP_REQUEST;
+                }
+            }
             log.info("{} has already been invited", email);
-            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, email + " has already been invited");
-            return REDIRECT_SIGNUP_REQUEST;
+            inviteService.updateInviteByCode(invite.get().getCode(), InviteStatus.EXPIRED);
         }
 
-        if (identityService.existsByEmail(email)) {
+        if (identityService.checkEmailExists(email)) {
             log.info("{} is already a user", email);
             redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, "User already exists with email address " + email);
             return REDIRECT_SIGNUP_REQUEST;
@@ -126,27 +139,35 @@ public class SignupController {
     }
 
     @GetMapping("/{code}")
-    public String signup(Model model, @PathVariable(value = "code") String code) {
-        if (inviteService.isInviteValid(code)) {
-            Invite invite = inviteRepository.findByCode(code);
+    public String signup(Model model, @PathVariable(value = "code") String code,
+                                            RedirectAttributes redirectAttributes) {
+        if (inviteService.isCodeExists(code)) {
+            if (!inviteService.isCodeExpired(code)) {
+                Invite invite = inviteRepository.findByCode(code);
 
-            if (!invite.isAuthorisedInvite()) {
-                log.debug("Invite email = {} not yet authorised - redirecting to enter token screen", invite.getForEmail());
-                return REDIRECT_ENTER_TOKEN + code;
-            }
+                if (!invite.isAuthorisedInvite()) {
+                    log.debug("Invite email = {} not yet authorised - redirecting to enter token screen", invite.getForEmail());
+                    return REDIRECT_ENTER_TOKEN + code;
+                }
 
-            model.addAttribute(INVITE_MODEL, invite);
-            model.addAttribute(SIGNUP_FORM, new SignupForm());
+                model.addAttribute(INVITE_MODEL, invite);
+                model.addAttribute(SIGNUP_FORM, new SignupForm());
 
-            if(model.containsAttribute(TOKEN_INFO_FLASH_ATTRIBUTE)) {
-                TokenRequest tokenRequest = (TokenRequest) model.asMap().get(TOKEN_INFO_FLASH_ATTRIBUTE);
-                model.addAttribute(TOKEN_INFO_FLASH_ATTRIBUTE, tokenRequest);
+                if (model.containsAttribute(TOKEN_INFO_FLASH_ATTRIBUTE)) {
+                    TokenRequest tokenRequest = (TokenRequest) model.asMap().get(TOKEN_INFO_FLASH_ATTRIBUTE);
+                    model.addAttribute(TOKEN_INFO_FLASH_ATTRIBUTE, tokenRequest);
+                } else {
+                    model.addAttribute(TOKEN_INFO_FLASH_ATTRIBUTE, new TokenRequest());
+                }
+                log.debug("Invite email = {} valid and authorised - redirecting to set password screen", invite.getForEmail());
+                return SIGNUP_TEMPLATE;
             } else {
-                model.addAttribute(TOKEN_INFO_FLASH_ATTRIBUTE, new TokenRequest());
+                log.debug("Signup code for invite not valid - redirecting to login");
+                redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE,
+                        "<<CUSTOMIZABLE>> Invite email is not valid. Please sign up again");
+                inviteService.updateInviteByCode(code, InviteStatus.EXPIRED);
+                return REDIRECT_SIGNUP_REQUEST;
             }
-
-            log.debug("Invite email = {} valid and authorised - redirecting to set password screen", invite.getForEmail());
-            return SIGNUP_TEMPLATE;
         } else {
             log.debug("Signup code for invite not valid - redirecting to login");
             return REDIRECT_LOGIN;
@@ -175,6 +196,7 @@ public class SignupController {
             log.debug("Invite and signup credentials valid - creating identity and updating invite to 'Accepted'");
             try {
                 identityService.createIdentityFromInviteCode(code, signupForm.getPassword(), tokenRequest);
+                inviteService.updateInviteByCode(code, InviteStatus.ACCEPTED);
             } catch (UnableToAllocateAgencyTokenException e) {
                 log.debug("UnableToAllocateAgencyTokenException. Redirecting to set password with no spaces error: " + e);
 
@@ -190,7 +212,6 @@ public class SignupController {
 
                 return REDIRECT_LOGIN;
             }
-            inviteService.updateInviteByCode(code, InviteStatus.ACCEPTED);
 
             // This provides the next template the URL for LPG-UI so a user can begin the login process
             model.addAttribute(LPG_UI_URL, lpgUiUrl);

@@ -142,7 +142,7 @@ public class SignupControllerTest {
         String email = "user@domain.com";
 
         when(inviteRepository.existsByForEmailAndStatus(email, InviteStatus.PENDING)).thenReturn(false);
-        when(identityService.existsByEmail(email)).thenReturn(true);
+        when(identityService.checkEmailExists(email)).thenReturn(true);
 
         mockMvc.perform(
                 post("/signup/request")
@@ -150,7 +150,8 @@ public class SignupControllerTest {
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
                         .param("email", email)
                         .param("confirmEmail", email))
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/signup/request"));
     }
 
     @Test
@@ -226,7 +227,7 @@ public class SignupControllerTest {
                 get("/signup/" + code)
                         .with(CsrfRequestPostProcessor.csrf()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/signup/enterToken/" + code));
+                .andExpect(redirectedUrl("/login"));
     }
 
     @Test
@@ -241,8 +242,8 @@ public class SignupControllerTest {
         mockMvc.perform(
                 get("/signup/" + code)
                         .with(CsrfRequestPostProcessor.csrf()))
-                .andExpect(status().isOk())
-                .andExpect(view().name("signup"));
+                .andExpect(status().is3xxRedirection())
+                .andExpect(view().name("redirect:/login"));
     }
 
     @Test

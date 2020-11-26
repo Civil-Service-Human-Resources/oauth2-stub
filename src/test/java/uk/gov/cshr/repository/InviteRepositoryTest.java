@@ -11,6 +11,7 @@ import uk.gov.cshr.domain.InviteStatus;
 
 import javax.transaction.Transactional;
 import java.util.Date;
+import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -81,6 +82,20 @@ public class InviteRepositoryTest {
 
         assertThat(existsByCodeAndStatusForPendingInvite, equalTo(true));
         assertThat(existsByCodeAndStatusForExpiredInvite, equalTo(false));
+    }
+
+    @Test
+    public void findByForEmailAndStatusShouldReturnCorrectInvite() {
+        Invite invite = createInvite();
+
+        inviteRepository.save(invite);
+
+        Optional<Invite> actualInvite = inviteRepository.findByForEmailAndStatus("test@example.org", InviteStatus.PENDING);
+
+        assertThat(actualInvite.get().getCode(), equalTo("123abc"));
+        assertThat(actualInvite.get().getForEmail(), equalTo("test@example.org"));
+        assertThat(actualInvite.get().getStatus(), equalTo(InviteStatus.PENDING));
+
     }
 
     private Invite createInvite() {
