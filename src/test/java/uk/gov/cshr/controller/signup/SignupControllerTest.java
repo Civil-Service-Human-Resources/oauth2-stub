@@ -211,7 +211,7 @@ public class SignupControllerTest {
                 get("/signup/" + code)
                         .with(CsrfRequestPostProcessor.csrf()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/login"));
+                .andExpect(redirectedUrl("/signup/request"));
     }
 
     @Test
@@ -227,7 +227,7 @@ public class SignupControllerTest {
                 get("/signup/" + code)
                         .with(CsrfRequestPostProcessor.csrf()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/login"));
+                .andExpect(redirectedUrl("/signup/request"));
     }
 
     @Test
@@ -243,7 +243,7 @@ public class SignupControllerTest {
                 get("/signup/" + code)
                         .with(CsrfRequestPostProcessor.csrf()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(view().name("redirect:/login"));
+                .andExpect(redirectedUrl("/signup/request"));
     }
 
     @Test

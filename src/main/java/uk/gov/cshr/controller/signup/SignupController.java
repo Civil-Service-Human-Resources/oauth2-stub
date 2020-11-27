@@ -105,7 +105,10 @@ public class SignupController {
                 long timeForReReg = new Date().getTime() - invite.get().getInvitedAt().getTime();
                 if (timeForReReg < allowedTimeForReReg * 1000) {
                     log.info("{} user given time to wait before re-registration", email);
-                    redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, "<<CUSTOMIZABLE>> Wait for time to re-register and try again " + email);
+                    redirectAttributes.addFlashAttribute(
+                            ApplicationConstants.STATUS_ATTRIBUTE,
+                            "You have been sent an email with a link to register your account. Please check your spam or junk mail folders. " +
+                                    "If you have not received your link, please wait 24 hours and re-enter your details to create an account. ");
                     return REDIRECT_SIGNUP_REQUEST;
                 }
             }
@@ -162,15 +165,19 @@ public class SignupController {
                 log.debug("Invite email = {} valid and authorised - redirecting to set password screen", invite.getForEmail());
                 return SIGNUP_TEMPLATE;
             } else {
-                log.debug("Signup code for invite not valid - redirecting to login");
+                log.debug("Signup code for invite is expired - redirecting to signup");
                 redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE,
-                        "<<CUSTOMIZABLE>> Invite email is not valid. Please sign up again");
+                        "This registration link has now expired. " +
+                        "Please re-enter your details to create an account.");
                 inviteService.updateInviteByCode(code, InviteStatus.EXPIRED);
                 return REDIRECT_SIGNUP_REQUEST;
             }
         } else {
-            log.debug("Signup code for invite not valid - redirecting to login");
-            return REDIRECT_LOGIN;
+            log.debug("Signup code for invite is not valid - redirecting to signup");
+            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE,
+                    "This registration link does not match the one sent to you by email. " +
+                            "Please check the link and try again.");
+            return REDIRECT_SIGNUP_REQUEST;
         }
     }
 
