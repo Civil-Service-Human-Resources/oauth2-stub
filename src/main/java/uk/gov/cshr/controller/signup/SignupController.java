@@ -107,7 +107,7 @@ public class SignupController {
                     log.info("{} user given time to wait before re-registration", email);
                     redirectAttributes.addFlashAttribute(
                             ApplicationConstants.STATUS_ATTRIBUTE,
-                            "You have been sent an email with a link to register your account. Please check your spam or junk mail folders. " +
+                            "You have been sent an email with a link to register your account. Please check your spam or junk mail folders.\n" +
                                     "If you have not received your link, please wait 24 hours and re-enter your details to create an account. ");
                     return REDIRECT_SIGNUP_REQUEST;
                 }
@@ -167,7 +167,7 @@ public class SignupController {
             } else {
                 log.debug("Signup code for invite is expired - redirecting to signup");
                 redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE,
-                        "This registration link has now expired. " +
+                        "This registration link has now expired.\n" +
                         "Please re-enter your details to create an account.");
                 inviteService.updateInviteByCode(code, InviteStatus.EXPIRED);
                 return REDIRECT_SIGNUP_REQUEST;
@@ -175,7 +175,7 @@ public class SignupController {
         } else {
             log.debug("Signup code for invite is not valid - redirecting to signup");
             redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE,
-                    "This registration link does not match the one sent to you by email. " +
+                    "This registration link does not match the one sent to you by email.\n " +
                             "Please check the link and try again.");
             return REDIRECT_SIGNUP_REQUEST;
         }
