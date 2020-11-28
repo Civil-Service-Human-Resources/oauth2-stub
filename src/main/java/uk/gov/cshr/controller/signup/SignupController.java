@@ -101,7 +101,7 @@ public class SignupController {
         final String email = form.getEmail();
         Optional<Invite> invite = inviteService.findByForEmailAndStatus(email, InviteStatus.PENDING);
         if(invite.isPresent()) {
-            if (!inviteService.ifExpired(invite.get())) {
+            if (!inviteService.isInviteExpired(invite.get())) {
                 long timeForReReg = new Date().getTime() - invite.get().getInvitedAt().getTime();
                 if (timeForReReg < allowedTimeForReReg * 1000) {
                     log.info("{} user given time to wait before re-registration", email);
@@ -116,7 +116,7 @@ public class SignupController {
             inviteService.updateInviteByCode(invite.get().getCode(), InviteStatus.EXPIRED);
         }
 
-        if (identityService.checkEmailExists(email)) {
+        if (identityService.existsByEmail(email)) {
             log.info("{} is already a user", email);
             redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, "User already exists with email address " + email);
             return REDIRECT_SIGNUP_REQUEST;
@@ -145,7 +145,14 @@ public class SignupController {
     public String signup(Model model, @PathVariable(value = "code") String code,
                                             RedirectAttributes redirectAttributes) {
         if (inviteService.isCodeExists(code)) {
-            if (!inviteService.isCodeExpired(code)) {
+            if (inviteService.isCodeExpired(code)) {
+                log.debug("Signup code for invite is expired - redirecting to signup");
+                redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE,
+                        "This registration link has now expired.\n" +
+                                "Please re-enter your details to create an account.");
+                inviteService.updateInviteByCode(code, InviteStatus.EXPIRED);
+                return REDIRECT_SIGNUP_REQUEST;
+            } else {
                 Invite invite = inviteRepository.findByCode(code);
 
                 if (!invite.isAuthorisedInvite()) {
@@ -164,13 +171,6 @@ public class SignupController {
                 }
                 log.debug("Invite email = {} valid and authorised - redirecting to set password screen", invite.getForEmail());
                 return SIGNUP_TEMPLATE;
-            } else {
-                log.debug("Signup code for invite is expired - redirecting to signup");
-                redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE,
-                        "This registration link has now expired.\n" +
-                        "Please re-enter your details to create an account.");
-                inviteService.updateInviteByCode(code, InviteStatus.EXPIRED);
-                return REDIRECT_SIGNUP_REQUEST;
             }
         } else {
             log.debug("Signup code for invite is not valid - redirecting to signup");
@@ -203,7 +203,6 @@ public class SignupController {
             log.debug("Invite and signup credentials valid - creating identity and updating invite to 'Accepted'");
             try {
                 identityService.createIdentityFromInviteCode(code, signupForm.getPassword(), tokenRequest);
-                inviteService.updateInviteByCode(code, InviteStatus.ACCEPTED);
             } catch (UnableToAllocateAgencyTokenException e) {
                 log.debug("UnableToAllocateAgencyTokenException. Redirecting to set password with no spaces error: " + e);
 
@@ -219,6 +218,7 @@ public class SignupController {
 
                 return REDIRECT_LOGIN;
             }
+            inviteService.updateInviteByCode(code, InviteStatus.ACCEPTED);
 
             // This provides the next template the URL for LPG-UI so a user can begin the login process
             model.addAttribute(LPG_UI_URL, lpgUiUrl);

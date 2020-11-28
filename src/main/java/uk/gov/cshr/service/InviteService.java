@@ -59,10 +59,10 @@ public class InviteService {
 
     public boolean isCodeExpired(String code) {
         Invite invite = inviteRepository.findByCode(code);
-        return ifExpired(invite);
+        return isInviteExpired(invite);
     }
 
-    public boolean ifExpired(Invite invite) {
+    public boolean isInviteExpired(Invite invite) {
         long diffInMs = new Date().getTime() - invite.getInvitedAt().getTime();
         boolean codeExpired = false;
 
