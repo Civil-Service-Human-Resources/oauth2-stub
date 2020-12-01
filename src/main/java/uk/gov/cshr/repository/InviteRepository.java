@@ -24,5 +24,4 @@ public interface InviteRepository extends CrudRepository<Invite, Long> {
     boolean existsByForEmailAndStatus(String email, InviteStatus status);
 
     boolean existsByForEmailAndInviterIdIsNotNull(String email);
-
 }

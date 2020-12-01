@@ -63,7 +63,7 @@ public class SignupController {
 
     private final String lpgUiUrl;
 
-    private final long allowedTimeForReReg;
+    private final long durationAfterReRegAllowedInSeconds;
 
     public SignupController(InviteService inviteService,
                             IdentityService identityService,
@@ -71,14 +71,14 @@ public class SignupController {
                             InviteRepository inviteRepository,
                             AgencyTokenCapacityService agencyTokenCapacityService,
                             @Value("${lpg.uiUrl}") String lpgUiUrl,
-                            @Value("${invite.allowedTimeForReReg}") long allowedTimeForReReg) {
+                            @Value("${invite.durationAfterReRegAllowedInSeconds}") long durationAfterReRegAllowedInSeconds) {
         this.inviteService = inviteService;
         this.identityService = identityService;
         this.csrsService = csrsService;
         this.inviteRepository = inviteRepository;
         this.agencyTokenCapacityService = agencyTokenCapacityService;
         this.lpgUiUrl = lpgUiUrl;
-        this.allowedTimeForReReg = allowedTimeForReReg;
+        this.durationAfterReRegAllowedInSeconds = durationAfterReRegAllowedInSeconds;
     }
 
     @GetMapping(path = "/request")
@@ -99,21 +99,24 @@ public class SignupController {
         }
 
         final String email = form.getEmail();
-        Optional<Invite> invite = inviteService.findByForEmailAndStatus(email, InviteStatus.PENDING);
-        if(invite.isPresent()) {
-            if (!inviteService.isInviteExpired(invite.get())) {
-                long timeForReReg = new Date().getTime() - invite.get().getInvitedAt().getTime();
-                if (timeForReReg < allowedTimeForReReg * 1000) {
-                    log.info("{} user given time to wait before re-registration", email);
+        Optional<Invite> pendingInvite = inviteService.findByForEmailAndStatus(email, InviteStatus.PENDING);
+        if(pendingInvite.isPresent()) {
+            if (inviteService.isInviteCodeExpired(pendingInvite.get())) {
+                log.info("{} has already been invited", email);
+                inviteService.updateInviteByCode(pendingInvite.get().getCode(), InviteStatus.EXPIRED);
+            } else {
+                long timeForReReg = new Date().getTime() - pendingInvite.get().getInvitedAt().getTime();
+                if (timeForReReg < durationAfterReRegAllowedInSeconds * 1000) {
+                    log.info("{} user trying to re-register before re-registration allowed time", email);
                     redirectAttributes.addFlashAttribute(
                             ApplicationConstants.STATUS_ATTRIBUTE,
                             "You have been sent an email with a link to register your account. Please check your spam or junk mail folders.\n" +
-                                    "If you have not received your link, please wait 24 hours and re-enter your details to create an account. ");
+                                    "If you have not received your link, please wait " +
+                                    (durationAfterReRegAllowedInSeconds/3600) +
+                                    " hours and re-enter your details to create an account.");
                     return REDIRECT_SIGNUP_REQUEST;
                 }
             }
-            log.info("{} has already been invited", email);
-            inviteService.updateInviteByCode(invite.get().getCode(), InviteStatus.EXPIRED);
         }
 
         if (identityService.existsByEmail(email)) {
