@@ -1,8 +1,4 @@
 spring:
-  datasource:
-    url: ${DATASOURCE:jdbc:mysql://localhost:3306/identity?user=root&password=password&useSSL=false}
-    platform: mysql
-    driver-class-name: com.mysql.cj.jdbc.Driver
   data:
     redis:
       repositories:
@@ -35,11 +31,11 @@ logging:
     org.apache.http: WARN
 
 accessToken:
-  jwtKey: ${jwt_key:dummy}
+  jwtKey: ${jwt_key}
   validityInSeconds: ${ACCESS_TOKEN_VALIDITY:86400}
 
 govNotify:
-  key: ${GOV_NOTIFY_API_KEY:test-22877568-4bca-40f9-8f54-8bf7922583cf-e2f80f22-e3de-4007-9ce2-b50a2b5785b7}
+  key: ${GOV_NOTIFY_API_KEY:key}
   template:
     invite: ${GOV_NOTIFY_INVITE_TEMPLATE_ID:7ef048a3-5c82-40fd-be4c-a238ce328fea}
     reset: ${GOV_NOTIFY_RESET_TEMPLATE_ID:d29b056c-349b-42fc-a453-920cfb58a906}
