@@ -1,1 +1,1 @@
-create index token_status_idx on `token` (status);
+create index invite_status_idx on `invite` (status);
