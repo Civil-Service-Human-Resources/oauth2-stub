@@ -202,7 +202,7 @@ public class SignupControllerTest {
     }
 
     @Test
-    public void shouldSendToLoginIfSignupCodeNotValid() throws Exception {
+    public void shouldRedirectToSignupIfSignupCodeNotValid() throws Exception {
         String code = "abc123";
 
         when(inviteService.isInviteValid(code)).thenReturn(false);
@@ -220,14 +220,15 @@ public class SignupControllerTest {
         Invite invite = new Invite();
         invite.setAuthorisedInvite(false);
 
-        when(inviteService.isInviteValid(code)).thenReturn(true);
+        when(inviteService.isCodeExists(code)).thenReturn(true);
+        when(inviteService.isCodeExpired(code)).thenReturn(false);
         when(inviteRepository.findByCode(code)).thenReturn(invite);
 
         mockMvc.perform(
                 get("/signup/" + code)
                         .with(CsrfRequestPostProcessor.csrf()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/signup/request"));
+                .andExpect(redirectedUrl("/signup/enterToken/" + code));
     }
 
     @Test

@@ -21,6 +21,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 @Transactional
 public class InviteRepositoryTest {
 
+    public static final String INVITE_CODE = "abc123";
+    public static final String INVITE_FOR_EMAIL = "test@example.org";
+
     @Autowired
     private InviteRepository inviteRepository;
 
@@ -33,10 +36,10 @@ public class InviteRepositoryTest {
 
         inviteRepository.save(invite);
 
-        Invite actualInvite = inviteRepository.findByForEmail("test@example.org");
+        Invite actualInvite = inviteRepository.findByForEmail(INVITE_FOR_EMAIL);
 
-        assertThat(actualInvite.getCode(), equalTo("123abc"));
-        assertThat(actualInvite.getForEmail(), equalTo("test@example.org"));
+        assertThat(actualInvite.getCode(), equalTo(INVITE_CODE));
+        assertThat(actualInvite.getForEmail(), equalTo(INVITE_FOR_EMAIL));
 
     }
 
@@ -46,16 +49,16 @@ public class InviteRepositoryTest {
 
         inviteRepository.save(invite);
 
-        Invite actualInvite = inviteRepository.findByCode("123abc");
+        Invite actualInvite = inviteRepository.findByCode(INVITE_CODE);
 
-        assertThat(actualInvite.getCode(), equalTo("123abc"));
-        assertThat(actualInvite.getForEmail(), equalTo("test@example.org"));
+        assertThat(actualInvite.getCode(), equalTo(INVITE_CODE));
+        assertThat(actualInvite.getForEmail(), equalTo(INVITE_FOR_EMAIL));
 
     }
 
     @Test
     public void inviteShouldNotExistByCodeIfNotPresent() {
-        assertThat(inviteRepository.existsByCode("123abc"), equalTo(false));
+        assertThat(inviteRepository.existsByCode(INVITE_CODE), equalTo(false));
     }
 
     @Test
@@ -64,7 +67,7 @@ public class InviteRepositoryTest {
 
         inviteRepository.save(invite);
 
-        assertThat(inviteRepository.existsByCode("123abc"), equalTo(true));
+        assertThat(inviteRepository.existsByCode(INVITE_CODE), equalTo(true));
     }
 
     @Test
@@ -90,16 +93,16 @@ public class InviteRepositoryTest {
 
         inviteRepository.save(invite);
 
-        Optional<Invite> actualInvite = inviteRepository.findByForEmailAndStatus("test@example.org", InviteStatus.PENDING);
+        Optional<Invite> actualInvite = inviteRepository.findByForEmailAndStatus(INVITE_FOR_EMAIL, InviteStatus.PENDING);
 
-        assertThat(actualInvite.get().getCode(), equalTo("123abc"));
-        assertThat(actualInvite.get().getForEmail(), equalTo("test@example.org"));
+        assertThat(actualInvite.get().getCode(), equalTo(INVITE_CODE));
+        assertThat(actualInvite.get().getForEmail(), equalTo(INVITE_FOR_EMAIL));
         assertThat(actualInvite.get().getStatus(), equalTo(InviteStatus.PENDING));
 
     }
 
     private Invite createInvite() {
-        return createInvite("123abc", "test@example.org");
+        return createInvite(INVITE_CODE, INVITE_FOR_EMAIL);
     }
 
     private Invite createInvite(String code, String forEmail) {
