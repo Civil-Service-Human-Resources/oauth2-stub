@@ -265,14 +265,15 @@ public class SignupControllerTest {
         Invite invite = new Invite();
         invite.setAuthorisedInvite(true);
 
-        when(inviteService.isInviteValid(code)).thenReturn(true);
+        when(inviteService.isCodeExists(code)).thenReturn(true);
+        when(inviteService.isCodeExpired(code)).thenReturn(false);
         when(inviteRepository.findByCode(code)).thenReturn(invite);
 
         mockMvc.perform(
                 get("/signup/" + code)
                         .with(CsrfRequestPostProcessor.csrf()))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/signup/request"));
+                .andExpect(status().isOk())
+                .andExpect(view().name("signup"));
     }
 
     @Test
