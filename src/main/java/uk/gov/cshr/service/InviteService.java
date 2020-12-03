@@ -14,6 +14,7 @@ import uk.gov.cshr.repository.InviteRepository;
 import uk.gov.service.notify.NotificationClientException;
 
 import java.util.Date;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -46,16 +47,27 @@ public class InviteService {
         return inviteRepository.findByCode(code);
     }
 
+    @ReadOnlyProperty
+    public Invite findByForEmail(String email) {
+        return inviteRepository.findByForEmail(email);
+    }
+
+    @ReadOnlyProperty
+    public Optional<Invite> findByForEmailAndStatus(String email, InviteStatus status) {
+        return inviteRepository.findByForEmailAndStatus(email, status);
+    }
+
     public boolean isCodeExpired(String code) {
         Invite invite = inviteRepository.findByCode(code);
+        return isInviteCodeExpired(invite);
+    }
+
+    public boolean isInviteCodeExpired(Invite invite) {
         long diffInMs = new Date().getTime() - invite.getInvitedAt().getTime();
 
-        if (diffInMs > validityInSeconds * 1000 && invite.getStatus().equals(InviteStatus.PENDING)) {
-            updateInviteByCode(code, InviteStatus.ACCEPTED);
+        if (diffInMs > validityInSeconds * 1000) {
             return true;
         }
-
-        updateInviteByCode(code, InviteStatus.EXPIRED);
         return false;
     }
 
@@ -84,7 +96,11 @@ public class InviteService {
     }
 
     public boolean isInviteValid(String code) {
-        return inviteRepository.existsByCode(code) && (inviteRepository.existsByCode(code) || !isCodeExpired(code));
+        return inviteRepository.existsByCode(code) && !isCodeExpired(code);
+    }
+
+    public boolean isCodeExists(String code) {
+        return inviteRepository.existsByCode(code);
     }
 
     public boolean isEmailInvited(String email) {

@@ -9,6 +9,7 @@ import uk.gov.cshr.domain.factory.InviteFactory;
 import uk.gov.cshr.repository.InviteRepository;
 import uk.gov.service.notify.NotificationClientException;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 import static junit.framework.TestCase.assertFalse;
@@ -20,7 +21,7 @@ public class InviteServiceTest {
 
     private static final String EMAIL = "test@example.com";
     private final String govNotifyTemplateId = "template-id";
-    private final int validityInSeconds = 30;
+    private final int validityInSeconds = 259200;
     private final String signupUrlFormat = "invite-url";
     private InviteRepository inviteRepository = mock(InviteRepository.class);
     private InviteFactory inviteFactory = mock(InviteFactory.class);
@@ -63,14 +64,21 @@ public class InviteServiceTest {
                 .thenReturn(invite);
 
         MatcherAssert.assertThat(inviteService.isCodeExpired(code), equalTo(true));
+    }
 
-        ArgumentCaptor<Invite> inviteArgumentCaptor = ArgumentCaptor.forClass(Invite.class);
+    @Test
+    public void inviteCodesOlderThanValidityDurationShouldBeExpired() {
+        final String code = "123abc";
 
-        verify(inviteRepository).save(inviteArgumentCaptor.capture());
+        Invite invite = new Invite();
+        invite.setStatus(InviteStatus.PENDING);
+        invite.setCode(code);
+        invite.setInvitedAt(new Date(new Date().getTime() - 1000 * 60 * 60 * 24));
 
-        invite = inviteArgumentCaptor.getValue();
-        MatcherAssert.assertThat(invite.getCode(), equalTo(code));
-        MatcherAssert.assertThat(invite.getStatus(), equalTo(InviteStatus.ACCEPTED));
+        when(inviteRepository.findByCode(code))
+                .thenReturn(invite);
+
+        MatcherAssert.assertThat(inviteService.isCodeExpired(code), equalTo(false));
     }
 
     @Test
