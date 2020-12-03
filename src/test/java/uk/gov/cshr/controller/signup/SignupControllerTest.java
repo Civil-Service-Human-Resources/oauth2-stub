@@ -215,6 +215,34 @@ public class SignupControllerTest {
     }
 
     @Test
+    public void shouldRedirectToSignupIfInviteCodeExpired() throws Exception {
+        String code = "abc123";
+
+        when(inviteService.isCodeExists(code)).thenReturn(true);
+        when(inviteService.isCodeExpired(code)).thenReturn(true);
+        doNothing().when(inviteService).updateInviteByCode(code, InviteStatus.EXPIRED);
+
+        mockMvc.perform(
+                get("/signup/" + code)
+                        .with(CsrfRequestPostProcessor.csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/signup/request"));
+    }
+
+    @Test
+    public void shouldRedirectToSignupIfInviteCodeDoesNotExists() throws Exception {
+        String code = "abc123";
+
+        when(inviteService.isCodeExists(code)).thenReturn(false);
+
+        mockMvc.perform(
+                get("/signup/" + code)
+                        .with(CsrfRequestPostProcessor.csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/signup/request"));
+    }
+
+    @Test
     public void shouldRedirectToEnterTokenPageIfInviteNotAuthorised() throws Exception {
         String code = "abc123";
         Invite invite = new Invite();
