@@ -111,7 +111,7 @@ public class SignupController {
                     redirectAttributes.addFlashAttribute(
                             ApplicationConstants.STATUS_ATTRIBUTE,
                             "You have been sent an email with a link to register your account. Please check your spam or junk mail folders.\n" +
-                                    "If you have not received your link, please wait " +
+                                    "If you have not received the email, please wait " +
                                     (durationAfterReRegAllowedInSeconds/3600) +
                                     " hours and re-enter your details to create an account.");
                     return REDIRECT_SIGNUP_REQUEST;

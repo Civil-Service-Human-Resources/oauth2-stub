@@ -67,7 +67,7 @@ public class InviteServiceTest {
     }
 
     @Test
-    public void inviteCodesOldThanThreeDaysShouldBeExpired() {
+    public void inviteCodesOlderThanValidityDurationShouldBeExpired() {
         final String code = "123abc";
 
         Invite invite = new Invite();
