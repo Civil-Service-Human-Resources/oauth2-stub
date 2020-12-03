@@ -59,9 +59,11 @@ emailUpdate:
 accountValidation:
   passwordPattern: ${PASSWORD_PATTERN:(?!([a-zA-Z]*|[a-z\d]*|[^A-Z\d]*|[A-Z\d]*|[^a-z\d]*|[^a-zA-Z]*)$).{8,}}
 
+#AuthenticationFailureListener in current Spring version is firing twice so need to increase maxAttempt value till fixed
+#https://github:com/spring-projects/spring-security/issues/6281:
 account:
   lockout:
-    maxAttempt: 5
+    maxAttempt: 12
 
 lpg:
   uiUrl: ${LPG_UI_URL:http://localhost:3001}
