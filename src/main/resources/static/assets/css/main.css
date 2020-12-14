@@ -2268,6 +2268,10 @@ input[type="number"] {
   text-decoration: underline;
 }
 
+.error-inline {
+  white-space: pre-line;
+}
+
 .breadcrumbs {
   padding-top: 0.75em;
   padding-bottom: 0.75em;

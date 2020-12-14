@@ -14,7 +14,7 @@ public interface InviteRepository extends CrudRepository<Invite, Long> {
 
     Invite findByCode(String code);
 
-    Optional<Invite> findByForEmailAndStatus(String code, InviteStatus status);
+    Optional<Invite> findByForEmailAndStatus(String email, InviteStatus status);
 
     boolean existsByCode(String code);
 
