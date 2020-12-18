@@ -11,7 +11,7 @@
                             There was a problem inviting this email address
                         </h2>
                         <ul class="error-summary-list">
-                            <li><a href="#email" th:text="${status}">status ...</a></li>
+                            <li><a href="#email" th:text="${status}" class="error-inline">status ...</a></li>
                         </ul>
                     </div>
                     <div th:if="${#fields.hasErrors('${requestInviteForm.*}')}" class="error-summary" role="alert"

@@ -44,6 +44,7 @@ govNotify:
 invite:
   url: ${INVITE_SIGNUP_URL:http://localhost:8080/signup/%s}
   validityInSeconds: ${INVITE_VALIDITY:259200}
+  durationAfterReRegAllowedInSeconds: ${DURATION_AFTER_REREG_ALLOWED_SECONDS:86400}
   whitelist:
     domains: ${WHITELISTED_DOMAINS:kainos.com, domain.com}
 

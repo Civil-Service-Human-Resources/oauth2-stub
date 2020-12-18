@@ -23,6 +23,8 @@ import uk.gov.cshr.utils.ApplicationConstants;
 import uk.gov.service.notify.NotificationClientException;
 
 import javax.validation.Valid;
+import java.util.Date;
+import java.util.Optional;
 
 @Slf4j
 @Controller
@@ -61,18 +63,22 @@ public class SignupController {
 
     private final String lpgUiUrl;
 
+    private final long durationAfterReRegAllowedInSeconds;
+
     public SignupController(InviteService inviteService,
                             IdentityService identityService,
                             CsrsService csrsService,
                             InviteRepository inviteRepository,
                             AgencyTokenCapacityService agencyTokenCapacityService,
-                            @Value("${lpg.uiUrl}") String lpgUiUrl) {
+                            @Value("${lpg.uiUrl}") String lpgUiUrl,
+                            @Value("${invite.durationAfterReRegAllowedInSeconds}") long durationAfterReRegAllowedInSeconds) {
         this.inviteService = inviteService;
         this.identityService = identityService;
         this.csrsService = csrsService;
         this.inviteRepository = inviteRepository;
         this.agencyTokenCapacityService = agencyTokenCapacityService;
         this.lpgUiUrl = lpgUiUrl;
+        this.durationAfterReRegAllowedInSeconds = durationAfterReRegAllowedInSeconds;
     }
 
     @GetMapping(path = "/request")
@@ -93,11 +99,24 @@ public class SignupController {
         }
 
         final String email = form.getEmail();
-
-        if (inviteRepository.existsByForEmailAndStatus(email, InviteStatus.PENDING)) {
-            log.info("{} has already been invited", email);
-            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE, email + " has already been invited");
-            return REDIRECT_SIGNUP_REQUEST;
+        Optional<Invite> pendingInvite = inviteService.findByForEmailAndStatus(email, InviteStatus.PENDING);
+        if(pendingInvite.isPresent()) {
+            if (inviteService.isInviteCodeExpired(pendingInvite.get())) {
+                log.info("{} has already been invited", email);
+                inviteService.updateInviteByCode(pendingInvite.get().getCode(), InviteStatus.EXPIRED);
+            } else {
+                long timeForReReg = new Date().getTime() - pendingInvite.get().getInvitedAt().getTime();
+                if (timeForReReg < durationAfterReRegAllowedInSeconds * 1000) {
+                    log.info("{} user trying to re-register before re-registration allowed time", email);
+                    redirectAttributes.addFlashAttribute(
+                            ApplicationConstants.STATUS_ATTRIBUTE,
+                            "You have been sent an email with a link to register your account. Please check your spam or junk mail folders.\n" +
+                                    "If you have not received the email, please wait " +
+                                    (durationAfterReRegAllowedInSeconds/3600) +
+                                    " hours and re-enter your details to create an account.");
+                    return REDIRECT_SIGNUP_REQUEST;
+                }
+            }
         }
 
         if (identityService.existsByEmail(email)) {
@@ -126,30 +145,42 @@ public class SignupController {
     }
 
     @GetMapping("/{code}")
-    public String signup(Model model, @PathVariable(value = "code") String code) {
-        if (inviteService.isInviteValid(code)) {
-            Invite invite = inviteRepository.findByCode(code);
-
-            if (!invite.isAuthorisedInvite()) {
-                log.debug("Invite email = {} not yet authorised - redirecting to enter token screen", invite.getForEmail());
-                return REDIRECT_ENTER_TOKEN + code;
-            }
-
-            model.addAttribute(INVITE_MODEL, invite);
-            model.addAttribute(SIGNUP_FORM, new SignupForm());
-
-            if(model.containsAttribute(TOKEN_INFO_FLASH_ATTRIBUTE)) {
-                TokenRequest tokenRequest = (TokenRequest) model.asMap().get(TOKEN_INFO_FLASH_ATTRIBUTE);
-                model.addAttribute(TOKEN_INFO_FLASH_ATTRIBUTE, tokenRequest);
+    public String signup(Model model, @PathVariable(value = "code") String code,
+                                            RedirectAttributes redirectAttributes) {
+        if (inviteService.isCodeExists(code)) {
+            if (inviteService.isCodeExpired(code)) {
+                log.debug("Signup code for invite is expired - redirecting to signup");
+                redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE,
+                        "This registration link has now expired.\n" +
+                                "Please re-enter your details to create an account.");
+                inviteService.updateInviteByCode(code, InviteStatus.EXPIRED);
+                return REDIRECT_SIGNUP_REQUEST;
             } else {
-                model.addAttribute(TOKEN_INFO_FLASH_ATTRIBUTE, new TokenRequest());
-            }
+                Invite invite = inviteRepository.findByCode(code);
 
-            log.debug("Invite email = {} valid and authorised - redirecting to set password screen", invite.getForEmail());
-            return SIGNUP_TEMPLATE;
+                if (!invite.isAuthorisedInvite()) {
+                    log.debug("Invite email = {} not yet authorised - redirecting to enter token screen", invite.getForEmail());
+                    return REDIRECT_ENTER_TOKEN + code;
+                }
+
+                model.addAttribute(INVITE_MODEL, invite);
+                model.addAttribute(SIGNUP_FORM, new SignupForm());
+
+                if (model.containsAttribute(TOKEN_INFO_FLASH_ATTRIBUTE)) {
+                    TokenRequest tokenRequest = (TokenRequest) model.asMap().get(TOKEN_INFO_FLASH_ATTRIBUTE);
+                    model.addAttribute(TOKEN_INFO_FLASH_ATTRIBUTE, tokenRequest);
+                } else {
+                    model.addAttribute(TOKEN_INFO_FLASH_ATTRIBUTE, new TokenRequest());
+                }
+                log.debug("Invite email = {} valid and authorised - redirecting to set password screen", invite.getForEmail());
+                return SIGNUP_TEMPLATE;
+            }
         } else {
-            log.debug("Signup code for invite not valid - redirecting to login");
-            return REDIRECT_LOGIN;
+            log.debug("Signup code for invite is not valid - redirecting to signup");
+            redirectAttributes.addFlashAttribute(ApplicationConstants.STATUS_ATTRIBUTE,
+                    "This registration link does not match the one sent to you by email.\n " +
+                            "Please check the link and try again.");
+            return REDIRECT_SIGNUP_REQUEST;
         }
     }
 

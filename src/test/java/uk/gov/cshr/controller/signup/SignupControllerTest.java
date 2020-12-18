@@ -142,7 +142,7 @@ public class SignupControllerTest {
         String email = "user@domain.com";
 
         when(inviteRepository.existsByForEmailAndStatus(email, InviteStatus.PENDING)).thenReturn(false);
-        when(identityService.existsByEmail(email)).thenReturn(true);
+        when(identityService.checkEmailExists(email)).thenReturn(true);
 
         mockMvc.perform(
                 post("/signup/request")
@@ -150,7 +150,8 @@ public class SignupControllerTest {
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
                         .param("email", email)
                         .param("confirmEmail", email))
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/signup/request"));
     }
 
     @Test
@@ -201,7 +202,7 @@ public class SignupControllerTest {
     }
 
     @Test
-    public void shouldSendToLoginIfSignupCodeNotValid() throws Exception {
+    public void shouldRedirectToSignupIfSignupCodeNotValid() throws Exception {
         String code = "abc123";
 
         when(inviteService.isInviteValid(code)).thenReturn(false);
@@ -210,7 +211,35 @@ public class SignupControllerTest {
                 get("/signup/" + code)
                         .with(CsrfRequestPostProcessor.csrf()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/login"));
+                .andExpect(redirectedUrl("/signup/request"));
+    }
+
+    @Test
+    public void shouldRedirectToSignupIfInviteCodeExpired() throws Exception {
+        String code = "abc123";
+
+        when(inviteService.isCodeExists(code)).thenReturn(true);
+        when(inviteService.isCodeExpired(code)).thenReturn(true);
+        doNothing().when(inviteService).updateInviteByCode(code, InviteStatus.EXPIRED);
+
+        mockMvc.perform(
+                get("/signup/" + code)
+                        .with(CsrfRequestPostProcessor.csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/signup/request"));
+    }
+
+    @Test
+    public void shouldRedirectToSignupIfInviteCodeDoesNotExists() throws Exception {
+        String code = "abc123";
+
+        when(inviteService.isCodeExists(code)).thenReturn(false);
+
+        mockMvc.perform(
+                get("/signup/" + code)
+                        .with(CsrfRequestPostProcessor.csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/signup/request"));
     }
 
     @Test
@@ -219,7 +248,8 @@ public class SignupControllerTest {
         Invite invite = new Invite();
         invite.setAuthorisedInvite(false);
 
-        when(inviteService.isInviteValid(code)).thenReturn(true);
+        when(inviteService.isCodeExists(code)).thenReturn(true);
+        when(inviteService.isCodeExpired(code)).thenReturn(false);
         when(inviteRepository.findByCode(code)).thenReturn(invite);
 
         mockMvc.perform(
@@ -235,7 +265,8 @@ public class SignupControllerTest {
         Invite invite = new Invite();
         invite.setAuthorisedInvite(true);
 
-        when(inviteService.isInviteValid(code)).thenReturn(true);
+        when(inviteService.isCodeExists(code)).thenReturn(true);
+        when(inviteService.isCodeExpired(code)).thenReturn(false);
         when(inviteRepository.findByCode(code)).thenReturn(invite);
 
         mockMvc.perform(
