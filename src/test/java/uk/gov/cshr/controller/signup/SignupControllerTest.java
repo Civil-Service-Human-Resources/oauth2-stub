@@ -22,10 +22,12 @@ import uk.gov.cshr.utils.ApplicationConstants;
 import uk.gov.cshr.utils.CsrfRequestPostProcessor;
 import uk.gov.cshr.utils.MockMVCFilterOverrider;
 
+import java.util.Date;
 import java.util.Optional;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -96,6 +98,31 @@ public class SignupControllerTest {
                 .andExpect(content().string(containsString("We have sent you an email with a link to <strong>continue creating your account</strong>.")));
 
         verify(inviteService).sendSelfSignupInvite(email, true);
+    }
+
+    @Test
+    public void shouldExpireInviteIfUserReregAfterRegAllowedTimeButBeforeActivationLinkExpire() throws Exception {
+        String email = "user@domain.com";
+        String domain = "domain.com";
+        Optional<Invite> invite = Optional.of(new Invite());
+        invite.get().setInvitedAt(new Date(System.currentTimeMillis() - 25*60*60*1000));
+        invite.get().setCode("code");
+
+        when(inviteService.findByForEmailAndStatus(email, InviteStatus.PENDING)).thenReturn(invite);
+        when(inviteService.isInviteCodeExpired(invite.get())).thenReturn(false);
+
+        when(identityService.getDomainFromEmailAddress(email)).thenReturn(domain);
+        when(identityService.isWhitelistedDomain(domain)).thenReturn(true);
+        when(csrsService.isDomainInAgency(domain)).thenReturn(false);
+        mockMvc.perform(
+                post("/signup/request")
+                        .with(CsrfRequestPostProcessor.csrf())
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("email", email)
+                        .param("confirmEmail", email))
+                .andExpect(status().isOk());
+
+        verify(inviteService, times(1)).updateInviteByCode(invite.get().getCode(), InviteStatus.EXPIRED);
     }
 
     @Test
