@@ -67,7 +67,7 @@ account:
     maxAttempt: 12
 
 maintenancePage:
-  enabled: ${MAINTENANCE_PAGE_ENABLED:true}
+  enabled: ${MAINTENANCE_PAGE_ENABLED:false}
   contentLine1: ${MAINTENANCE_PAGE_CONTENT_LINE_1:The learning website is undergoing scheduled maintenance.}
   contentLine2: ${MAINTENANCE_PAGE_CONTENT_LINE_2:It will be unavailable between the hours of 7pm to 9pm on Wednesday 3rd February 2021.}
   contentLine3: ${MAINTENANCE_PAGE_CONTENT_LINE_3:Apologies for the inconvenience.}
