@@ -16,8 +16,20 @@ public class LoginController {
   @Value("${lpg.uiUrl}")
   private String lpgUiUrl;
 
+  @Value("${maintenancePage.enabled}")
+  private boolean maintenancePageEnabled;
+
+  @Value("${maintenancePage.content}")
+  private String maintenancePageContent;
+
   @RequestMapping("/login")
   public String login(HttpServletRequest request, HttpServletResponse response) throws IOException {
+
+    if(maintenancePageEnabled) {
+      request.setAttribute("maintenancePageContent", maintenancePageContent);
+      return "maintenance";
+    }
+
     DefaultSavedRequest dsr =
         (DefaultSavedRequest) request.getSession().getAttribute("SPRING_SECURITY_SAVED_REQUEST");
     if (dsr != null && dsr.getQueryString() == null) {

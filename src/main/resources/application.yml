@@ -66,6 +66,10 @@ account:
   lockout:
     maxAttempt: 12
 
+maintenancePage:
+  enabled: ${MAINTENANCE_PAGE_ENABLED:false}
+  content: ${MAINTENANCE_PAGE_CONTENT:The learning website is undergoing scheduled maintenance. It will be unavailable between the hours of 7pm to 9pm on Wednesday 3rd February 2021.}
+
 lpg:
   uiUrl: ${LPG_UI_URL:http://localhost:3001}
   identity: ${OAUTH_SERVICE_URL:http://localhost:8080}

@@ -1,0 +1,16 @@
+<page th:replace="fragments/user-layout :: page(~{::title},~{::content})">
+    <title>Maintenance Page - Civil Service Learning</title>
+
+    <content>
+        <div class="container">
+            <div class="grid-row">
+                <div class="column-two-thirds">
+                    <h1 class="heading-large">Maintenance</h1>
+                    <p class="lede" th:text="${#request.getAttribute('maintenancePageContent')}"></p>
+                    <p class="lede">Apologies for the inconvenience.</p>
+                    <p class="lede">If the maintenance period is extended, further information will be provided here.</p>
+                </div>
+            </div>
+        </div>
+    </content>
+</page>
