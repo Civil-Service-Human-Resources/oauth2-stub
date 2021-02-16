@@ -443,4 +443,26 @@ public class IdentityServiceTest {
 
         identityService.getIdentityByEmailAndActiveFalse(EMAIL);
     }
+
+    @Test
+    public void testIsWhitelistedDomainMixedCase(){
+        boolean validDomain = identityService.isWhitelistedDomain("ExAmPlE.cOm");
+
+        assertTrue(validDomain);
+    }
+
+    @Test
+    public void testIsWhitelistedDomainLowerCase(){
+        boolean validDomain = identityService.isWhitelistedDomain("example.com");
+
+        assertTrue(validDomain);
+    }
+
+    @Test
+    public void testIsWhitelistedDomainUpperCase(){
+        boolean validDomain = identityService.isWhitelistedDomain("EXAMPLE.COM");
+
+        assertTrue(validDomain);
+    }
+
 }
