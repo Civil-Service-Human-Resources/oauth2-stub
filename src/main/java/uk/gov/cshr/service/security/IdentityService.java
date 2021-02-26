@@ -197,7 +197,7 @@ public class IdentityService implements UserDetailsService {
     }
 
     public boolean isWhitelistedDomain(String domain) {
-        return Arrays.asList(whitelistedDomains).contains(domain);
+        return Arrays.asList(whitelistedDomains).stream().anyMatch(domain::equalsIgnoreCase);
     }
 
     public String getDomainFromEmailAddress(String emailAddress) {

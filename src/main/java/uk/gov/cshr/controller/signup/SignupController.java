@@ -115,6 +115,10 @@ public class SignupController {
                                     (durationAfterReRegAllowedInSeconds/3600) +
                                     " hours and re-enter your details to create an account.");
                     return REDIRECT_SIGNUP_REQUEST;
+                } else {
+                    log.info("{} user trying to re-register after re-registration allowed time but " +
+                            "before code expired hence setting the current pending invite to expired.", email);
+                    inviteService.updateInviteByCode(pendingInvite.get().getCode(), InviteStatus.EXPIRED);
                 }
             }
         }
